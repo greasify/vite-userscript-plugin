@@ -1,3 +1,6 @@
+import { transformWithEsbuild } from 'vite'
+import type { ESBuildTransformResult } from 'vite'
+
 class CSS {
   private css: string[] = []
   private cssTemplate = '__CSS_TEMPLATE__'
@@ -7,21 +10,28 @@ class CSS {
     return this.cssTemplate
   }
 
-  addStyle(entry: string, code: string, id: string): { code: string } | null {
-    if (this.includeCss.test(id)) {
+  add(entry: string, code: string, file: string): { code: string } | null {
+    if (this.includeCss.test(file)) {
       this.css.push(code)
       return {
         code: ''
       }
     }
 
-    if (id.includes(entry)) {
+    if (file.includes(entry)) {
       return {
         code: code + this.cssTemplate
       }
     }
 
     return null
+  }
+
+  async minify(css: string, file: string): Promise<ESBuildTransformResult> {
+    return await transformWithEsbuild(css, file, {
+      minify: true,
+      loader: 'css'
+    })
   }
 
   inject(): string {

@@ -23,9 +23,10 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
     configResolved(config) {
       pluginConfig = config
     },
-    transform(code: string, id: string) {
+    async transform(style: string, file: string) {
       const { entry } = pluginConfig.build.lib as LibraryOptions
-      return css.addStyle(entry, code, id)
+      const { code } = await css.minify(style, file)
+      return css.add(entry, code.replace('\n', ''), file)
     },
     writeBundle(options, bundle) {
       for (const [fileName, { name }] of Object.entries(bundle)) {
