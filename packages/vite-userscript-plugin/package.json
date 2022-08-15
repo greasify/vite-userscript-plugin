@@ -1,0 +1,9 @@
+{
+  "name": "vite-userscript-plugin",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  }
+}
