@@ -9,11 +9,9 @@ export default defineConfig({
     userscriptPlugin({
       name: 'demo',
       description: 'Hello world',
-      match: [
-        'https://example.com',
-        'https://example.org'
-      ]
+      match: ['https://example.com', 'https://example.org']
     })
+
   ],
   build: {
     lib: {

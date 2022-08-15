@@ -1,14 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import type { PluginOption, ResolvedConfig } from 'vite'
 import { banner } from './banner.js'
 import type { PluginConfig } from './types.js'
-import type { PluginOption, ResolvedConfig } from 'vite'
 
-const includeRegexp: RegExp = new RegExp(/\.([mc]?js)$/i)
+const includeRegexp = new RegExp(/\.([mc]?js)$/i)
 
-function UserscriptPlugin(
-  config: PluginConfig
-): PluginOption {
+function UserscriptPlugin(config: PluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
 
   return {
@@ -23,17 +21,19 @@ function UserscriptPlugin(
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
           const filePath = path.resolve(rootDir, outDir, fileName)
-          const proxyFilePath = path.resolve(rootDir, outDir, `${name}.proxy.user.js`)
+          const proxyFilePath = path.resolve(
+            rootDir,
+            outDir,
+            `${name}.proxy.user.js`
+          )
+          const userFileName = path.resolve(rootDir, outDir, `${name}.user.js`)
 
           try {
-            const userFileName = path.resolve(rootDir, outDir, `${name}.user.js`)
-            let file = fs.readFileSync(filePath, {
+            const file = fs.readFileSync(filePath, {
               encoding: 'utf8'
             })
 
-            file = `${banner(config)}\n\n${file}`
-
-            fs.writeFileSync(userFileName, file)
+            fs.writeFileSync(userFileName, `${banner(config)}\n\n${file}`)
             fs.writeFileSync(
               proxyFilePath,
               banner({

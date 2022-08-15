@@ -17,9 +17,7 @@ export function banner(config: PluginConfig) {
   }
 
   bannerFragments.push('==/UserScript==')
-  return bannerFragments
-    .map((fragment) => `// ${fragment}`)
-    .join('\n')
+  return bannerFragments.map((fragment) => `// ${fragment}`).join('\n')
 }
 
 function addSpaces(key: string, lg: number) {

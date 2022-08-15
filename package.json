@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build"
+    "build": "turbo run build",
+    "format": "prettier --write --ignore-unknown packages"
   },
   "devDependencies": {
+    "@crashmax/prettier-config": "^2.0.3",
     "@crashmax/tsconfig": "^1.0.2",
     "@types/node": "^18.7.3",
     "del-cli": "^5.0.0",
