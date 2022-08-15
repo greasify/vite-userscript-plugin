@@ -3,15 +3,13 @@
   "version": "0.0.0",
   "type": "module",
   "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
   "files": [
     "dist"
   ],
-  "exports": {
-    "import": "./dist/index.es.js",
-    "require": "./dist/index.cjs.js"
-  },
   "scripts": {
-    "dev": "vite build --watch",
-    "build": "vite build"
+    "dev": "pnpm clean && tsc --build --watch",
+    "build": "pnpm clean && tsc --build",
+    "clean": "del-cli dist"
   }
 }

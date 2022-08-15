@@ -1,6 +1,10 @@
 {
   "extends": "@crashmax/tsconfig",
   "compilerOptions": {
-    "outDir": "dist"
-  }
+    "outDir": "dist",
+    "sourceMap": false
+  },
+  "include": [
+    "src"
+  ]
 }

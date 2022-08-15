@@ -28,20 +28,20 @@ type Grants =
   | 'GM_notification'
   | 'GM_info'
 
-export interface UserscriptPluginOptions {
-  [property: string]: string | boolean | string[]
+export interface PluginConfig {
+  [property: string]: string | boolean | string[] | undefined
   name: string
-  namespace: string
-  version: string
-  author: string
-  description: string
-  homepage: string
-  icon: string
-  include: string[] | string
-  exclude: string[] | string
+  namespace?: string
+  version?: string
+  author?: string
+  description?: string
+  homepage?: string
+  icon?: string
+  include?: string[] | string
+  exclude?: string[] | string
   match: string[] | string
-  require: string[] | string
-  connect: string
-  'run-at': RunAt
-  grant: Grants[]
+  require?: string[] | string
+  connect?: string
+  'run-at'?: RunAt
+  grant?: Grants[]
 }
