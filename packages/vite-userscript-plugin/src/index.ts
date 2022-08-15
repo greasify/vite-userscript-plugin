@@ -18,20 +18,29 @@ function UserscriptPlugin(
       pluginConfig = config
     },
     writeBundle(options, bundle) {
-      for (const [fileName] of Object.entries(bundle)) {
+      for (const [fileName, { name }] of Object.entries(bundle)) {
         if (includeRegexp.test(fileName)) {
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
           const filePath = path.resolve(rootDir, outDir, fileName)
+          const proxyFilePath = path.resolve(rootDir, outDir, `${name}.proxy.user.js`)
 
           try {
+            const userFileName = path.resolve(rootDir, outDir, `${name}.user.js`)
             let file = fs.readFileSync(filePath, {
               encoding: 'utf8'
             })
 
             file = `${banner(config)}\n\n${file}`
 
-            fs.writeFileSync(filePath, file)
+            fs.writeFileSync(userFileName, file)
+            fs.writeFileSync(
+              proxyFilePath,
+              banner({
+                ...config,
+                require: 'file://' + filePath
+              })
+            )
           } catch (err) {
             console.log(err)
           }
