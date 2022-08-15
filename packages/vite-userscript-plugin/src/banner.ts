@@ -2,7 +2,6 @@ import type { PluginConfig } from './types.js'
 
 export function banner(config: PluginConfig) {
   const bannerFragments = ['==UserScript==']
-
   const configKeys = Object.keys(config)
   const maxLenghtKey = configKeys.sort((a, b) => b.length - a.length)[0]!.length
 
@@ -17,9 +16,7 @@ export function banner(config: PluginConfig) {
   }
 
   bannerFragments.push('==/UserScript==')
-  return bannerFragments
-    .map((fragment) => `// ${fragment}`)
-    .join('\n')
+  return bannerFragments.map((fragment) => `// ${fragment}`).join('\n')
 }
 
 function addSpaces(key: string, lg: number) {
