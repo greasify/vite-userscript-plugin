@@ -11,7 +11,6 @@ export default defineConfig({
       description: 'Hello world',
       match: ['https://example.com', 'https://example.org']
     })
-
   ],
   build: {
     lib: {

@@ -1,4 +1,4 @@
-type RunAt =
+export type RunAt =
   | 'none'
   | 'document-start'
   | 'document-body'
@@ -6,7 +6,7 @@ type RunAt =
   | 'document-idle'
   | 'context-menu'
 
-type Grants =
+export type Grants =
   | 'GM_setValue'
   | 'GM_getValue'
   | 'GM_deleteValue'

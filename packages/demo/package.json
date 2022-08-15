@@ -9,5 +9,8 @@
   },
   "devDependencies": {
     "vite-userscript-plugin": "workspace:*"
+  },
+  "dependencies": {
+    "sass": "^1.54.4"
   }
 }

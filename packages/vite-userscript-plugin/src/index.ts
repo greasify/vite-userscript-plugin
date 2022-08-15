@@ -1,13 +1,21 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import type { PluginOption, ResolvedConfig } from 'vite'
+import type { LibraryOptions, PluginOption, ResolvedConfig } from 'vite'
 import { banner } from './banner.js'
-import type { PluginConfig } from './types.js'
+import css from './css.js'
+import type { Grants, PluginConfig } from './types.js'
 
-const includeRegexp = new RegExp(/\.([mc]?js)$/i)
+const includeJs = new RegExp(/\.([mc]?js)$/i)
 
 function UserscriptPlugin(config: PluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
+
+  const initialGrants: Grants[] = ['GM_addStyle']
+  if (Array.isArray(config.grant)) {
+    config.grant.push(...initialGrants)
+  } else {
+    config.grant = initialGrants
+  }
 
   return {
     name: 'vite-userscript-plugin',
@@ -15,9 +23,13 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
     configResolved(config) {
       pluginConfig = config
     },
+    transform(code: string, id: string) {
+      const { entry } = pluginConfig.build.lib as LibraryOptions
+      return css.addStyle(entry, code, id)
+    },
     writeBundle(options, bundle) {
       for (const [fileName, { name }] of Object.entries(bundle)) {
-        if (includeRegexp.test(fileName)) {
+        if (includeJs.test(fileName)) {
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
           const filePath = path.resolve(rootDir, outDir, fileName)
@@ -29,10 +41,15 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
           const userFileName = path.resolve(rootDir, outDir, `${name}.user.js`)
 
           try {
-            const file = fs.readFileSync(filePath, {
+            let file = fs.readFileSync(filePath, {
               encoding: 'utf8'
             })
 
+            if (file.includes(css.template)) {
+              file = file.replace(css.template, css.inject())
+            }
+
+            fs.writeFileSync(filePath, file)
             fs.writeFileSync(userFileName, `${banner(config)}\n\n${file}`)
             fs.writeFileSync(
               proxyFilePath,

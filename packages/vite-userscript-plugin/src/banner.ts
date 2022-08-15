@@ -2,7 +2,6 @@ import type { PluginConfig } from './types.js'
 
 export function banner(config: PluginConfig) {
   const bannerFragments = ['==UserScript==']
-
   const configKeys = Object.keys(config)
   const maxLenghtKey = configKeys.sort((a, b) => b.length - a.length)[0]!.length
 

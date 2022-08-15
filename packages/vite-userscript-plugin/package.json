@@ -11,5 +11,8 @@
     "dev": "pnpm clean && tsc --build --watch",
     "build": "pnpm clean && tsc --build",
     "clean": "del-cli dist"
+  },
+  "devDependencies": {
+    "@types/tampermonkey": "^4.0.5"
   }
 }
