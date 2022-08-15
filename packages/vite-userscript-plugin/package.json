@@ -2,6 +2,14 @@
   "name": "vite-userscript-plugin",
   "version": "0.0.0",
   "type": "module",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "import": "./dist/index.es.js",
+    "require": "./dist/index.cjs.js"
+  },
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build"
