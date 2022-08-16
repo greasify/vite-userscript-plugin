@@ -3,7 +3,7 @@ import type { ESBuildTransformResult } from 'vite'
 
 class CSS {
   private css: string[] = []
-  private cssTemplate = '__CSS_TEMPLATE__'
+  private cssTemplate = 'console.warn("__CSS__")'
   private includeCss = new RegExp(/\.css|\.sass|\.scss/)
 
   get template(): string {

@@ -32,7 +32,7 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
       for (const [fileName, { name }] of Object.entries(bundle)) {
         if (includeJs.test(fileName)) {
           const rootDir = pluginConfig.root
-          const outDir = pluginConfig.build.outDir
+          const outDir = pluginConfig.build.outDir || 'dist'
           const filePath = path.resolve(rootDir, outDir, fileName)
           const proxyFilePath = path.resolve(
             rootDir,
