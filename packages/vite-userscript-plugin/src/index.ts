@@ -1,12 +1,11 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import type { LibraryOptions, PluginOption, ResolvedConfig } from 'vite'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { PluginOption, ResolvedConfig, transformWithEsbuild } from 'vite'
 import { banner } from './banner.js'
+import { regexpScripts, template } from './constants.js'
 import css from './css.js'
-import { mergeGrants } from './grant.js'
+import grant from './grant.js'
 import type { PluginConfig } from './types.js'
-
-const includeJs = new RegExp(/\.([mc]?js)$/i)
 
 function UserscriptPlugin(config: PluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
@@ -32,53 +31,52 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
       }
     },
     configResolved(cfg) {
-      config.banner.grant = mergeGrants(config.banner.grant)
+      config.banner.grant = grant.merge(config.banner.grant)
       pluginConfig = cfg
     },
-    async transform(style: string, file: string) {
-      const { entry } = pluginConfig.build.lib as LibraryOptions
-      const { code } = await css.minify(style, file)
-      return css.add(entry, code.replace('\n', ''), file)
+    async transform(code: string, path: string) {
+      const transformed = await css.minify(code, path)
+      return css.add(config.entry, transformed.code.replace('\n', ''), path)
     },
-    writeBundle(options, bundle) {
+    async writeBundle(options, bundle) {
       for (const [fileName] of Object.entries(bundle)) {
-        if (includeJs.test(fileName)) {
+        if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
-          const filePath = path.resolve(rootDir, outDir, fileName)
+          const filePath = resolve(rootDir, outDir, fileName)
 
-          const proxyFilePath = path.resolve(
+          const proxyFilePath = resolve(
             rootDir,
             outDir,
             `${config.banner.name}.proxy.user.js`
           )
 
-          const userFileName = path.resolve(
+          const userFileName = resolve(
             rootDir,
             outDir,
             `${config.banner.name}.user.js`
           )
 
           try {
-            let file = fs.readFileSync(filePath, {
+            let file = readFileSync(filePath, {
               encoding: 'utf8'
             })
 
-            if (file.includes(css.template)) {
-              file = file.replace(css.template, css.inject())
-            }
+            file = file.replace(template, css.inject() + grant.GM_info())
+
+            const { code } = await transformWithEsbuild(file, fileName, {
+              loader: 'js',
+              minify: true
+            })
 
             // source
-            fs.writeFileSync(filePath, file)
+            writeFileSync(filePath, code)
 
             // production
-            fs.writeFileSync(
-              userFileName,
-              `${banner(config.banner)}\n\n${file}`
-            )
+            writeFileSync(userFileName, `${banner(config.banner)}\n\n${code}`)
 
             // development
-            fs.writeFileSync(
+            writeFileSync(
               proxyFilePath,
               banner({
                 ...config.banner,

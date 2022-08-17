@@ -6,7 +6,7 @@ export function banner(config: BannerConfig) {
   const maxKeyLength = Math.max(...configKeys.map((key) => key.length)) + 1
 
   const addSpaces = (str: string) => {
-    ' '.repeat(maxKeyLength - str.length)
+    return ' '.repeat(maxKeyLength - str.length)
   }
 
   const addMetadata = (key: string, value: string | boolean | undefined) => {

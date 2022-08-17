@@ -30,12 +30,13 @@ export type Grants =
   | 'GM_info'
   | 'GM_getResourceURL'
   | 'GM_getResourceText'
+  | 'GM_webRequest'
 
-export interface BannerConfig {
+export type BannerConfig = {
   [property: string]: string | boolean | number | string[] | undefined
   name: string
+  version: string
   namespace?: string
-  version?: string
   author?: string
   description?: string
   homepage?: string
