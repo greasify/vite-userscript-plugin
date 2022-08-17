@@ -7,6 +7,7 @@ export type RunAt =
   | 'context-menu'
 
 export type Grants =
+  | 'unsafeWindow'
   | 'GM_setValue'
   | 'GM_getValue'
   | 'GM_deleteValue'
@@ -27,6 +28,8 @@ export type Grants =
   | 'GM_getTabs'
   | 'GM_notification'
   | 'GM_info'
+  | 'GM_getResourceURL'
+  | 'GM_getResourceText'
 
 export interface PluginConfig {
   [property: string]: string | boolean | string[] | undefined
@@ -41,7 +44,8 @@ export interface PluginConfig {
   exclude?: string[] | string
   match: string[] | string
   require?: string[] | string
+  resource?: string[] | string
   connect?: string
-  'run-at'?: RunAt
   grant?: Grants[]
+  'run-at'?: RunAt
 }
