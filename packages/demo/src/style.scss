@@ -1,7 +1,8 @@
-div {
+button {
+  border: none;
+  background-color: tomato;
   padding: 1rem;
-
-  p {
-    color: tomato;
-  }
+  font-size: 2rem;
+  font-weight: 600;
+  border-radius: 1rem;
 }
