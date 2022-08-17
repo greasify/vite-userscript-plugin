@@ -1,19 +1,24 @@
-import type { PluginConfig } from './types.js'
+import type { BannerConfig } from './types.js'
 
-export function banner(config: PluginConfig) {
+export function banner(config: BannerConfig) {
   const metadata: string[] = []
   const configKeys = Object.keys(config)
   const maxKeyLength = Math.max(...configKeys.map((key) => key.length)) + 1
 
-  const pushFragment = (key: string, value: string | boolean | undefined) => {
-    metadata.push(`// @${key}${addSpaces(key, maxKeyLength)}${value}`)
+  const addSpaces = (str: string) => {
+    ' '.repeat(maxKeyLength - str.length)
+  }
+
+  const addMetadata = (key: string, value: string | boolean | undefined) => {
+    metadata.push(`// @${key}${addSpaces(key)}${value}`)
   }
 
   for (const [key, value] of Object.entries(config)) {
     if (Array.isArray(value)) {
-      value.forEach((value) => pushFragment(key, value))
+      value.forEach((value) => addMetadata(key, value))
     } else {
-      pushFragment(key, value)
+      if (value === undefined) continue
+      addMetadata(key, value.toString())
     }
   }
 
@@ -22,8 +27,4 @@ export function banner(config: PluginConfig) {
     ...metadata,
     '// ==/UserScript=='
   ].join('\n')
-}
-
-function addSpaces(key: string, lg: number) {
-  return ' '.repeat(lg - key.length)
 }

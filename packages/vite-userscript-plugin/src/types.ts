@@ -31,8 +31,8 @@ export type Grants =
   | 'GM_getResourceURL'
   | 'GM_getResourceText'
 
-export interface PluginConfig {
-  [property: string]: string | boolean | string[] | undefined
+export interface BannerConfig {
+  [property: string]: string | boolean | number | string[] | undefined
   name: string
   namespace?: string
   version?: string
@@ -48,4 +48,9 @@ export interface PluginConfig {
   connect?: string
   grant?: Grants[]
   'run-at'?: RunAt
+}
+
+export interface PluginConfig {
+  entry: string
+  banner: BannerConfig
 }

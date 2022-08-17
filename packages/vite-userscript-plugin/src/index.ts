@@ -14,9 +14,26 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
   return {
     name: 'vite-userscript-plugin',
     apply: 'build',
-    configResolved(pConfig) {
-      config.grant = mergeGrants(config.grant)
-      pluginConfig = pConfig
+    config() {
+      return {
+        build: {
+          lib: {
+            entry: config.entry,
+            name: config.banner.name,
+            formats: ['iife'],
+            fileName: () => `${config.banner.name}.js`
+          },
+          rollupOptions: {
+            output: {
+              extend: true
+            }
+          }
+        }
+      }
+    },
+    configResolved(cfg) {
+      config.banner.grant = mergeGrants(config.banner.grant)
+      pluginConfig = cfg
     },
     async transform(style: string, file: string) {
       const { entry } = pluginConfig.build.lib as LibraryOptions
@@ -24,17 +41,23 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
       return css.add(entry, code.replace('\n', ''), file)
     },
     writeBundle(options, bundle) {
-      for (const [fileName, { name }] of Object.entries(bundle)) {
+      for (const [fileName] of Object.entries(bundle)) {
         if (includeJs.test(fileName)) {
           const rootDir = pluginConfig.root
-          const outDir = pluginConfig.build.outDir || 'dist'
+          const outDir = pluginConfig.build.outDir
           const filePath = path.resolve(rootDir, outDir, fileName)
+
           const proxyFilePath = path.resolve(
             rootDir,
             outDir,
-            `${name}.proxy.user.js`
+            `${config.banner.name}.proxy.user.js`
           )
-          const userFileName = path.resolve(rootDir, outDir, `${name}.user.js`)
+
+          const userFileName = path.resolve(
+            rootDir,
+            outDir,
+            `${config.banner.name}.user.js`
+          )
 
           try {
             let file = fs.readFileSync(filePath, {
@@ -45,12 +68,20 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
               file = file.replace(css.template, css.inject())
             }
 
+            // source
             fs.writeFileSync(filePath, file)
-            fs.writeFileSync(userFileName, `${banner(config)}\n\n${file}`)
+
+            // production
+            fs.writeFileSync(
+              userFileName,
+              `${banner(config.banner)}\n\n${file}`
+            )
+
+            // development
             fs.writeFileSync(
               proxyFilePath,
               banner({
-                ...config,
+                ...config.banner,
                 require: 'file://' + filePath
               })
             )
