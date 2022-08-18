@@ -1,15 +1,18 @@
 import type { BannerConfig } from './types.js'
 
-export function banner(config: BannerConfig) {
+export function banner(config: BannerConfig): string {
   const metadata: string[] = []
   const configKeys = Object.keys(config)
   const maxKeyLength = Math.max(...configKeys.map((key) => key.length)) + 1
 
-  const addSpaces = (str: string) => {
+  const addSpaces = (str: string): string => {
     return ' '.repeat(maxKeyLength - str.length)
   }
 
-  const addMetadata = (key: string, value: string | boolean | undefined) => {
+  const addMetadata = (
+    key: string,
+    value: string | boolean | undefined
+  ): void => {
     metadata.push(`// @${key}${addSpaces(key)}${value}`)
   }
 

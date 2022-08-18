@@ -3,7 +3,7 @@ import type { Grants } from './types'
 class Grant {
   private readonly initialGrants: Grants[] = ['GM_addStyle', 'GM_info']
 
-  merge(grants?: Grants[]) {
+  merge(grants?: Grants[]): Grants[] {
     if (Array.isArray(grants)) {
       return [...new Set([...grants, ...this.initialGrants])]
     }
@@ -11,7 +11,7 @@ class Grant {
     return this.initialGrants
   }
 
-  GM_info() {
+  GM_info(): string {
     return `
       const { script } = GM_info
       console.group(script.name + ' / ' + script.version)
