@@ -237,11 +237,20 @@ export type MetadataConfig = {
   'run-at'?: RunAt
 }
 
+export interface ServerConfig {
+  /**
+   * @default 8000
+   */
+  port?: number
+}
+
 export interface PluginConfig {
   /**
    * Path of userscript entry.
    */
   entry: string
+
+  server?: ServerConfig
 
   /**
    * Userscript Metadata config.

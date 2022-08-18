@@ -12,7 +12,11 @@
     "build": "pnpm clean && tsc --build",
     "clean": "del-cli dist"
   },
+  "dependencies": {
+    "@types/tampermonkey": "^4.0.5",
+    "websocket": "^1.0.34"
+  },
   "devDependencies": {
-    "@types/tampermonkey": "^4.0.5"
+    "@types/websocket": "^1.0.5"
   }
 }
