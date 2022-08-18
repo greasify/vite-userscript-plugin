@@ -1,62 +1,107 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import type { LibraryOptions, PluginOption, ResolvedConfig } from 'vite'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { PluginOption, ResolvedConfig, transformWithEsbuild } from 'vite'
 import { banner } from './banner.js'
+import { regexpScripts, template } from './constants.js'
 import css from './css.js'
-import type { Grants, PluginConfig } from './types.js'
-
-const includeJs = new RegExp(/\.([mc]?js)$/i)
+import { removeDuplicates } from './helpers.js'
+import type { PluginConfig } from './types.js'
 
 function UserscriptPlugin(config: PluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
 
-  const initialGrants: Grants[] = ['GM_addStyle']
-  if (Array.isArray(config.grant)) {
-    config.grant.push(...initialGrants)
-  } else {
-    config.grant = initialGrants
-  }
-
   return {
     name: 'vite-userscript-plugin',
     apply: 'build',
-    configResolved(config) {
-      pluginConfig = config
+    config() {
+      return {
+        build: {
+          lib: {
+            entry: config.entry,
+            name: config.metadata.name,
+            formats: ['iife'],
+            fileName: () => `${config.metadata.name}.js`
+          },
+          rollupOptions: {
+            output: {
+              extend: true
+            }
+          }
+        }
+      }
     },
-    async transform(style: string, file: string) {
-      const { entry } = pluginConfig.build.lib as LibraryOptions
-      const { code } = await css.minify(style, file)
-      return css.add(entry, code.replace('\n', ''), file)
+    configResolved(cfg) {
+      const { match, require, include, exclude, resource, connect, grant } =
+        config.metadata
+      config.metadata.match = removeDuplicates(match)
+      config.metadata.require = removeDuplicates(require)
+      config.metadata.include = removeDuplicates(include)
+      config.metadata.exclude = removeDuplicates(exclude)
+      config.metadata.resource = removeDuplicates(resource)
+      config.metadata.connect = removeDuplicates(connect)
+      config.metadata.grant = removeDuplicates([
+        ...(grant ?? []),
+        'GM_addStyle',
+        'GM_info'
+      ])
+      pluginConfig = cfg
     },
-    writeBundle(options, bundle) {
-      for (const [fileName, { name }] of Object.entries(bundle)) {
-        if (includeJs.test(fileName)) {
+    async transform(code: string, path: string) {
+      const transformed = await css.minify(code, path)
+      return css.add(config.entry, transformed.code.replace('\n', ''), path)
+    },
+    async writeBundle(options, bundle) {
+      for (const [fileName] of Object.entries(bundle)) {
+        if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
-          const filePath = path.resolve(rootDir, outDir, fileName)
-          const proxyFilePath = path.resolve(
+          const filePath = resolve(rootDir, outDir, fileName)
+
+          const proxyFilePath = resolve(
             rootDir,
             outDir,
-            `${name}.proxy.user.js`
+            `${config.metadata.name}.proxy.user.js`
           )
-          const userFileName = path.resolve(rootDir, outDir, `${name}.user.js`)
+
+          const userFileName = resolve(
+            rootDir,
+            outDir,
+            `${config.metadata.name}.user.js`
+          )
 
           try {
-            let file = fs.readFileSync(filePath, {
+            let file = readFileSync(filePath, {
               encoding: 'utf8'
             })
 
-            if (file.includes(css.template)) {
-              file = file.replace(css.template, css.inject())
-            }
+            file = file.replace(
+              template,
+              `
+                ${css.inject()}
+                const { script } = GM_info
+                console.group(script.name + ' / ' + script.version)
+                console.log(GM_info)
+                console.groupEnd()
+              `
+            )
 
-            fs.writeFileSync(filePath, file)
-            fs.writeFileSync(userFileName, `${banner(config)}\n\n${file}`)
-            fs.writeFileSync(
+            const { code } = await transformWithEsbuild(file, fileName, {
+              loader: 'js',
+              minify: true
+            })
+
+            // source
+            writeFileSync(filePath, code)
+
+            // production
+            writeFileSync(userFileName, `${banner(config.metadata)}\n\n${code}`)
+
+            // development
+            writeFileSync(
               proxyFilePath,
               banner({
-                ...config,
-                require: 'file://' + filePath
+                ...config.metadata,
+                require: [...config.metadata.require!, 'file://' + filePath]
               })
             )
           } catch (err) {

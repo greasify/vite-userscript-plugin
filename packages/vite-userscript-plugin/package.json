@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "pnpm clean && tsc --build --watch",
+    "dev": "tsc --build --watch",
     "build": "pnpm clean && tsc --build",
     "clean": "del-cli dist"
   },

@@ -1,42 +1,37 @@
 import { transformWithEsbuild } from 'vite'
 import type { ESBuildTransformResult } from 'vite'
+import { regexpStyles, template } from './constants.js'
 
 class CSS {
-  private css: string[] = []
-  private cssTemplate = '__CSS_TEMPLATE__'
-  private includeCss = new RegExp(/\.css|\.sass|\.scss/)
+  private styles: string[] = []
 
-  get template(): string {
-    return this.cssTemplate
-  }
-
-  add(entry: string, code: string, file: string): { code: string } | null {
-    if (this.includeCss.test(file)) {
-      this.css.push(code)
+  add(entry: string, code: string, path: string): { code: string } | null {
+    if (regexpStyles.test(path)) {
+      this.styles.push(code)
       return {
         code: ''
       }
     }
 
-    if (file.includes(entry)) {
+    if (path.includes(entry)) {
       return {
-        code: code + this.cssTemplate
+        code: code + template
       }
     }
 
     return null
   }
 
-  async minify(css: string, file: string): Promise<ESBuildTransformResult> {
-    return await transformWithEsbuild(css, file, {
+  async minify(css: string, path: string): Promise<ESBuildTransformResult> {
+    return await transformWithEsbuild(css, path, {
       minify: true,
       loader: 'css'
     })
   }
 
   inject(): string {
-    const css = `GM_addStyle(\`${this.css.join('')}\`)`
-    this.css.length = 0
+    const css = `GM_addStyle(\`${this.styles.join('')}\`)`
+    this.styles.length = 0
     return css
   }
 }
