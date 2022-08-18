@@ -1,5 +1,4 @@
 export type RunAt =
-  | 'none'
   | 'document-start'
   | 'document-body'
   | 'document-end'
@@ -32,7 +31,7 @@ export type Grants =
   | 'GM_getResourceText'
   | 'GM_webRequest'
 
-export type BannerConfig = {
+export type MetadataConfig = {
   [property: string]: string | boolean | number | string[] | undefined
   name: string
   version: string
@@ -53,5 +52,5 @@ export type BannerConfig = {
 
 export interface PluginConfig {
   entry: string
-  banner: BannerConfig
+  metadata: MetadataConfig
 }

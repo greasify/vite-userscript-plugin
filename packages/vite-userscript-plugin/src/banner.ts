@@ -1,6 +1,6 @@
-import type { BannerConfig } from './types.js'
+import type { MetadataConfig } from './types.js'
 
-export function banner(config: BannerConfig): string {
+export function banner(config: MetadataConfig): string {
   const metadata: string[] = []
   const configKeys = Object.keys(config)
   const maxKeyLength = Math.max(...configKeys.map((key) => key.length)) + 1
@@ -10,7 +10,10 @@ export function banner(config: BannerConfig): string {
   }
 
   const addMetadata = (key: string, value: string | number | boolean): void => {
-    metadata.push(`// @${key}${addSpaces(key)}${value.toString()}`)
+    const isBoolean = typeof value === 'boolean'
+    if (isBoolean && !value) return
+    value = !isBoolean ? addSpaces(key) + value.toString() : ''
+    metadata.push(`// @${key}${value}`)
   }
 
   for (const [key, value] of Object.entries(config)) {

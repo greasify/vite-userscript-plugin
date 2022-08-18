@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     UserscriptPlugin({
       entry: resolve(__dirname, 'src/index.ts'),
-      banner: {
+      metadata: {
         name,
         version,
         match: [

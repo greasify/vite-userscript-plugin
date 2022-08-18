@@ -4,7 +4,7 @@ import { PluginOption, ResolvedConfig, transformWithEsbuild } from 'vite'
 import { banner } from './banner.js'
 import { regexpScripts, template } from './constants.js'
 import css from './css.js'
-import grant from './grant.js'
+import { removeDuplicates } from './helpers.js'
 import type { PluginConfig } from './types.js'
 
 function UserscriptPlugin(config: PluginConfig): PluginOption {
@@ -18,9 +18,9 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
         build: {
           lib: {
             entry: config.entry,
-            name: config.banner.name,
+            name: config.metadata.name,
             formats: ['iife'],
-            fileName: () => `${config.banner.name}.js`
+            fileName: () => `${config.metadata.name}.js`
           },
           rollupOptions: {
             output: {
@@ -31,7 +31,18 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
       }
     },
     configResolved(cfg) {
-      config.banner.grant = grant.merge(config.banner.grant)
+      const { match, require, include, exclude, resource, grant } =
+        config.metadata
+      config.metadata.match = removeDuplicates(match)
+      config.metadata.require = removeDuplicates(require)
+      config.metadata.include = removeDuplicates(include)
+      config.metadata.exclude = removeDuplicates(exclude)
+      config.metadata.resource = removeDuplicates(resource)
+      config.metadata.grant = removeDuplicates([
+        ...(grant ?? []),
+        'GM_addStyle',
+        'GM_info'
+      ])
       pluginConfig = cfg
     },
     async transform(code: string, path: string) {
@@ -48,13 +59,13 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
           const proxyFilePath = resolve(
             rootDir,
             outDir,
-            `${config.banner.name}.proxy.user.js`
+            `${config.metadata.name}.proxy.user.js`
           )
 
           const userFileName = resolve(
             rootDir,
             outDir,
-            `${config.banner.name}.user.js`
+            `${config.metadata.name}.user.js`
           )
 
           try {
@@ -62,7 +73,16 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
               encoding: 'utf8'
             })
 
-            file = file.replace(template, css.inject() + grant.GM_info())
+            file = file.replace(
+              template,
+              `
+                ${css.inject()}
+                const { script } = GM_info
+                console.group(script.name + ' / ' + script.version)
+                console.log(GM_info)
+                console.groupEnd()
+              `
+            )
 
             const { code } = await transformWithEsbuild(file, fileName, {
               loader: 'js',
@@ -73,14 +93,14 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
             writeFileSync(filePath, code)
 
             // production
-            writeFileSync(userFileName, `${banner(config.banner)}\n\n${code}`)
+            writeFileSync(userFileName, `${banner(config.metadata)}\n\n${code}`)
 
             // development
             writeFileSync(
               proxyFilePath,
               banner({
-                ...config.banner,
-                require: 'file://' + filePath
+                ...config.metadata,
+                require: [...config.metadata.require!, 'file://' + filePath]
               })
             )
           } catch (err) {
