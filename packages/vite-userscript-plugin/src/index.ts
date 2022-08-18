@@ -31,13 +31,14 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
       }
     },
     configResolved(cfg) {
-      const { match, require, include, exclude, resource, grant } =
+      const { match, require, include, exclude, resource, connect, grant } =
         config.metadata
       config.metadata.match = removeDuplicates(match)
       config.metadata.require = removeDuplicates(require)
       config.metadata.include = removeDuplicates(include)
       config.metadata.exclude = removeDuplicates(exclude)
       config.metadata.resource = removeDuplicates(resource)
+      config.metadata.connect = removeDuplicates(connect)
       config.metadata.grant = removeDuplicates([
         ...(grant ?? []),
         'GM_addStyle',
