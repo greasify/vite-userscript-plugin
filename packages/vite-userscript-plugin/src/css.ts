@@ -3,11 +3,11 @@ import type { ESBuildTransformResult } from 'vite'
 import { regexpStyles, template } from './constants.js'
 
 class CSS {
-  private styles: string[] = []
+  private readonly styles = new Map<string, string>()
 
   add(entry: string, code: string, path: string): { code: string } | null {
     if (regexpStyles.test(path)) {
-      this.styles.push(code)
+      this.styles.set(path, code)
       return {
         code: ''
       }
@@ -30,9 +30,7 @@ class CSS {
   }
 
   inject(): string {
-    const css = `GM_addStyle(\`${this.styles.join('')}\`)`
-    this.styles.length = 0
-    return css
+    return `GM_addStyle(\`${[...this.styles.values()].join('')}\`)`
   }
 }
 
