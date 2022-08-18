@@ -9,11 +9,8 @@ export function banner(config: BannerConfig): string {
     return ' '.repeat(maxKeyLength - str.length)
   }
 
-  const addMetadata = (
-    key: string,
-    value: string | boolean | undefined
-  ): void => {
-    metadata.push(`// @${key}${addSpaces(key)}${value}`)
+  const addMetadata = (key: string, value: string | number | boolean): void => {
+    metadata.push(`// @${key}${addSpaces(key)}${value.toString()}`)
   }
 
   for (const [key, value] of Object.entries(config)) {
@@ -21,7 +18,7 @@ export function banner(config: BannerConfig): string {
       value.forEach((value) => addMetadata(key, value))
     } else {
       if (value === undefined) continue
-      addMetadata(key, value.toString())
+      addMetadata(key, value)
     }
   }
 

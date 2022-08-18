@@ -1,16 +1,15 @@
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
-import userscriptPlugin from 'vite-userscript-plugin'
+import { UserscriptPlugin } from 'vite-userscript-plugin'
 import { name, version } from './package.json'
 
 export default defineConfig({
   plugins: [
-    userscriptPlugin({
+    UserscriptPlugin({
       entry: resolve(__dirname, 'src/index.ts'),
       banner: {
         name,
         version,
-        description: 'Demo UserScript',
         match: [
           'https://example.com',
           'https://example.org',
