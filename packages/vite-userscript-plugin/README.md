@@ -29,6 +29,8 @@ pnpm add vite-userscript-plugin -D
 
 ## Usage
 
+### `vite.config.ts`
+
 ```js
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
@@ -51,6 +53,17 @@ export default defineConfig({
     })
   ]
 })
+```
+
+### `package.json`
+
+```json
+{
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  }
+}
 ```
 
 ## Plugin Configuration
