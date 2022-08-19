@@ -16,7 +16,14 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
   let socketConnection: websocket.connection | null = null
 
   const port = config.server?.port || 8000
-  const server = createServer()
+  const server = createServer((_, res) => {
+    // const index = resolve(
+    //   dirname(fileURLToPath(import.meta.url)), '..', 'src', 'index.html'
+    // )
+    // res.writeHead(200, { 'Content-Type': 'html' })
+    // res.end(readFileSync(index))
+  })
+
   server.listen(port)
 
   const WebSocketServer = websocket.server
@@ -39,6 +46,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
           },
           rollupOptions: {
             output: {
+              exports: 'none',
               extend: true
             }
           }
@@ -76,7 +84,9 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
-          const filePath = resolve(rootDir, outDir, fileName)
+
+          const outPath = resolve(rootDir, outDir, fileName)
+          const hmrPath = resolve(rootDir, outDir, 'hmr.js')
 
           const proxyFilePath = resolve(
             rootDir,
@@ -91,49 +101,55 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
           )
 
           try {
-            let file = readFileSync(filePath, {
-              encoding: 'utf8'
-            })
-
-            const hmrScript = readFileSync(
-              resolve(dirname(fileURLToPath(import.meta.url)), 'hmr.js'),
-              'utf-8'
-            )
-
-            file = file.replace(
-              template,
-              `
-                ${css.inject()}
-                const port = ${port}
-                ${hmrScript}
-              `
-            )
-
-            file = await transform({ file, name: fileName, loader: 'js' })
+            let source = readFileSync(outPath, 'utf8')
 
             // prettier-ignore
             config.metadata.grant = removeDuplicates(
               isBuildWatch
                 ? grants
                 : config.autoGrants ?? true
-                  ? defineGrants(file)
+                  ? defineGrants(source)
                   : [...(config.metadata.grant ?? []), 'GM_addStyle', 'GM_info']
             )
             // prettier-ignore-end
 
-            // source
-            writeFileSync(filePath, file)
-
-            // production
-            writeFileSync(userFilePath, `${banner(config.metadata)}\n\n${file}`)
-
-            // development
-            writeFileSync(
-              proxyFilePath,
-              banner({
-                ...config.metadata,
-                require: [...config.metadata.require!, 'file://' + filePath]
+            if (isBuildWatch) {
+              const hmrScript = await transform({
+                file: `
+                  ${readFileSync(
+                  resolve(dirname(fileURLToPath(import.meta.url)), 'hmr.js'),
+                  'utf8'
+                )}
+                `.replace('__PORT__', port.toString()),
+                name: hmrPath,
+                loader: 'js'
               })
+
+              writeFileSync(hmrPath, hmrScript)
+              writeFileSync(
+                proxyFilePath,
+                banner({
+                  ...config.metadata,
+                  require: [
+                    ...config.metadata.require!,
+                    'file://' + hmrPath,
+                    'file://' + outPath
+                  ]
+                })
+              )
+            }
+
+            source = source.replace(template, `${css.inject()}`)
+            source = await transform({
+              file: source,
+              name: fileName,
+              loader: 'js'
+            })
+
+            writeFileSync(outPath, source)
+            writeFileSync(
+              userFilePath,
+              `${banner(config.metadata)}\n\n${source}`
             )
           } catch (err) {
             console.log(err)

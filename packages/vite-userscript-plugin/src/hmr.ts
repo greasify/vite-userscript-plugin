@@ -1,6 +1,4 @@
-declare const port: number
-
-const ws = new WebSocket(`ws://localhost:${port}`)
+const ws = new WebSocket('ws://localhost:__PORT__')
 ws.addEventListener('message', () => {
   location.reload()
 })
