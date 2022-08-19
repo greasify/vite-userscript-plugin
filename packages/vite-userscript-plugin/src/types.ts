@@ -1,3 +1,11 @@
+import { grants } from './constants.js'
+
+export interface Transform {
+  file: string
+  name: string
+  loader: 'js' | 'css'
+}
+
 export type RunAt =
   | 'document-start'
   | 'document-body'
@@ -5,34 +13,7 @@ export type RunAt =
   | 'document-idle'
   | 'context-menu'
 
-export type Grants =
-  | 'unsafeWindow'
-  | 'window.onurlchange'
-  | 'window.focus'
-  | 'window.close'
-  | 'GM_setValue'
-  | 'GM_getValue'
-  | 'GM_deleteValue'
-  | 'GM_listValues'
-  | 'GM_setClipboard'
-  | 'GM_addStyle'
-  | 'GM_addElement'
-  | 'GM_addValueChangeListener'
-  | 'GM_removeValueChangeListener'
-  | 'GM_registerMenuCommand'
-  | 'GM_unregisterMenuCommand'
-  | 'GM_download'
-  | 'GM_getTab'
-  | 'GM_getTabs'
-  | 'GM_saveTab'
-  | 'GM_openInTab'
-  | 'GM_notification'
-  | 'GM_getResourceURL'
-  | 'GM_getResourceText'
-  | 'GM_xmlhttpRequest'
-  | 'GM_webRequest'
-  | 'GM_log'
-  | 'GM_info'
+export type Grants = typeof grants[number]
 
 export type MetadataConfig = {
   [property: string]: string | boolean | number | string[] | undefined
@@ -249,6 +230,11 @@ export interface PluginConfig {
    * Path of userscript entry.
    */
   entry: string
+
+  /**
+   * @default false
+   */
+  autoGrants?: boolean
 
   server?: ServerConfig
 

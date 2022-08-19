@@ -1,6 +1,5 @@
-import { transformWithEsbuild } from 'vite'
-import type { ESBuildTransformResult } from 'vite'
 import { regexpStyles, template } from './constants.js'
+import { transform } from './helpers.js'
 
 class CSS {
   private readonly styles = new Map<string, string>()
@@ -22,15 +21,31 @@ class CSS {
     return null
   }
 
-  async minify(css: string, path: string): Promise<ESBuildTransformResult> {
-    return await transformWithEsbuild(css, path, {
-      minify: true,
+  async minify(file: string, name: string): Promise<string> {
+    return await transform({
+      file,
+      name,
       loader: 'css'
     })
   }
 
-  inject(): string {
-    return `GM_addStyle(\`${[...this.styles.values()].join('')}\`)`
+  inject(): string | void {
+    const styles = [...this.styles.values()].join('')
+    if (!styles) return
+    return `GM_addStyle(\`${styles}\`)`
+  }
+
+  merge(modules: string[]): void {
+    const styleModules: [string, string][] = []
+
+    for (const module of modules) {
+      const style = this.styles.get(module)
+      if (!style) continue
+      styleModules.push([module, style])
+    }
+
+    this.styles.clear()
+    styleModules.forEach((value) => this.styles.set(...value))
   }
 }
 

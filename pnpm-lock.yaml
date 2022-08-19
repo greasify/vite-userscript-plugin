@@ -7,6 +7,7 @@ importers:
       '@crashmax/prettier-config': ^2.0.3
       '@crashmax/tsconfig': ^1.0.2
       '@types/node': ^18.7.3
+      '@types/tampermonkey': ^4.0.5
       del-cli: ^5.0.0
       turbo: ^1.4.3
       typescript: ^4.7.4
@@ -16,6 +17,7 @@ importers:
       '@crashmax/prettier-config': 2.0.3_p2qvazo4ctd7rmzb34o4gfezrm
       '@crashmax/tsconfig': 1.0.2
       '@types/node': 18.7.3
+      '@types/tampermonkey': 4.0.5
       del-cli: 5.0.0
       turbo: 1.4.3
       typescript: 4.7.4
@@ -35,11 +37,9 @@ importers:
 
   packages/vite-userscript-plugin:
     specifiers:
-      '@types/tampermonkey': ^4.0.5
       '@types/websocket': ^1.0.5
       websocket: ^1.0.34
     dependencies:
-      '@types/tampermonkey': 4.0.5
       websocket: 1.0.34
     devDependencies:
       '@types/websocket': 1.0.5
@@ -492,7 +492,7 @@ packages:
 
   /@types/tampermonkey/4.0.5:
     resolution: {integrity: sha512-FGPo7d+qZkDF7vyrwY1WNhcUnfDyVpt2uyL7krAu3WKCUMCfIUzOuvt8aSk8N2axHT8XPr9stAEDGVHLvag6Pw==}
-    dev: false
+    dev: true
 
   /@types/websocket/1.0.5:
     resolution: {integrity: sha512-NbsqiNX9CnEfC1Z0Vf4mE1SgAJ07JnRYcNex7AJ9zAVzmiGHmjKFEk7O4TJIsgv2B1sLEb6owKFZrACwdYngsQ==}
