@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:plugin": "pnpm --filter='./packages/vite-userscript-plugin' -r run build",
     "format": "prettier --write --ignore-unknown packages"
   },
   "devDependencies": {
