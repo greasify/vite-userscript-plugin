@@ -114,13 +114,13 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
             // prettier-ignore-end
 
             if (isBuildWatch) {
+              const hmrFile = readFileSync(
+                resolve(dirname(fileURLToPath(import.meta.url)), 'hmr.js'),
+                'utf8'
+              )
+
               const hmrScript = await transform({
-                file: `
-                  ${readFileSync(
-                  resolve(dirname(fileURLToPath(import.meta.url)), 'hmr.js'),
-                  'utf8'
-                )}
-                `.replace('__PORT__', port.toString()),
+                file: hmrFile.replace('__PORT__', port.toString()),
                 name: hmrPath,
                 loader: 'js'
               })
