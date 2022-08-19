@@ -12,6 +12,25 @@
     "build": "pnpm clean && tsc --build",
     "clean": "del-cli dist"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crashmax-dev/vite-userscript-plugin.git"
+  },
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "userscript",
+    "tampermonkey"
+  ],
+  "author": {
+    "name": "Vitalij Ryndin",
+    "email": "sys@crashmax.ru",
+    "url": "https://crashmax.ru"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
+  },
   "dependencies": {
     "websocket": "^1.0.34"
   },

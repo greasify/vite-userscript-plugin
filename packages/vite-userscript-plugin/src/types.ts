@@ -220,26 +220,31 @@ export type MetadataConfig = {
 
 export interface ServerConfig {
   /**
+   * Server port.
    * @default 8000
    */
   port?: number
 }
 
-export interface PluginConfig {
+export interface UserscriptPluginConfig {
   /**
    * Path of userscript entry.
    */
   entry: string
 
   /**
-   * @default false
+   * Userscript header config.
+   */
+  metadata: MetadataConfig
+
+  /**
+   * Import all `@grant` in development mode.
+   * @default true
    */
   autoGrants?: boolean
 
-  server?: ServerConfig
-
   /**
-   * Userscript Metadata config.
+   * Server config (used in development mode for hot reloading).
    */
-  metadata: MetadataConfig
+  server?: ServerConfig
 }

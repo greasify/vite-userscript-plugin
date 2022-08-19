@@ -8,9 +8,9 @@ import { banner } from './banner.js'
 import { grants, regexpScripts, template } from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
-import type { PluginConfig } from './types.js'
+import type { UserscriptPluginConfig } from './types.js'
 
-function UserscriptPlugin(config: PluginConfig): PluginOption {
+function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
   let isBuildWatch: boolean
   let socketConnection: websocket.connection | null = null
@@ -115,7 +115,7 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
             config.metadata.grant = removeDuplicates(
               isBuildWatch
                 ? grants
-                : config.autoGrants
+                : config.autoGrants ?? true
                   ? defineGrants(file)
                   : [...(config.metadata.grant ?? []), 'GM_addStyle', 'GM_info']
             )
@@ -155,4 +155,4 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
 
 export { UserscriptPlugin }
 export default UserscriptPlugin
-export type { PluginConfig }
+export type { UserscriptPluginConfig }
