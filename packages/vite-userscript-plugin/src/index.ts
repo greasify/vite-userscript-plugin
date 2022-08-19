@@ -2,16 +2,17 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { PluginOption, ResolvedConfig, transformWithEsbuild } from 'vite'
+import { PluginOption, ResolvedConfig } from 'vite'
 import websocket from 'websocket'
 import { banner } from './banner.js'
-import { regexpScripts, template } from './constants.js'
+import { grants, regexpScripts, template } from './constants.js'
 import css from './css.js'
-import { removeDuplicates } from './helpers.js'
+import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { PluginConfig } from './types.js'
 
 function UserscriptPlugin(config: PluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
+  let isBuildWatch: boolean
   let socketConnection: websocket.connection | null = null
 
   const port = config.server?.port || 8000
@@ -45,26 +46,32 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
       }
     },
     configResolved(cfg) {
-      const { match, require, include, exclude, resource, connect, grant } =
+      pluginConfig = cfg
+      isBuildWatch = (cfg.build.watch ?? false) as boolean
+
+      const { match, require, include, exclude, resource, connect } =
         config.metadata
+
       config.metadata.match = removeDuplicates(match)
       config.metadata.require = removeDuplicates(require)
       config.metadata.include = removeDuplicates(include)
       config.metadata.exclude = removeDuplicates(exclude)
       config.metadata.resource = removeDuplicates(resource)
       config.metadata.connect = removeDuplicates(connect)
-      config.metadata.grant = removeDuplicates([
-        ...(grant ?? []),
-        'GM_addStyle',
-        'GM_info'
-      ])
-      pluginConfig = cfg
     },
     async transform(code: string, path: string) {
-      const transformed = await css.minify(code, path)
-      return css.add(config.entry, transformed.code.replace('\n', ''), path)
+      const style = await css.minify(code, path)
+      return css.add(config.entry, style.replace('\n', ''), path)
     },
-    async writeBundle(options, bundle) {
+    generateBundle(_, bundle) {
+      for (const [_, file] of Object.entries(bundle)) {
+        const styleModules = Object.keys(
+          (file as unknown as { modules: string[] }).modules
+        )
+        css.merge(styleModules)
+      }
+    },
+    async writeBundle(_, bundle) {
       for (const [fileName] of Object.entries(bundle)) {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
@@ -102,16 +109,23 @@ function UserscriptPlugin(config: PluginConfig): PluginOption {
               `
             )
 
-            const { code } = await transformWithEsbuild(file, fileName, {
-              loader: 'js',
-              minify: true
-            })
+            file = await transform({ file, name: fileName, loader: 'js' })
+
+            // prettier-ignore
+            config.metadata.grant = removeDuplicates(
+              isBuildWatch
+                ? grants
+                : config.autoGrants
+                  ? defineGrants(file)
+                  : [...(config.metadata.grant ?? []), 'GM_addStyle', 'GM_info']
+            )
+            // prettier-ignore-end
 
             // source
-            writeFileSync(filePath, code)
+            writeFileSync(filePath, file)
 
             // production
-            writeFileSync(userFilePath, `${banner(config.metadata)}\n\n${code}`)
+            writeFileSync(userFilePath, `${banner(config.metadata)}\n\n${file}`)
 
             // development
             writeFileSync(
