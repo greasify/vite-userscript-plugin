@@ -1,6 +1,6 @@
 {
   "name": "vite-userscript-plugin",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
@@ -36,5 +36,8 @@
   },
   "devDependencies": {
     "@types/websocket": "^1.0.5"
+  },
+  "peerDependencies": {
+    "@types/tampermonkey": "latest"
   }
 }
