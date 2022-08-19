@@ -9,12 +9,7 @@ function HRM() {
     console.groupEnd()
   })
 
-  ws.addEventListener('close', (event) => {
-    console.warn(
-      'Socket is closed. Reconnect will be attempted in 1 second.',
-      event.reason
-    )
-
+  ws.addEventListener('close', () => {
     setTimeout(HRM, 1000)
   })
 
