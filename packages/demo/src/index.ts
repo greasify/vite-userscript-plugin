@@ -1,7 +1,6 @@
 import { createButton } from './button.js'
-import './style.css'
-import './style.less'
-import './style.sass'
+import './styles/style.css'
+import './styles/style.sass'
 
 const div = document.querySelector('div')!
 div.appendChild(createButton())

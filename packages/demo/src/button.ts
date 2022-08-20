@@ -1,4 +1,4 @@
-import './style.scss'
+import './styles/style.scss'
 
 export function createButton() {
   const el = document.createElement('button')
