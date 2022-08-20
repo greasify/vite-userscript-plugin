@@ -16,14 +16,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
   let socketConnection: websocket.connection | null = null
 
   const port = config.server?.port || 8000
-  const server = createServer((_, res) => {
-    // const index = resolve(
-    //   dirname(fileURLToPath(import.meta.url)), '..', 'src', 'index.html'
-    // )
-    // res.writeHead(200, { 'Content-Type': 'html' })
-    // res.end(readFileSync(index))
-  })
-
+  const server = createServer()
   server.listen(port)
 
   const WebSocketServer = websocket.server
@@ -155,6 +148,10 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
             console.log(err)
           }
         }
+      }
+
+      if (!isBuildWatch) {
+        process.exit(0)
       }
     },
     buildEnd() {
