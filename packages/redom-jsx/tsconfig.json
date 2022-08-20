@@ -1,0 +1,13 @@
+{
+  "extends": "@crashmax/tsconfig",
+  "compilerOptions": {
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment"
+  },
+  "include": [
+    "src"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "redom-jsx",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite-userscript-plugin": "workspace:*"
+  },
+  "dependencies": {
+    "redom": "^3.29.0",
+    "vite-redom-jsx": "^0.1.9"
+  }
+}

@@ -16,20 +16,31 @@ importers:
     devDependencies:
       '@crashmax/prettier-config': 2.0.3_p2qvazo4ctd7rmzb34o4gfezrm
       '@crashmax/tsconfig': 1.0.2
-      '@types/node': 18.7.6
+      '@types/node': 18.7.8
       '@types/tampermonkey': 4.0.5
       del-cli: 5.0.0
       turbo: 1.4.3
       typescript: 4.7.4
-      vite: 3.0.8
-      vite-plugin-dts: 1.4.1_vite@3.0.8
+      vite: 3.0.9
+      vite-plugin-dts: 1.4.1_vite@3.0.9
 
   packages/demo:
     specifiers:
       sass: ^1.54.4
       vite-userscript-plugin: workspace:*
     dependencies:
-      sass: 1.54.4
+      sass: 1.54.5
+    devDependencies:
+      vite-userscript-plugin: link:../vite-userscript-plugin
+
+  packages/redom-jsx:
+    specifiers:
+      redom: ^3.29.0
+      vite-redom-jsx: ^0.1.9
+      vite-userscript-plugin: workspace:*
+    dependencies:
+      redom: 3.29.0
+      vite-redom-jsx: 0.1.9_redom@3.29.0
     devDependencies:
       vite-userscript-plugin: link:../vite-userscript-plugin
 
@@ -72,14 +83,14 @@ packages:
     dependencies:
       '@ampproject/remapping': 2.2.0
       '@babel/code-frame': 7.18.6
-      '@babel/generator': 7.18.12
+      '@babel/generator': 7.17.7
       '@babel/helper-compilation-targets': 7.18.9_@babel+core@7.17.8
       '@babel/helper-module-transforms': 7.18.9
       '@babel/helpers': 7.18.9
-      '@babel/parser': 7.18.11
+      '@babel/parser': 7.17.8
       '@babel/template': 7.18.10
-      '@babel/traverse': 7.18.11
-      '@babel/types': 7.18.10
+      '@babel/traverse': 7.17.3
+      '@babel/types': 7.17.0
       convert-source-map: 1.8.0
       debug: 4.3.4
       gensync: 1.0.0-beta.2
@@ -93,7 +104,7 @@ packages:
     resolution: {integrity: sha512-oLcVCTeIFadUoArDTwpluncplrYBmTCCZZgXCbgNGvOBBiSDDK3eWO4b/+eOTli5tKv1lg+a5/NAXg+nTcei1w==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.18.10
+      '@babel/types': 7.17.0
       jsesc: 2.5.2
       source-map: 0.5.7
     dev: true
@@ -217,7 +228,7 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
     dependencies:
-      '@babel/types': 7.18.10
+      '@babel/types': 7.17.0
     dev: true
 
   /@babel/parser/7.18.11:
@@ -242,13 +253,13 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/code-frame': 7.18.6
-      '@babel/generator': 7.18.12
+      '@babel/generator': 7.17.7
       '@babel/helper-environment-visitor': 7.18.9
       '@babel/helper-function-name': 7.18.9
       '@babel/helper-hoist-variables': 7.18.6
       '@babel/helper-split-export-declaration': 7.18.6
-      '@babel/parser': 7.18.11
-      '@babel/types': 7.18.10
+      '@babel/parser': 7.17.8
+      '@babel/types': 7.17.0
       debug: 4.3.4
       globals: 11.12.0
     transitivePeerDependencies:
@@ -482,8 +493,8 @@ packages:
     resolution: {integrity: sha512-yxDeaQIAJlMav7fH5AQqPH1u8YIuhYJXYBzxaQ4PifsU0GDO38MSdmEDeRlIxrKbC6NbEaaEHDanWb+y30U8SQ==}
     dev: true
 
-  /@types/node/18.7.6:
-    resolution: {integrity: sha512-EdxgKRXgYsNITy5mjjXjVE/CS8YENSdhiagGrLqjG0pvA2owgJ6i4l7wy/PFZGC0B1/H20lWKN7ONVDNYDZm7A==}
+  /@types/node/18.7.8:
+    resolution: {integrity: sha512-/YP55EMK2341JkODUb8DM9O0x1SIz2aBvyF33Uf1c76St3VpsMXEIW0nxuKkq/5cxnbz0RD9cfwNZHEAZQD3ag==}
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -497,7 +508,7 @@ packages:
   /@types/websocket/1.0.5:
     resolution: {integrity: sha512-NbsqiNX9CnEfC1Z0Vf4mE1SgAJ07JnRYcNex7AJ9zAVzmiGHmjKFEk7O4TJIsgv2B1sLEb6owKFZrACwdYngsQ==}
     dependencies:
-      '@types/node': 18.7.6
+      '@types/node': 18.7.8
     dev: true
 
   /aggregate-error/4.0.1:
@@ -1162,7 +1173,6 @@ packages:
 
   /graceful-fs/4.2.10:
     resolution: {integrity: sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==}
-    requiresBuild: true
     dev: true
 
   /hard-rejection/2.1.0:
@@ -1608,6 +1618,10 @@ packages:
       strip-indent: 4.0.0
     dev: true
 
+  /redom/3.29.0:
+    resolution: {integrity: sha512-9uJvdhflj7j/zIxQeIbRQ8ekbrRxtrZ1vKuZ0lpy2/R5JK8vHjyG0PX8kf9zSymeUa5e/Z6v7u4gkWKaPG/zzg==}
+    dev: false
+
   /resolve/1.17.0:
     resolution: {integrity: sha512-ic+7JYiV8Vi2yzQGFWOkiZD5Z9z7O2Zhm9XMaTxdJExKasieFCr+yXZ/WmXsckHiKl12ar0y6XiXDx3m4RHn1w==}
     dependencies:
@@ -1660,8 +1674,8 @@ packages:
     resolution: {integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==}
     dev: true
 
-  /sass/1.54.4:
-    resolution: {integrity: sha512-3tmF16yvnBwtlPrNBHw/H907j8MlOX8aTBnlNX1yrKx24RKcJGPyLhFUwkoKBKesR3unP93/2z14Ll8NicwQUA==}
+  /sass/1.54.5:
+    resolution: {integrity: sha512-p7DTOzxkUPa/63FU0R3KApkRHwcVZYC0PLnLm5iyZACyp15qSi32x7zVUhRdABAATmkALqgGrjCJAcWvobmhHw==}
     engines: {node: '>=12.0.0'}
     hasBin: true
     dependencies:
@@ -1700,7 +1714,6 @@ packages:
   /source-map/0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
-    requiresBuild: true
     dev: true
 
   /spdx-correct/3.1.1:
@@ -1997,7 +2010,7 @@ packages:
     engines: {node: '>= 0.10'}
     dev: true
 
-  /vite-plugin-dts/1.4.1_vite@3.0.8:
+  /vite-plugin-dts/1.4.1_vite@3.0.9:
     resolution: {integrity: sha512-jo7E4ZeheD2o48oGiI3EygPbej7ZkGFHg3GVTt7Wuo6NgzThLvuzGGuduaFpnhJOGi1piDFsu6oui/wDKIIORQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -2010,13 +2023,21 @@ packages:
       fast-glob: 3.2.11
       fs-extra: 10.1.0
       ts-morph: 14.0.0
-      vite: 3.0.8
+      vite: 3.0.9
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/3.0.8:
-    resolution: {integrity: sha512-AOZ4eN7mrkJiOLuw8IA7piS4IdOQyQCA81GxGsAQvAZzMRi9ZwGB3TOaYsj4uLAWK46T5L4AfQ6InNGlxX30IQ==}
+  /vite-redom-jsx/0.1.9_redom@3.29.0:
+    resolution: {integrity: sha512-3g3x9w1hjxljVlN2FwL0FD/V7f47yAu7ZH42fi9R2s/iGCqFH9kG2tE0EfaoeD89ZWtWFl0ncgQZGndZlaKgIA==}
+    peerDependencies:
+      redom: '>=3.29.0'
+    dependencies:
+      redom: 3.29.0
+    dev: false
+
+  /vite/3.0.9:
+    resolution: {integrity: sha512-waYABTM+G6DBTCpYAxvevpG50UOlZuynR0ckTK5PawNVt7ebX6X7wNXHaGIO6wYYFXSM7/WcuFuO2QzhBB6aMw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
