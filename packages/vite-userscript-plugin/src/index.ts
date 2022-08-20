@@ -157,6 +157,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       }
 
       if (!isBuildWatch) {
+        server.close()
         process.exit(0)
       }
     },

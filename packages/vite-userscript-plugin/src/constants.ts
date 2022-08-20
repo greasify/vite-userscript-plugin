@@ -1,5 +1,5 @@
-export const regexpScripts = new RegExp(/\.js/)
-export const regexpStyles = new RegExp(/\.css|\.sass|\.scss/)
+export const regexpScripts = new RegExp(/\.(tsx?|jsx?)$/)
+export const regexpStyles = new RegExp(/\.(s?css|sass)$/)
 export const template = `console.warn("__TEMPLATE__")`
 
 export const grants = [
