@@ -76,10 +76,13 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       for (const [fileName] of Object.entries(bundle)) {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
-          const outDir = pluginConfig.build.outDir
+          const outDir = pluginConfig.build.outDir || 'dist'
 
           const outPath = resolve(rootDir, outDir, fileName)
-          const hmrPath = resolve(rootDir, outDir, 'hmr.js')
+          const hotReloadPath = resolve(
+            dirname(fileURLToPath(import.meta.url)),
+            '__hot-reload__.js'
+          )
 
           const proxyFilePath = resolve(
             rootDir,
@@ -107,25 +110,28 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
             // prettier-ignore-end
 
             if (isBuildWatch) {
-              const hmrFile = readFileSync(
-                resolve(dirname(fileURLToPath(import.meta.url)), 'hmr.js'),
+              const hotReloadFile = readFileSync(
+                resolve(
+                  dirname(fileURLToPath(import.meta.url)),
+                  'hot-reload.js'
+                ),
                 'utf8'
               )
 
-              const hmrScript = await transform({
-                file: hmrFile.replace('__PORT__', port.toString()),
-                name: hmrPath,
+              const hotReloadScript = await transform({
+                file: hotReloadFile.replace('__PORT__', port.toString()),
+                name: hotReloadPath,
                 loader: 'js'
               })
 
-              writeFileSync(hmrPath, hmrScript)
+              writeFileSync(hotReloadPath, hotReloadScript)
               writeFileSync(
                 proxyFilePath,
                 banner({
                   ...config.metadata,
                   require: [
                     ...config.metadata.require!,
-                    'file://' + hmrPath,
+                    'file://' + hotReloadPath,
                     'file://' + outPath
                   ]
                 })

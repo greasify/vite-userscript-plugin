@@ -1,4 +1,4 @@
-function HRM() {
+function HotReload() {
   const ws = new WebSocket('ws://localhost:__PORT__')
 
   ws.addEventListener('open', () => {
@@ -10,7 +10,7 @@ function HRM() {
   })
 
   ws.addEventListener('close', () => {
-    setTimeout(HRM, 1000)
+    setTimeout(HotReload, 1000)
   })
 
   ws.addEventListener('error', () => {
@@ -22,4 +22,4 @@ function HRM() {
   })
 }
 
-HRM()
+HotReload()
