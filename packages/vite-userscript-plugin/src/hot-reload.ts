@@ -1,8 +1,7 @@
-function HotReload() {
+async function HotReload() {
   const ws = new WebSocket('ws://localhost:__PORT__')
 
   ws.addEventListener('open', () => {
-    console.clear()
     const { script } = GM_info
     console.group(`${script.name}@${script.version}`)
     console.log(GM_info)
@@ -23,3 +22,5 @@ function HotReload() {
 }
 
 HotReload()
+  .then(() => console.info('Connection to ws...'))
+  .finally(() => console.clear())
