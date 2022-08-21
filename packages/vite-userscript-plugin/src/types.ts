@@ -218,14 +218,6 @@ export type MetadataConfig = {
   'run-at'?: RunAt
 }
 
-export interface ServerConfig {
-  /**
-   * Server port.
-   * @default 8000
-   */
-  port?: number
-}
-
 export interface UserscriptPluginConfig {
   /**
    * Path of userscript entry.
@@ -242,9 +234,4 @@ export interface UserscriptPluginConfig {
    * @default true
    */
   autoGrants?: boolean
-
-  /**
-   * Server config (used in development mode for hot reloading).
-   */
-  server?: ServerConfig
 }

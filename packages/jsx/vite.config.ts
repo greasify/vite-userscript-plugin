@@ -13,9 +13,6 @@ export default defineConfig({
         name,
         version,
         match: 'https://example.com'
-      },
-      server: {
-        port: 8081
       }
     })
   ]

@@ -85,11 +85,6 @@ export interface UserscriptPluginConfig {
    * @default true
    */
   autoGrants?: boolean
-
-  /**
-   * Server config (used in development mode for hot reloading).
-   */
-  server?: ServerConfig
 }
 ```
 

@@ -36,6 +36,7 @@
     "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
   },
   "dependencies": {
+    "get-port": "^6.1.2",
     "websocket": "^1.0.34"
   },
   "devDependencies": {

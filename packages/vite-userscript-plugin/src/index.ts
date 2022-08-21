@@ -1,3 +1,4 @@
+import getPort from 'get-port'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
@@ -14,12 +15,10 @@ import type { UserscriptPluginConfig } from './types.js'
 function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
   let isBuildWatch: boolean
+  let port: number | null = null
   let socketConnection: connection | null = null
 
-  const port = config.server?.port || 8000
   const httpServer = createServer()
-  httpServer.listen(port)
-
   const WebSocketServer = server
   const ws = new WebSocketServer({ httpServer })
   ws.on('request', (request) => {
@@ -74,6 +73,11 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       }
     },
     async writeBundle(_, bundle) {
+      if (!port && isBuildWatch) {
+        port = await getPort()
+        httpServer.listen(port)
+      }
+
       for (const [fileName] of Object.entries(bundle)) {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
@@ -82,7 +86,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
           const outPath = resolve(rootDir, outDir, fileName)
           const hotReloadPath = resolve(
             dirname(fileURLToPath(import.meta.url)),
-            '__hot-reload__.js'
+            `hot-reload-${config.metadata.name}.js`
           )
 
           const proxyFilePath = resolve(
@@ -120,7 +124,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
               )
 
               const hotReloadScript = await transform({
-                file: hotReloadFile.replace('__PORT__', port.toString()),
+                file: hotReloadFile.replace('__PORT__', port!.toString()),
                 name: hotReloadPath,
                 loader: 'js'
               })
