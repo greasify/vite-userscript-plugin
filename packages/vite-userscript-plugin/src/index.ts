@@ -8,7 +8,7 @@ import { PluginOption, ResolvedConfig } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { banner } from './banner.js'
-import { grants, regexpScripts, template } from './constants.js'
+import { grants, regexpScripts, regexpStyles, template } from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
@@ -63,8 +63,19 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       config.metadata.connect = removeDuplicates(connect)
     },
     async transform(code: string, path: string) {
-      const style = await css.minify(code, path)
-      return css.add(config.entry, style.replace('\n', ''), path)
+      if (regexpStyles.test(path)) {
+        return {
+          code: await css.add(code, path)
+        }
+      }
+
+      if (path.includes(config.entry)) {
+        return {
+          code: code + template
+        }
+      }
+
+      return null
     },
     generateBundle(_, bundle) {
       for (const [_, file] of Object.entries(bundle)) {

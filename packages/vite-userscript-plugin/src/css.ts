@@ -1,32 +1,17 @@
-import { regexpStyles, template } from './constants.js'
 import { transform } from './helpers.js'
 
 class CSS {
   private readonly styles = new Map<string, string>()
 
-  add(entry: string, code: string, path: string): { code: string } | null {
-    if (regexpStyles.test(path)) {
-      this.styles.set(path, code)
-      return {
-        code: ''
-      }
-    }
-
-    if (path.includes(entry)) {
-      return {
-        code: code + template
-      }
-    }
-
-    return null
-  }
-
-  async minify(file: string, name: string): Promise<string> {
-    return await transform({
-      file,
-      name,
+  async add(code: string, path: string): Promise<string> {
+    const style = await transform({
+      file: code,
+      name: path,
       loader: 'css'
     })
+
+    this.styles.set(path, style.replace('\n', ''))
+    return ''
   }
 
   inject(): string | void {
