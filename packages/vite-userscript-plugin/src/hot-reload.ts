@@ -23,4 +23,3 @@ async function HotReload() {
 
 HotReload()
   .then(() => console.info('Connection to ws...'))
-  .finally(() => console.clear())
