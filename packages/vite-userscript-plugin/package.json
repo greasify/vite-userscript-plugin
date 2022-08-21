@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "get-port": "^6.1.2",
+    "sanitize-filename": "^1.6.3",
     "websocket": "^1.0.34"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import sanitize from 'sanitize-filename'
 import { PluginOption, ResolvedConfig } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
@@ -50,9 +51,10 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       pluginConfig = cfg
       isBuildWatch = (cfg.build.watch ?? false) as boolean
 
-      const { match, require, include, exclude, resource, connect } =
+      const { name, match, require, include, exclude, resource, connect } =
         config.metadata
 
+      config.metadata.name = sanitize(name)
       config.metadata.match = removeDuplicates(match)
       config.metadata.require = removeDuplicates(require)
       config.metadata.include = removeDuplicates(include)
