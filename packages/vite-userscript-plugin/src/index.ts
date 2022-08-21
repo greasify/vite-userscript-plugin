@@ -37,6 +37,11 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
             name: config.metadata.name,
             formats: ['iife'],
             fileName: () => `${config.metadata.name}.js`
+          },
+          rollupOptions: {
+            output: {
+              extend: true
+            }
           }
         }
       }
