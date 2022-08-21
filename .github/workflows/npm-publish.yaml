@@ -26,7 +26,7 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile --strict-peer-dependencies
 
       - name: Build packages
         run: pnpm build
