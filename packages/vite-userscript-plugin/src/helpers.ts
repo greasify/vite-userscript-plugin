@@ -1,6 +1,6 @@
 import { transformWithEsbuild } from 'vite'
 import { grants } from './constants.js'
-import { Grants, Transform } from './types.js'
+import type { Grants, Transform } from './types.js'
 
 export function removeDuplicates(
   arr: string | string[] | readonly string[] | undefined

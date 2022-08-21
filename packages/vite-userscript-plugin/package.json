@@ -3,14 +3,18 @@
   "version": "0.6.0",
   "type": "module",
   "types": "./dist/index.d.ts",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "import": "./dist/index.js"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev": "tsc --build --watch",
-    "build": "pnpm clean && tsc --build",
-    "clean": "del-cli dist"
+    "dev": "tsup --watch",
+    "build": "tsup"
   },
   "repository": {
     "type": "git",

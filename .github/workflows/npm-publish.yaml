@@ -33,7 +33,7 @@ jobs:
             - args: [--frozen-lockfile]
 
       - name: Build packages
-        run: pnpm build:plugin
+        run: pnpm build
 
       - name: Publish to NPM
         run: |

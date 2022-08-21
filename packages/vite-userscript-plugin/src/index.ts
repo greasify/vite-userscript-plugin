@@ -3,7 +3,8 @@ import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PluginOption, ResolvedConfig } from 'vite'
-import websocket from 'websocket'
+import { server } from 'websocket'
+import type { connection } from 'websocket'
 import { banner } from './banner.js'
 import { grants, regexpScripts, template } from './constants.js'
 import css from './css.js'
@@ -13,14 +14,14 @@ import type { UserscriptPluginConfig } from './types.js'
 function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
   let pluginConfig: ResolvedConfig
   let isBuildWatch: boolean
-  let socketConnection: websocket.connection | null = null
+  let socketConnection: connection | null = null
 
   const port = config.server?.port || 8000
-  const server = createServer()
-  server.listen(port)
+  const httpServer = createServer()
+  httpServer.listen(port)
 
-  const WebSocketServer = websocket.server
-  const ws = new WebSocketServer({ httpServer: server })
+  const WebSocketServer = server
+  const ws = new WebSocketServer({ httpServer })
   ws.on('request', (request) => {
     socketConnection = request.accept(null, request.origin)
   })
@@ -157,7 +158,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       }
 
       if (!isBuildWatch) {
-        server.close()
+        httpServer.close()
         process.exit(0)
       }
     },
