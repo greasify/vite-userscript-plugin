@@ -19,11 +19,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Installing dependencies
-          uses: pnpm/action-setup@v2.2.2
-          with:
-            version: 7.x.x
-            run_install: |
-              - args: [--frozen-lockfile, --strict-peer-dependencies]
+        uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7.x.x
+          run_install: |
+            - args: [--frozen-lockfile, --strict-peer-dependencies]
 
       - name: Build packages
         run: pnpm build
