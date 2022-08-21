@@ -19,18 +19,15 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Installing packages
-        uses: pnpm/action-setup@v2.2.2
-        with:
-          version: 7.x.x
-          run_install: |
-            - args: [--frozen-lockfile]
+      - name: Installing dependencies
+        run: pnpm install
 
       - name: Build packages
         run: pnpm build
