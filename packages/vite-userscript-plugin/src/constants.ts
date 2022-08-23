@@ -1,4 +1,4 @@
-export const regexpScripts = new RegExp(/\.(tsx?|jsx?)$/)
+export const regexpScripts = new RegExp(/.(t|j)sx?/)
 export const regexpStyles = new RegExp(/\.(s?css|sass)$/)
 export const template = `console.warn("__TEMPLATE__")`
 

@@ -61,20 +61,21 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       config.metadata.resource = removeDuplicates(resource)
       config.metadata.connect = removeDuplicates(connect)
     },
-    async transform(code: string, path: string) {
+    async transform(src: string, path: string) {
+      let code = src
+
       if (regexpStyles.test(path)) {
-        return {
-          code: await css.add(code, path)
-        }
+        code = await css.add(src, path)
       }
 
       if (path.includes(config.entry)) {
-        return {
-          code: code + template
-        }
+        code = src + template
       }
 
-      return null
+      return {
+        code,
+        map: null
+      }
     },
     generateBundle(_, bundle) {
       for (const [_, file] of Object.entries(bundle)) {
@@ -136,7 +137,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
               )
 
               const hotReloadScript = await transform({
-                file: hotReloadFile.replace('__PORT__', port!.toString()),
+                file: hotReloadFile.replace('__WS__', `ws://localhost:${port}`),
                 name: hotReloadPath,
                 loader: 'js'
               })

@@ -15,8 +15,8 @@ class CSS {
   }
 
   inject(): string | void {
+    if (!this.styles.size) return
     const styles = [...this.styles.values()].join('')
-    if (!styles) return
     return `GM_addStyle(\`${styles}\`)`
   }
 
