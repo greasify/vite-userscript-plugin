@@ -1,7 +1,7 @@
 import { mount, RedomComponent, unmount } from 'redom'
 import { Counter } from './Counter'
 
-class App implements RedomComponent {
+export class App implements RedomComponent {
   public el: HTMLElement
   public counter: RedomComponent
   public button: HTMLElement
@@ -40,5 +40,3 @@ class App implements RedomComponent {
     </div>
   }
 }
-
-export default new App()

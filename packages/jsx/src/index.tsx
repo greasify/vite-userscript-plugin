@@ -1,4 +1,4 @@
 import { mount } from 'redom'
-import App from './App.js'
+import { App } from './App.js'
 
-mount(document.body, App)
+mount(document.body, <App />)
