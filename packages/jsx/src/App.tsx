@@ -1,13 +1,32 @@
-import { RedomComponent } from 'redom'
+import { mount, RedomComponent, unmount } from 'redom'
+import { Counter } from './Counter'
 
 class App implements RedomComponent {
   public el: HTMLElement
-  public h1: HTMLElement
+  public counter: RedomComponent
+  public button: HTMLElement
 
   constructor() {
+    this.render()
+  }
+
+  private render(): void {
     <div this="el">
-      <h1 this="h1">Hello World</h1>
-      <p className="sefsfe">
+      <Counter this="counter" initialCounter={10} />
+      <button
+        this="button"
+        onclick={() => {
+          // @ts-ignore
+          if (this.counter.el.__redom_mounted) {
+            unmount(this.el, this.counter)
+          } else {
+            mount(this.el, this.counter, this.button)
+          }
+        }}
+      >
+        mount/unmount counter
+      </button>
+      <p>
         Lorem ipsum dolor, sit amet consectetur adipisicing elit. Illum enim
         veniam id consequatur, dolor recusandae minima dolore ab eius sunt quo
         totam quasi nam? Cum voluptate et id porro odit!
@@ -19,10 +38,6 @@ class App implements RedomComponent {
         This is link
       </a>
     </div>
-  }
-
-  update() {
-    this.h1.textContent = Math.random().toString(16)
   }
 }
 
