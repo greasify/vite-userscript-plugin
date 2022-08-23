@@ -53,6 +53,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       const { name, match, require, include, exclude, resource, connect } =
         config.metadata
 
+      config.entry = resolve(cfg.root, config.entry)
       config.metadata.name = sanitize(name)
       config.metadata.match = removeDuplicates(match)
       config.metadata.require = removeDuplicates(require)
