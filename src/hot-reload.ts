@@ -1,4 +1,4 @@
-async function HotReload() {
+function HotReload() {
   const ws = new WebSocket('__WS__')
 
   ws.addEventListener('open', () => {
@@ -21,4 +21,4 @@ async function HotReload() {
   })
 }
 
-HotReload().then(() => console.info('Connection to ws...'))
+HotReload()

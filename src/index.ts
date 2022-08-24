@@ -8,7 +8,7 @@ import { PluginOption, ResolvedConfig } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { banner } from './banner.js'
-import { grants, regexpScripts, regexpStyles, template } from './constants.js'
+import { grants, regexpScripts, regexpStyles } from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
@@ -70,7 +70,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       }
 
       if (path.includes(config.entry)) {
-        code = src + template
+        code = src + '__STYLE__'
       }
 
       return {
@@ -157,7 +157,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
               )
             }
 
-            source = source.replace(template, `${css.inject()}`)
+            source = source.replace('__STYLE__', `${css.inject()}`)
             source = await transform({
               file: source,
               name: fileName,

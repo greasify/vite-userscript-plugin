@@ -1,6 +1,5 @@
 export const regexpScripts = new RegExp(/.(t|j)sx?/)
 export const regexpStyles = new RegExp(/\.(s?css|sass)$/)
-export const template = `console.warn("__TEMPLATE__")`
 
 export const grants = [
   'unsafeWindow',
