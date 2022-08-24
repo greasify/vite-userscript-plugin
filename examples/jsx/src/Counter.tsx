@@ -1,4 +1,4 @@
-import type { RedomComponent } from "redom"
+import type { RedomComponent } from 'redom'
 
 type RedomProps<T extends Record<string, any>> = {
   this?: string
@@ -41,6 +41,6 @@ export class Counter implements RedomComponent {
   }
 
   private render(): void {
-    <h1 this="el"></h1>
+    ;<h1 this="el"></h1>
   }
 }

@@ -9,8 +9,18 @@
     },
     "build": {
       "dependsOn": [
-        "^build"
+        "//#build"
       ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "//#dev": {
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "//#build": {
       "outputs": [
         "dist/**"
       ]

@@ -1,4 +1,4 @@
-import { mount, RedomComponent, unmount } from 'redom'
+import { RedomComponent, mount, unmount } from 'redom'
 import { Counter } from './Counter'
 
 export class App implements RedomComponent {
@@ -11,8 +11,11 @@ export class App implements RedomComponent {
   }
 
   private render(): void {
-    <div this="el">
-      <Counter this="counter" initialCounter={10} />
+    ;<div this="el">
+      <Counter
+        this="counter"
+        initialCounter={10}
+      />
       <button
         this="button"
         onclick={() => {

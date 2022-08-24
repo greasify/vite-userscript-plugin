@@ -1,22 +1,65 @@
 {
   "name": "vite-userscript-plugin",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.9.0",
   "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "import": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "format": "prettier --write --ignore-unknown packages"
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "examples:dev": "turbo run dev --filter='./examples/*'",
+    "examples:build": "turbo run build --filter='./examples/*'",
+    "format": "prettier --write --ignore-unknown **",
+    "prepublishOnly": "pnpm build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crashmax-dev/vite-userscript-plugin.git"
+  },
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "userscript",
+    "tampermonkey",
+    "greasemonkey",
+    "violentmonkey"
+  ],
+  "author": {
+    "name": "Vitalij Ryndin",
+    "email": "sys@crashmax.ru",
+    "url": "https://crashmax.ru"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
+  },
+  "dependencies": {
+    "@types/tampermonkey": "^4.0.5",
+    "get-port": "^6.1.2",
+    "sanitize-filename": "^1.6.3",
+    "websocket": "^1.0.34"
   },
   "devDependencies": {
+    "@types/websocket": "^1.0.5",
     "@crashmax/prettier-config": "^2.0.3",
     "@crashmax/tsconfig": "^1.0.2",
     "@types/node": "^18.7.6",
-    "@types/tampermonkey": "^4.0.5",
     "tsup": "^6.2.2",
     "turbo": "^1.4.3",
     "typescript": "^4.7.4",
-    "vite": "^3.0.8",
+    "vite": "^3.0.9",
     "vite-plugin-dts": "^1.4.1"
+  },
+  "peerDependencies": {
+    "vite": ">=2.9.0",
+    "@types/tampermonkey": ">=4.0.0"
   }
 }
