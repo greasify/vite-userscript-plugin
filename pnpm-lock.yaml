@@ -6,7 +6,7 @@ importers:
     specifiers:
       '@crashmax/prettier-config': ^2.0.3
       '@crashmax/tsconfig': ^1.0.2
-      '@types/node': ^18.7.6
+      '@types/node': ^18.7.13
       '@types/tampermonkey': ^4.0.5
       '@types/websocket': ^1.0.5
       get-port: ^6.1.2
@@ -25,7 +25,7 @@ importers:
     devDependencies:
       '@crashmax/prettier-config': 2.0.3_p2qvazo4ctd7rmzb34o4gfezrm
       '@crashmax/tsconfig': 1.0.2
-      '@types/node': 18.7.12
+      '@types/node': 18.7.13
       '@types/websocket': 1.0.5
       tsup: 6.2.2_typescript@4.7.4
       turbo: 1.4.3
@@ -47,14 +47,14 @@ importers:
       babel-plugin-transform-react-jsx: ^6.24.1
       redom: ^3.29.0
       redom-jsx: ^1.2.1
-      vite-redom-jsx: ^1.5.1
+      vite-redom-jsx: ^1.5.2
       vite-userscript-plugin: workspace:*
     dependencies:
       redom: 3.29.0
       redom-jsx: 1.2.1_redom@3.29.0
     devDependencies:
       babel-plugin-transform-react-jsx: 6.24.1
-      vite-redom-jsx: 1.5.1_redom@3.29.0+vite@3.0.9
+      vite-redom-jsx: 1.5.2_redom@3.29.0+vite@3.0.9
       vite-userscript-plugin: link:../..
 
 packages:
@@ -550,8 +550,8 @@ packages:
     resolution: {integrity: sha512-yxDeaQIAJlMav7fH5AQqPH1u8YIuhYJXYBzxaQ4PifsU0GDO38MSdmEDeRlIxrKbC6NbEaaEHDanWb+y30U8SQ==}
     dev: true
 
-  /@types/node/18.7.12:
-    resolution: {integrity: sha512-caqFX7GwvZ4KLnhpI9CfiMkgHKp6kvFAIgpkha0cjO7bAQvB6dWe+q3fTHmm7fQvv59pd4tPj77nriq2M6U2dw==}
+  /@types/node/18.7.13:
+    resolution: {integrity: sha512-46yIhxSe5xEaJZXWdIBP7GU4HDTG8/eo0qd9atdiL+lFpA03y8KS+lkTN834TWJj5767GbWv4n/P6efyTFt1Dw==}
     dev: true
 
   /@types/tampermonkey/4.0.5:
@@ -561,7 +561,7 @@ packages:
   /@types/websocket/1.0.5:
     resolution: {integrity: sha512-NbsqiNX9CnEfC1Z0Vf4mE1SgAJ07JnRYcNex7AJ9zAVzmiGHmjKFEk7O4TJIsgv2B1sLEb6owKFZrACwdYngsQ==}
     dependencies:
-      '@types/node': 18.7.12
+      '@types/node': 18.7.13
     dev: true
 
   /ajv/6.12.6:
@@ -2323,8 +2323,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite-redom-jsx/1.5.1_redom@3.29.0+vite@3.0.9:
-    resolution: {integrity: sha512-9kFcYoR5UOzR0ESUyxDEyruaREuMEdzO3V5R4uc8JpB0vCJrugTNwcelHRxkpTwmxjiKn8m+NUV3+9zOIAWjyw==}
+  /vite-redom-jsx/1.5.2_redom@3.29.0+vite@3.0.9:
+    resolution: {integrity: sha512-BvM2mxkFzp+UXX+LdOew2Otv3lHuN4ZYxITMkWXF2AHK4zDsUnnf5fO5+5cQRB6oiQDT88qKw7zTaXHHELpCaQ==}
     peerDependencies:
       redom: '>=3.29.0'
       vite: '>=2.9.0'
