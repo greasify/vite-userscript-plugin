@@ -1,0 +1,5 @@
+// Vitest Snapshot v1
+
+exports[`snapshot css modules (undefined) 1`] = `undefined`;
+
+exports[`snapshot css modules 1`] = `"GM_addStyle(\`h1{text-decoration:underline}\`)"`;
