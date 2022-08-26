@@ -80,10 +80,16 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
     },
     generateBundle(_, bundle) {
       for (const [_, file] of Object.entries(bundle)) {
-        const styleModules = Object.keys(
+        const modules = Object.keys(
           (file as unknown as { modules: string[] }).modules
         )
-        css.merge(styleModules)
+
+        const cssModules = modules
+          .filter((module) => regexpStyles.test(module))
+
+        if (cssModules.length > 0) {
+          css.merge(cssModules)
+        }
       }
     },
     async writeBundle(_, bundle) {

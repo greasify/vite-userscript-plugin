@@ -1,6 +1,6 @@
 import { transform } from './helpers.js'
 
-class CSS {
+export class CSS {
   private readonly styles = new Map<string, string>()
 
   async add(code: string, path: string): Promise<string> {
@@ -30,7 +30,7 @@ class CSS {
     }
 
     this.styles.clear()
-    styleModules.forEach((value) => this.styles.set(...value))
+    styleModules.forEach((style) => this.styles.set(...style))
   }
 }
 

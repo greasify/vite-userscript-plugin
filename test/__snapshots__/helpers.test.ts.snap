@@ -1,0 +1,17 @@
+// Vitest Snapshot v1
+
+exports[`defineGrants snapshot 1`] = `
+[
+  "GM_addStyle",
+  "GM_notification",
+  "GM_info",
+]
+`;
+
+exports[`removeDuplicates snapshot 1`] = `
+[
+  "GM_addElement",
+  "GM_addStyle",
+  "GM_download",
+]
+`;
