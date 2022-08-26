@@ -13,7 +13,11 @@ import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
 
-function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
+export type { UserscriptPluginConfig }
+
+export default function UserscriptPlugin(
+  config: UserscriptPluginConfig
+): PluginOption {
   let pluginConfig: ResolvedConfig
   let isBuildWatch: boolean
   let port: number | null = null
@@ -61,6 +65,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
       config.metadata.exclude = removeDuplicates(exclude)
       config.metadata.resource = removeDuplicates(resource)
       config.metadata.connect = removeDuplicates(connect)
+      config.autoGrants = config.autoGrants ?? true
     },
     async transform(src: string, path: string) {
       let code = src
@@ -84,8 +89,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
           (file as unknown as { modules: string[] }).modules
         )
 
-        const cssModules = modules
-          .filter((module) => regexpStyles.test(module))
+        const cssModules = modules.filter((module) => regexpStyles.test(module))
 
         if (cssModules.length > 0) {
           css.merge(cssModules)
@@ -197,7 +201,3 @@ function UserscriptPlugin(config: UserscriptPluginConfig): PluginOption {
     }
   }
 }
-
-export { UserscriptPlugin }
-export default UserscriptPlugin
-export type { UserscriptPluginConfig }

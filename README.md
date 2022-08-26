@@ -32,12 +32,12 @@ pnpm add vite-userscript-plugin -D
 
 ```js
 import { defineConfig } from 'vite'
-import { UserscriptPlugin } from 'vite-userscript-plugin'
+import Userscript from 'vite-userscript-plugin'
 import { name, version } from './package.json'
 
 export default defineConfig({
   plugins: [
-    UserscriptPlugin({
+    Userscript({
       entry: 'src/index.ts',
       metadata: {
         name,
@@ -88,4 +88,4 @@ export interface UserscriptPluginConfig {
 
 ## Example
 
-See the [example](https://github.com/crashmax-dev/vite-userscript-plugin/tree/master/packages/demo) folder.
+See the [examples](https://github.com/crashmax-dev/vite-userscript-plugin/tree/master/examples) folder.

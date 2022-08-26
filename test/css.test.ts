@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 import { CSS } from '../src/css.js'
 
 const style1 = `
