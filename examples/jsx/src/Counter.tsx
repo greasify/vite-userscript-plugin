@@ -5,7 +5,7 @@ type RedomProps<T extends Record<string, any>> = {
 } & T
 
 interface Props {
-  initialCounter?: number
+  initialValue?: number
 }
 
 export class Counter implements RedomComponent {
@@ -15,8 +15,8 @@ export class Counter implements RedomComponent {
   private initialCounter: number
   private interval: ReturnType<typeof setInterval>
 
-  constructor({ initialCounter }: RedomProps<Props>) {
-    this.initialCounter = initialCounter ?? 0
+  constructor({ initialValue }: RedomProps<Props>) {
+    this.initialCounter = initialValue ?? 0
     this.counter = this.initialCounter
     this.render()
   }

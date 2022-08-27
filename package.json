@@ -55,9 +55,9 @@
     "@types/node": "^18.7.13",
     "@types/websocket": "^1.0.5",
     "@vitest/ui": "^0.22.1",
-    "tsup": "^6.2.2",
+    "tsup": "^6.2.3",
     "turbo": "^1.4.3",
-    "typescript": "^4.7.4",
+    "typescript": "^4.8.2",
     "vite": "^3.0.9",
     "vite-plugin-dts": "^1.4.1",
     "vitest": "^0.22.1"
