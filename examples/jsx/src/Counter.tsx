@@ -1,15 +1,11 @@
-import type { RedomComponent } from 'redom'
-
-type RedomProps<T extends Record<string, any>> = {
-  this?: string
-} & T
+import type { RedomComponent, RedomEl, RedomProps } from 'redom'
 
 interface Props {
   initialValue?: number
 }
 
 export class Counter implements RedomComponent {
-  public el: HTMLElement
+  public el: RedomEl
 
   private counter: number
   private initialCounter: number

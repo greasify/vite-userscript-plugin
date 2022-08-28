@@ -13,7 +13,7 @@
     "vite-userscript-plugin": "workspace:*"
   },
   "dependencies": {
-    "redom": "^3.29.0",
+    "redom": "link:../../../vite-redom-jsx/packages/redom/",
     "redom-jsx": "^1.2.1"
   }
 }

@@ -48,16 +48,16 @@ importers:
   examples/jsx:
     specifiers:
       babel-plugin-transform-react-jsx: ^6.24.1
-      redom: ^3.29.0
+      redom: link:../../../vite-redom-jsx/packages/redom/
       redom-jsx: ^1.2.1
       vite-redom-jsx: ^1.5.2
       vite-userscript-plugin: workspace:*
     dependencies:
-      redom: 3.29.0
-      redom-jsx: 1.2.1_redom@3.29.0
+      redom: link:../../../vite-redom-jsx/packages/redom
+      redom-jsx: 1.2.1_htw3z7rdunk2b72zprkxdjrtui
     devDependencies:
       babel-plugin-transform-react-jsx: 6.24.1
-      vite-redom-jsx: 1.5.2_redom@3.29.0+vite@3.0.9
+      vite-redom-jsx: 1.5.2_wgmgjymrdpaqev4lo2dhfv3wza
       vite-userscript-plugin: link:../..
 
 packages:
@@ -88,14 +88,14 @@ packages:
     dependencies:
       '@ampproject/remapping': 2.2.0
       '@babel/code-frame': 7.18.6
-      '@babel/generator': 7.17.7
+      '@babel/generator': 7.18.13
       '@babel/helper-compilation-targets': 7.18.9_@babel+core@7.17.8
       '@babel/helper-module-transforms': 7.18.9
       '@babel/helpers': 7.18.9
-      '@babel/parser': 7.17.8
+      '@babel/parser': 7.18.13
       '@babel/template': 7.18.10
-      '@babel/traverse': 7.17.3
-      '@babel/types': 7.17.0
+      '@babel/traverse': 7.18.13
+      '@babel/types': 7.18.13
       convert-source-map: 1.8.0
       debug: 4.3.4
       gensync: 1.0.0-beta.2
@@ -132,7 +132,7 @@ packages:
     resolution: {integrity: sha512-oLcVCTeIFadUoArDTwpluncplrYBmTCCZZgXCbgNGvOBBiSDDK3eWO4b/+eOTli5tKv1lg+a5/NAXg+nTcei1w==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.17.0
+      '@babel/types': 7.18.13
       jsesc: 2.5.2
       source-map: 0.5.7
     dev: true
@@ -274,7 +274,7 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
     dependencies:
-      '@babel/types': 7.17.0
+      '@babel/types': 7.18.13
     dev: true
 
   /@babel/parser/7.18.13:
@@ -309,13 +309,13 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/code-frame': 7.18.6
-      '@babel/generator': 7.17.7
+      '@babel/generator': 7.18.13
       '@babel/helper-environment-visitor': 7.18.9
       '@babel/helper-function-name': 7.18.9
       '@babel/helper-hoist-variables': 7.18.6
       '@babel/helper-split-export-declaration': 7.18.6
-      '@babel/parser': 7.17.8
-      '@babel/types': 7.17.0
+      '@babel/parser': 7.18.13
+      '@babel/types': 7.18.13
       debug: 4.3.4
       globals: 11.12.0
     transitivePeerDependencies:
@@ -1910,15 +1910,12 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /redom-jsx/1.2.1_redom@3.29.0:
+  /redom-jsx/1.2.1_htw3z7rdunk2b72zprkxdjrtui:
     resolution: {integrity: sha512-HMezH/WxOHQcwrINaEAMrpSkgODXX1oadctOO8XDhpW4eUSerEK+YsxAt8t3sP9eBdgMQm+eceCPfqDkggTp2g==}
     peerDependencies:
       redom: '>=3.29.0'
     dependencies:
-      redom: 3.29.0
-
-  /redom/3.29.0:
-    resolution: {integrity: sha512-9uJvdhflj7j/zIxQeIbRQ8ekbrRxtrZ1vKuZ0lpy2/R5JK8vHjyG0PX8kf9zSymeUa5e/Z6v7u4gkWKaPG/zzg==}
+      redom: link:../vite-redom-jsx/packages/redom
 
   /regenerator-runtime/0.11.1:
     resolution: {integrity: sha512-MguG95oij0fC3QV3URf4V2SDYGJhJnJGqvIIgdECeODCT98wSWDAJ94SSuVpYQUoTcGUIL6L4yNB7j1DFFHSBg==}
@@ -2449,7 +2446,7 @@ packages:
       - supports-color
     dev: true
 
-  /vite-redom-jsx/1.5.2_redom@3.29.0+vite@3.0.9:
+  /vite-redom-jsx/1.5.2_wgmgjymrdpaqev4lo2dhfv3wza:
     resolution: {integrity: sha512-BvM2mxkFzp+UXX+LdOew2Otv3lHuN4ZYxITMkWXF2AHK4zDsUnnf5fO5+5cQRB6oiQDT88qKw7zTaXHHELpCaQ==}
     peerDependencies:
       redom: '>=3.29.0'
@@ -2457,8 +2454,8 @@ packages:
     dependencies:
       '@babel/core': 7.18.13
       babel-plugin-transform-redom-jsx: 3.0.5_@babel+core@7.18.13
-      redom: 3.29.0
-      redom-jsx: 1.2.1_redom@3.29.0
+      redom: link:../vite-redom-jsx/packages/redom
+      redom-jsx: 1.2.1_htw3z7rdunk2b72zprkxdjrtui
       vite: 3.0.9
     transitivePeerDependencies:
       - supports-color
