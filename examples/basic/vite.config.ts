@@ -14,6 +14,9 @@ export default defineConfig({
           'https://example.org',
           'https://example.edu'
         ]
+      },
+      server: {
+        open: false
       }
     })
   ]

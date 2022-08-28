@@ -12,6 +12,9 @@ export default defineConfig({
         name,
         version,
         match: 'https://example.com'
+      },
+      server: {
+        open: false
       }
     })
   ]

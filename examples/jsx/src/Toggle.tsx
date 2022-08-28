@@ -1,12 +1,13 @@
-import { RedomComponent, RedomEl } from "redom-jsx";
-import { Heading } from "./Heading.jsx";
+import { RedomComponent, RedomEl } from 'redom-jsx'
+import { Heading } from './Heading.jsx'
 
 export class Toggle implements RedomComponent {
-  el: RedomEl;
+  el: RedomEl
 
   private heading: Heading
 
   constructor() {
+    // prettier-ignore
     <div this="el">
       <Heading this="heading" />
       <button

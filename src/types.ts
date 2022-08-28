@@ -218,6 +218,18 @@ export type MetadataConfig = {
   'run-at'?: RunAt
 }
 
+export interface ServerConfig {
+  /**
+   * {@link https://github.com/sindresorhus/get-port}
+   */
+  port?: number
+
+  /**
+   * @default true
+   */
+  open?: boolean
+}
+
 export interface UserscriptPluginConfig {
   /**
    * Path of userscript entry.
@@ -228,6 +240,11 @@ export interface UserscriptPluginConfig {
    * Userscript header config.
    */
   metadata: MetadataConfig
+
+  /**
+   * Server config.
+   */
+  server?: ServerConfig
 
   /**
    * Import all `@grant` in development mode.

@@ -46,13 +46,17 @@
   "dependencies": {
     "@types/tampermonkey": "^4.0.5",
     "get-port": "^6.1.2",
+    "open": "^8.4.0",
+    "picocolors": "^1.0.0",
     "sanitize-filename": "^1.6.3",
+    "serve-handler": "^6.1.3",
     "websocket": "^1.0.34"
   },
   "devDependencies": {
     "@crashmax/prettier-config": "^2.0.3",
     "@crashmax/tsconfig": "^1.0.2",
     "@types/node": "^18.7.13",
+    "@types/serve-handler": "^6.1.1",
     "@types/websocket": "^1.0.5",
     "@vitest/ui": "^0.22.1",
     "tsup": "^6.2.3",

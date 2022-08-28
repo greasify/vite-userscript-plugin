@@ -3,8 +3,11 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import openLink from 'open'
+import colors from 'picocolors'
 import sanitize from 'sanitize-filename'
-import { PluginOption, ResolvedConfig } from 'vite'
+import serveHandler from 'serve-handler'
+import { PluginOption, ResolvedConfig, createLogger } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { banner } from './banner.js'
@@ -20,10 +23,19 @@ export default function UserscriptPlugin(
 ): PluginOption {
   let pluginConfig: ResolvedConfig
   let isBuildWatch: boolean
-  let port: number | null = null
   let socketConnection: connection | null = null
 
-  const httpServer = createServer()
+  const logger = createLogger('info', {
+    prefix: '[vite-userscript-plugin]',
+    allowClearScreen: true
+  })
+
+  const httpServer = createServer((req, res) => {
+    return serveHandler(req, res, {
+      public: pluginConfig.build.outDir
+    })
+  })
+
   const WebSocketServer = server
   const ws = new WebSocketServer({ httpServer })
   ws.on('request', (request) => {
@@ -50,7 +62,7 @@ export default function UserscriptPlugin(
         }
       }
     },
-    configResolved(cfg) {
+    async configResolved(cfg) {
       pluginConfig = cfg
       isBuildWatch = (cfg.build.watch ?? false) as boolean
 
@@ -66,6 +78,11 @@ export default function UserscriptPlugin(
       config.metadata.resource = removeDuplicates(resource)
       config.metadata.connect = removeDuplicates(connect)
       config.autoGrants = config.autoGrants ?? true
+      config.server = {
+        port: await getPort(),
+        open: true,
+        ...config.server
+      }
     },
     async transform(src: string, path: string) {
       let code = src
@@ -97,32 +114,21 @@ export default function UserscriptPlugin(
       }
     },
     async writeBundle(_, bundle) {
-      if (!port && isBuildWatch) {
-        port = await getPort()
-        httpServer.listen(port)
-      }
+      const { open, port } = config.server!
+      const proxyFilename = `${config.metadata.name}.proxy.user.js`
 
       for (const [fileName] of Object.entries(bundle)) {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
-          const outDir = pluginConfig.build.outDir || 'dist'
+          const outDir = pluginConfig.build.outDir
+          const userFilename = `${config.metadata.name}.user.js`
 
           const outPath = resolve(rootDir, outDir, fileName)
+          const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
+          const userFilePath = resolve(rootDir, outDir, userFilename)
           const hotReloadPath = resolve(
             dirname(fileURLToPath(import.meta.url)),
             `hot-reload-${config.metadata.name}.js`
-          )
-
-          const proxyFilePath = resolve(
-            rootDir,
-            outDir,
-            `${config.metadata.name}.proxy.user.js`
-          )
-
-          const userFilePath = resolve(
-            rootDir,
-            outDir,
-            `${config.metadata.name}.user.js`
           )
 
           try {
@@ -185,18 +191,32 @@ export default function UserscriptPlugin(
         }
       }
 
-      if (!isBuildWatch) {
+      if (isBuildWatch && !httpServer.listening) {
+        const link = `http://localhost:${port}`
+        httpServer.listen(port, () => {
+          logger.clearScreen('info')
+          logger.info(colors.blue(`Running at: ${colors.gray(link)}`))
+        })
+
+        if (open) {
+          await openLink(`${link}/${proxyFilename}`)
+        }
+      } else if (!isBuildWatch) {
         httpServer.close()
         process.exit(0)
       }
     },
     buildEnd() {
-      if (socketConnection) {
-        socketConnection.sendUTF(
-          JSON.stringify({
-            message: 'reload'
-          })
-        )
+      if (isBuildWatch) {
+        logger.clearScreen('info')
+
+        if (socketConnection) {
+          socketConnection.sendUTF(
+            JSON.stringify({
+              message: 'reload'
+            })
+          )
+        }
       }
     }
   }
