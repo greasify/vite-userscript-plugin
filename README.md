@@ -39,7 +39,7 @@ export default defineConfig({
   plugins: [
     Userscript({
       entry: 'src/index.ts',
-      metadata: {
+      header: {
         name,
         version,
         match: [
@@ -67,22 +67,35 @@ export default defineConfig({
 ## Plugin Configuration
 
 ```ts
-export interface UserscriptPluginConfig {
-  /**
-   * Path of userscript entry.
-   */
-  entry: string
+interface ServerConfig {
+    /**
+     * {@link https://github.com/sindresorhus/get-port}
+     */
+    port?: number;
+    /**
+     * @default true
+     */
+    open?: boolean;
+}
 
-  /**
-   * Userscript header config.
-   */
-  metadata: MetadataConfig
-
-  /**
-   * Import all `@grant` in development mode.
-   * @default true
-   */
-  autoGrants?: boolean
+interface UserscriptPluginConfig {
+    /**
+     * Path of userscript entry.
+     */
+    entry: string;
+    /**
+     * Userscript header config.
+     */
+    header: HeaderConfig;
+    /**
+     * Server config.
+     */
+    server?: ServerConfig;
+    /**
+     * Import all `@grant` in development mode.
+     * @default true
+     */
+    autoGrants?: boolean;
 }
 ```
 

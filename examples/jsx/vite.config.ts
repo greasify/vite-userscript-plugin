@@ -8,7 +8,7 @@ export default defineConfig({
     Redom(),
     Userscript({
       entry: 'src/index.tsx',
-      metadata: {
+      header: {
         name,
         version,
         match: 'https://example.com'

@@ -1,7 +1,7 @@
-import type { MetadataConfig } from './types.js'
+import type { HeaderConfig } from './types.js'
 
-export function banner(config: MetadataConfig): string {
-  const metadata: string[] = []
+export function banner(config: HeaderConfig): string {
+  const header: string[] = []
   const configKeys = Object.keys(config)
   const maxKeyLength = Math.max(...configKeys.map((key) => key.length)) + 1
 
@@ -13,7 +13,7 @@ export function banner(config: MetadataConfig): string {
     const isBoolean = typeof value === 'boolean'
     if (isBoolean && !value) return
     value = !isBoolean ? addSpaces(key) + value.toString() : ''
-    metadata.push(`// @${key}${value}`)
+    header.push(`// @${key}${value}`)
   }
 
   for (const [key, value] of Object.entries(config)) {
@@ -27,7 +27,7 @@ export function banner(config: MetadataConfig): string {
 
   return [
     '// ==UserScript==',
-    ...metadata,
+    ...header,
     '// ==/UserScript=='
   ].join('\n')
 }

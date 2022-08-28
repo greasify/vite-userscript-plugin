@@ -50,9 +50,9 @@ export default function UserscriptPlugin(
         build: {
           lib: {
             entry: config.entry,
-            name: config.metadata.name,
+            name: config.header.name,
             formats: ['iife'],
-            fileName: () => `${config.metadata.name}.js`
+            fileName: () => `${config.header.name}.js`
           },
           rollupOptions: {
             output: {
@@ -67,16 +67,16 @@ export default function UserscriptPlugin(
       isBuildWatch = (cfg.build.watch ?? false) as boolean
 
       const { name, match, require, include, exclude, resource, connect } =
-        config.metadata
+        config.header
 
       config.entry = resolve(cfg.root, config.entry)
-      config.metadata.name = sanitize(name)
-      config.metadata.match = removeDuplicates(match)
-      config.metadata.require = removeDuplicates(require)
-      config.metadata.include = removeDuplicates(include)
-      config.metadata.exclude = removeDuplicates(exclude)
-      config.metadata.resource = removeDuplicates(resource)
-      config.metadata.connect = removeDuplicates(connect)
+      config.header.name = sanitize(name)
+      config.header.match = removeDuplicates(match)
+      config.header.require = removeDuplicates(require)
+      config.header.include = removeDuplicates(include)
+      config.header.exclude = removeDuplicates(exclude)
+      config.header.resource = removeDuplicates(resource)
+      config.header.connect = removeDuplicates(connect)
       config.autoGrants = config.autoGrants ?? true
       config.server = {
         port: await getPort(),
@@ -115,32 +115,32 @@ export default function UserscriptPlugin(
     },
     async writeBundle(_, bundle) {
       const { open, port } = config.server!
-      const proxyFilename = `${config.metadata.name}.proxy.user.js`
+      const proxyFilename = `${config.header.name}.proxy.user.js`
 
       for (const [fileName] of Object.entries(bundle)) {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
-          const userFilename = `${config.metadata.name}.user.js`
+          const userFilename = `${config.header.name}.user.js`
 
           const outPath = resolve(rootDir, outDir, fileName)
           const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
           const userFilePath = resolve(rootDir, outDir, userFilename)
           const hotReloadPath = resolve(
             dirname(fileURLToPath(import.meta.url)),
-            `hot-reload-${config.metadata.name}.js`
+            `hot-reload-${config.header.name}.js`
           )
 
           try {
             let source = readFileSync(outPath, 'utf8')
 
             // prettier-ignore
-            config.metadata.grant = removeDuplicates(
+            config.header.grant = removeDuplicates(
               isBuildWatch
                 ? grants
                 : config.autoGrants ?? true
                   ? defineGrants(source)
-                  : [...(config.metadata.grant ?? []), 'GM_addStyle', 'GM_info']
+                  : [...(config.header.grant ?? []), 'GM_addStyle', 'GM_info']
             )
             // prettier-ignore-end
 
@@ -163,9 +163,9 @@ export default function UserscriptPlugin(
               writeFileSync(
                 proxyFilePath,
                 banner({
-                  ...config.metadata,
+                  ...config.header,
                   require: [
-                    ...config.metadata.require!,
+                    ...config.header.require!,
                     'file://' + hotReloadPath,
                     'file://' + outPath
                   ]
@@ -181,10 +181,7 @@ export default function UserscriptPlugin(
             })
 
             writeFileSync(outPath, source)
-            writeFileSync(
-              userFilePath,
-              `${banner(config.metadata)}\n\n${source}`
-            )
+            writeFileSync(userFilePath, `${banner(config.header)}\n\n${source}`)
           } catch (err) {
             console.log(err)
           }

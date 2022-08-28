@@ -15,7 +15,7 @@ export type RunAt =
 
 export type Grants = typeof grants[number]
 
-export type MetadataConfig = {
+export type HeaderConfig = {
   [property: string]: string | boolean | number | string[] | undefined
 
   /**
@@ -239,7 +239,7 @@ export interface UserscriptPluginConfig {
   /**
    * Userscript header config.
    */
-  metadata: MetadataConfig
+  header: HeaderConfig
 
   /**
    * Server config.
