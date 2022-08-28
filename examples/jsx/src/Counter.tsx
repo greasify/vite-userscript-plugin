@@ -1,11 +1,11 @@
-import type { RedomComponent, RedomEl, RedomProps } from 'redom'
+import type { RedomComponent, RedomEl, RedomProps } from 'redom-jsx'
 
 interface Props {
   initialValue?: number
 }
 
 export class Counter implements RedomComponent {
-  public el: RedomEl
+  el: RedomEl
 
   private counter: number
   private initialCounter: number
@@ -37,6 +37,7 @@ export class Counter implements RedomComponent {
   }
 
   private render(): void {
-    ;<h1 this="el"></h1>
+    // prettier-ignore
+    <h1 this="el"></h1>
   }
 }

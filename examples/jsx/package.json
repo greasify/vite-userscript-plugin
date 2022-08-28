@@ -9,11 +9,10 @@
   },
   "devDependencies": {
     "babel-plugin-transform-react-jsx": "^6.24.1",
-    "vite-redom-jsx": "^1.5.2",
+    "vite-redom-jsx": "^2.0.2",
     "vite-userscript-plugin": "workspace:*"
   },
   "dependencies": {
-    "redom": "link:../../../vite-redom-jsx/packages/redom/",
-    "redom-jsx": "^1.2.1"
+    "redom-jsx": "^3.29.1"
   }
 }
