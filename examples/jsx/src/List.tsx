@@ -1,5 +1,10 @@
 import { mount } from 'redom-jsx'
-import type { RedomComponent, RedomEl, RedomElement, RedomProps } from 'redom-jsx'
+import type {
+  RedomComponent,
+  RedomEl,
+  RedomElement,
+  RedomProps
+} from 'redom-jsx'
 
 interface ItemsProps {
   count: number
@@ -34,11 +39,12 @@ class Items implements RedomComponent {
   }
 
   private render(): void {
+    // prettier-ignore
     <span this="el">{this.generateList()}</span>
   }
 }
 
-export class ListId implements RedomComponent {
+export class List implements RedomComponent {
   el: RedomEl
 
   private items: Items

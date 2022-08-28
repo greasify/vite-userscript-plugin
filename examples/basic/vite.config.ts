@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     Userscript({
       entry: 'src/index.ts',
-      metadata: {
+      header: {
         name,
         version,
         match: [
@@ -14,6 +14,9 @@ export default defineConfig({
           'https://example.org',
           'https://example.edu'
         ]
+      },
+      server: {
+        open: false
       }
     })
   ]

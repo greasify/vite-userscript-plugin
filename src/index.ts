@@ -3,8 +3,11 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import openLink from 'open'
+import colors from 'picocolors'
 import sanitize from 'sanitize-filename'
-import { PluginOption, ResolvedConfig } from 'vite'
+import serveHandler from 'serve-handler'
+import { PluginOption, ResolvedConfig, createLogger } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { banner } from './banner.js'
@@ -20,10 +23,19 @@ export default function UserscriptPlugin(
 ): PluginOption {
   let pluginConfig: ResolvedConfig
   let isBuildWatch: boolean
-  let port: number | null = null
   let socketConnection: connection | null = null
 
-  const httpServer = createServer()
+  const logger = createLogger('info', {
+    prefix: '[vite-userscript-plugin]',
+    allowClearScreen: true
+  })
+
+  const httpServer = createServer((req, res) => {
+    return serveHandler(req, res, {
+      public: pluginConfig.build.outDir
+    })
+  })
+
   const WebSocketServer = server
   const ws = new WebSocketServer({ httpServer })
   ws.on('request', (request) => {
@@ -38,9 +50,9 @@ export default function UserscriptPlugin(
         build: {
           lib: {
             entry: config.entry,
-            name: config.metadata.name,
+            name: config.header.name,
             formats: ['iife'],
-            fileName: () => `${config.metadata.name}.js`
+            fileName: () => `${config.header.name}.js`
           },
           rollupOptions: {
             output: {
@@ -50,22 +62,27 @@ export default function UserscriptPlugin(
         }
       }
     },
-    configResolved(cfg) {
+    async configResolved(cfg) {
       pluginConfig = cfg
       isBuildWatch = (cfg.build.watch ?? false) as boolean
 
       const { name, match, require, include, exclude, resource, connect } =
-        config.metadata
+        config.header
 
       config.entry = resolve(cfg.root, config.entry)
-      config.metadata.name = sanitize(name)
-      config.metadata.match = removeDuplicates(match)
-      config.metadata.require = removeDuplicates(require)
-      config.metadata.include = removeDuplicates(include)
-      config.metadata.exclude = removeDuplicates(exclude)
-      config.metadata.resource = removeDuplicates(resource)
-      config.metadata.connect = removeDuplicates(connect)
+      config.header.name = sanitize(name)
+      config.header.match = removeDuplicates(match)
+      config.header.require = removeDuplicates(require)
+      config.header.include = removeDuplicates(include)
+      config.header.exclude = removeDuplicates(exclude)
+      config.header.resource = removeDuplicates(resource)
+      config.header.connect = removeDuplicates(connect)
       config.autoGrants = config.autoGrants ?? true
+      config.server = {
+        port: await getPort(),
+        open: true,
+        ...config.server
+      }
     },
     async transform(src: string, path: string) {
       let code = src
@@ -97,44 +114,33 @@ export default function UserscriptPlugin(
       }
     },
     async writeBundle(_, bundle) {
-      if (!port && isBuildWatch) {
-        port = await getPort()
-        httpServer.listen(port)
-      }
+      const { open, port } = config.server!
+      const proxyFilename = `${config.header.name}.proxy.user.js`
 
       for (const [fileName] of Object.entries(bundle)) {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
-          const outDir = pluginConfig.build.outDir || 'dist'
+          const outDir = pluginConfig.build.outDir
+          const userFilename = `${config.header.name}.user.js`
 
           const outPath = resolve(rootDir, outDir, fileName)
+          const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
+          const userFilePath = resolve(rootDir, outDir, userFilename)
           const hotReloadPath = resolve(
             dirname(fileURLToPath(import.meta.url)),
-            `hot-reload-${config.metadata.name}.js`
-          )
-
-          const proxyFilePath = resolve(
-            rootDir,
-            outDir,
-            `${config.metadata.name}.proxy.user.js`
-          )
-
-          const userFilePath = resolve(
-            rootDir,
-            outDir,
-            `${config.metadata.name}.user.js`
+            `hot-reload-${config.header.name}.js`
           )
 
           try {
             let source = readFileSync(outPath, 'utf8')
 
             // prettier-ignore
-            config.metadata.grant = removeDuplicates(
+            config.header.grant = removeDuplicates(
               isBuildWatch
                 ? grants
                 : config.autoGrants ?? true
                   ? defineGrants(source)
-                  : [...(config.metadata.grant ?? []), 'GM_addStyle', 'GM_info']
+                  : [...(config.header.grant ?? []), 'GM_addStyle', 'GM_info']
             )
             // prettier-ignore-end
 
@@ -157,9 +163,9 @@ export default function UserscriptPlugin(
               writeFileSync(
                 proxyFilePath,
                 banner({
-                  ...config.metadata,
+                  ...config.header,
                   require: [
-                    ...config.metadata.require!,
+                    ...config.header.require!,
                     'file://' + hotReloadPath,
                     'file://' + outPath
                   ]
@@ -175,28 +181,39 @@ export default function UserscriptPlugin(
             })
 
             writeFileSync(outPath, source)
-            writeFileSync(
-              userFilePath,
-              `${banner(config.metadata)}\n\n${source}`
-            )
+            writeFileSync(userFilePath, `${banner(config.header)}\n\n${source}`)
           } catch (err) {
             console.log(err)
           }
         }
       }
 
-      if (!isBuildWatch) {
+      if (isBuildWatch && !httpServer.listening) {
+        const link = `http://localhost:${port}`
+        httpServer.listen(port, () => {
+          logger.clearScreen('info')
+          logger.info(colors.blue(`Running at: ${colors.gray(link)}`))
+        })
+
+        if (open) {
+          await openLink(`${link}/${proxyFilename}`)
+        }
+      } else if (!isBuildWatch) {
         httpServer.close()
         process.exit(0)
       }
     },
     buildEnd() {
-      if (socketConnection) {
-        socketConnection.sendUTF(
-          JSON.stringify({
-            message: 'reload'
-          })
-        )
+      if (isBuildWatch) {
+        logger.clearScreen('info')
+
+        if (socketConnection) {
+          socketConnection.sendUTF(
+            JSON.stringify({
+              message: 'reload'
+            })
+          )
+        }
       }
     }
   }
