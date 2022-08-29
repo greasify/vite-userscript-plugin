@@ -245,10 +245,4 @@ export interface UserscriptPluginConfig {
    * Server config.
    */
   server?: ServerConfig
-
-  /**
-   * Import all `@grant` in development mode.
-   * @default true
-   */
-  autoGrants?: boolean
 }

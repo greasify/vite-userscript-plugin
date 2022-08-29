@@ -11,6 +11,7 @@ import { PluginOption, ResolvedConfig, createLogger } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { banner } from './banner.js'
+import { userConfig } from './config.js'
 import { grants, regexpScripts, regexpStyles } from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
@@ -46,38 +47,28 @@ export default function UserscriptPlugin(
     name: 'vite-userscript-plugin',
     apply: 'build',
     config() {
-      return {
-        build: {
-          lib: {
-            entry: config.entry,
-            name: config.header.name,
-            formats: ['iife'],
-            fileName: () => `${config.header.name}.js`
-          },
-          rollupOptions: {
-            output: {
-              extend: true
-            }
-          }
-        }
-      }
+      return userConfig(config)
     },
-    async configResolved(cfg) {
-      pluginConfig = cfg
-      isBuildWatch = (cfg.build.watch ?? false) as boolean
+    async configResolved(userConfig) {
+      pluginConfig = userConfig
+      isBuildWatch = (userConfig.build.watch ?? false) as boolean
+      config.entry = resolve(userConfig.root, config.entry)
+      config.header.name = sanitize(config.header.name)
 
-      const { name, match, require, include, exclude, resource, connect } =
-        config.header
+      Array.from([
+        'match',
+        'require',
+        'include',
+        'exclude',
+        'resource',
+        'connect'
+      ]).forEach((key) => {
+        const value = config.header[key]
+        if (Array.isArray(value)) {
+          config.header[key] = removeDuplicates(value)
+        }
+      })
 
-      config.entry = resolve(cfg.root, config.entry)
-      config.header.name = sanitize(name)
-      config.header.match = removeDuplicates(match)
-      config.header.require = removeDuplicates(require)
-      config.header.include = removeDuplicates(include)
-      config.header.exclude = removeDuplicates(exclude)
-      config.header.resource = removeDuplicates(resource)
-      config.header.connect = removeDuplicates(connect)
-      config.autoGrants = config.autoGrants ?? true
       config.server = {
         port: await getPort(),
         open: true,
@@ -134,16 +125,6 @@ export default function UserscriptPlugin(
           try {
             let source = readFileSync(outPath, 'utf8')
 
-            // prettier-ignore
-            config.header.grant = removeDuplicates(
-              isBuildWatch
-                ? grants
-                : config.autoGrants ?? true
-                  ? defineGrants(source)
-                  : [...(config.header.grant ?? []), 'GM_addStyle', 'GM_info']
-            )
-            // prettier-ignore-end
-
             if (isBuildWatch) {
               const hotReloadFile = readFileSync(
                 resolve(
@@ -179,6 +160,12 @@ export default function UserscriptPlugin(
               name: fileName,
               loader: 'js'
             })
+
+            config.header.grant = removeDuplicates(
+              isBuildWatch
+                ? grants
+                : [...defineGrants(source), ...(config.header.grant ?? [])]
+            )
 
             writeFileSync(outPath, source)
             writeFileSync(userFilePath, `${banner(config.header)}\n\n${source}`)

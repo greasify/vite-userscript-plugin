@@ -16,7 +16,7 @@
     "dev": "tsup --watch",
     "build": "tsup",
     "test": "vitest",
-    "test:ui": "vitest --ui",
+    "test:ui": "vitest --ui --watch",
     "examples:dev": "turbo run dev --filter='./examples/*'",
     "examples:build": "turbo run build --filter='./examples/*'",
     "format": "prettier --write --ignore-unknown **",
