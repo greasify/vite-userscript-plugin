@@ -64,9 +64,7 @@ export default function UserscriptPlugin(
         'connect'
       ]).forEach((key) => {
         const value = config.header[key]
-        if (Array.isArray(value)) {
-          config.header[key] = removeDuplicates(value)
-        }
+        config.header[key] = removeDuplicates(value)
       })
 
       config.server = {
