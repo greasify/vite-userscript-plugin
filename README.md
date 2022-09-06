@@ -97,3 +97,14 @@ interface UserscriptPluginConfig {
 ## Example
 
 See the [examples](https://github.com/crashmax-dev/vite-userscript-plugin/tree/master/examples) folder.
+
+## Used by
+
+- [vite-userscript-template](https://github.com/crashmax-dev/vite-userscript-template)
+- [netangels-userscript](https://github.com/crashmax-dev/netangels-userscript)
+- [godev-code-highlight](https://github.com/crashmax-dev/godev-code-highlight)
+- [beautifier-userscript](https://github.com/crashmax-dev/beautifier-userscript)
+
+## License
+
+[MIT](./LICENCE) © [crashmax](https://github.com/crashmax-dev)
