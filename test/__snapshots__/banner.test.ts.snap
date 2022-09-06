@@ -1,6 +1,6 @@
 // Vitest Snapshot v1
 
-exports[`banner snapshot 1`] = `
+exports[`banner default snapshot 1`] = `
 "// ==UserScript==
 // @name        vitest
 // @version     1.0.0
@@ -50,5 +50,16 @@ exports[`banner snapshot 1`] = `
 // @grant       GM_info
 // @match       https://vitest.dev
 // @run-at      document-start
+// ==/UserScript=="
+`;
+
+exports[`banner meta snapshot 1`] = `
+"// ==UserScript==
+// @name        vitest
+// @version     1.0.0
+// @match       https://example.com
+// @homepage    https://crashmax-dev.github.io/jsx/
+// @updateURL   https://crashmax-dev.github.io/jsx/vitest.meta.js
+// @downloadURL https://crashmax-dev.github.io/jsx/vitest.user.js
 // ==/UserScript=="
 `;

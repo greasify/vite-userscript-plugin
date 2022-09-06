@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest'
-import { banner } from '../src/banner.js'
+import { Banner } from '../src/banner.js'
 import { grants } from '../src/constants.js'
-import type { Grants, MetadataConfig } from '../src/types.js'
+import type { Grants, HeaderConfig } from '../src/types.js'
 
-const metadataConfig: MetadataConfig = {
+const defaultBanner: HeaderConfig = {
   name: 'vitest',
   version: '1.0.0',
   author: 'John Doe',
@@ -27,7 +27,19 @@ const metadataConfig: MetadataConfig = {
   'run-at': 'document-start'
 }
 
-test('banner snapshot', () => {
-  const defaultBanner = banner(metadataConfig)
-  expect(defaultBanner).toMatchSnapshot()
+test('banner default snapshot', () => {
+  const banner = new Banner(defaultBanner).generate()
+  expect(banner).toMatchSnapshot()
+})
+
+const metaBanner: HeaderConfig = {
+  name: 'vitest',
+  version: '1.0.0',
+  match: 'https://example.com',
+  homepage: 'https://crashmax-dev.github.io/jsx/'
+}
+
+test('banner meta snapshot', () => {
+  const banner = new Banner(metaBanner).generate()
+  expect(banner).toMatchSnapshot()
 })
