@@ -10,7 +10,7 @@ import serveHandler from 'serve-handler'
 import { PluginOption, ResolvedConfig, createLogger } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
-import { banner } from './banner.js'
+import { Banner } from './banner.js'
 import { userConfig } from './config.js'
 import { grants, regexpScripts, regexpStyles } from './constants.js'
 import css from './css.js'
@@ -104,17 +104,19 @@ export default function UserscriptPlugin(
     },
     async writeBundle(_, bundle) {
       const { open, port } = config.server!
+      const userFilename = `${config.header.name}.user.js`
       const proxyFilename = `${config.header.name}.proxy.user.js`
+      const metaFilename = `${config.header.name}.meta.js`
 
       for (const [fileName] of Object.entries(bundle)) {
         if (regexpScripts.test(fileName)) {
           const rootDir = pluginConfig.root
           const outDir = pluginConfig.build.outDir
-          const userFilename = `${config.header.name}.user.js`
 
           const outPath = resolve(rootDir, outDir, fileName)
-          const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
           const userFilePath = resolve(rootDir, outDir, userFilename)
+          const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
+          const metaFilePath = resolve(rootDir, outDir, metaFilename)
           const hotReloadPath = resolve(
             dirname(fileURLToPath(import.meta.url)),
             `hot-reload-${config.header.name}.js`
@@ -141,14 +143,14 @@ export default function UserscriptPlugin(
               writeFileSync(hotReloadPath, hotReloadScript)
               writeFileSync(
                 proxyFilePath,
-                banner({
+                new Banner({
                   ...config.header,
                   require: [
                     ...config.header.require!,
                     'file://' + hotReloadPath,
                     'file://' + outPath
                   ]
-                })
+                }).generate()
               )
             }
 
@@ -165,8 +167,10 @@ export default function UserscriptPlugin(
                 : [...defineGrants(source), ...(config.header.grant ?? [])]
             )
 
+            const banner = new Banner(config.header).generate()
             writeFileSync(outPath, source)
-            writeFileSync(userFilePath, `${banner(config.header)}\n\n${source}`)
+            writeFileSync(userFilePath, `${banner}\n\n${source}`)
+            writeFileSync(metaFilePath, banner)
           } catch (err) {
             console.log(err)
           }

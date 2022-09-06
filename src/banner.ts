@@ -1,33 +1,50 @@
 import type { HeaderConfig } from './types.js'
 
-export function banner(config: HeaderConfig): string {
-  const header: string[] = []
-  const configKeys = Object.keys(config)
-  const maxKeyLength = Math.max(...configKeys.map((key) => key.length)) + 1
+export class Banner {
+  private header: string[] = []
+  private configKeys: string[]
+  private maxKeyLength: number
 
-  const addSpaces = (str: string): string => {
-    return ' '.repeat(maxKeyLength - str.length)
+  constructor(private readonly config: HeaderConfig) {
+    this.downloadMeta()
+    this.configKeys = Object.keys(this.config)
+    this.maxKeyLength =
+      Math.max(...this.configKeys.map((key) => key.length)) + 1
   }
 
-  const addMetadata = (key: string, value: string | number | boolean): void => {
-    const isBoolean = typeof value === 'boolean'
-    if (isBoolean && !value) return
-    value = !isBoolean ? addSpaces(key) + value.toString() : ''
-    header.push(`// @${key}${value}`)
-  }
-
-  for (const [key, value] of Object.entries(config)) {
-    if (Array.isArray(value)) {
-      value.forEach((value) => addMetadata(key, value))
-    } else {
-      if (value === undefined) continue
-      addMetadata(key, value)
+  private downloadMeta(): void {
+    const { name, homepage, updateURL, downloadURL } = this.config
+    if (homepage && !updateURL && !downloadURL) {
+      this.config.updateURL = new URL(`${name}.meta.js`, homepage).href
+      this.config.downloadURL = new URL(`${name}.user.js`, homepage).href
     }
   }
 
-  return [
-    '// ==UserScript==',
-    ...header,
-    '// ==/UserScript=='
-  ].join('\n')
+  private addSpaces(str: string): string {
+    return ' '.repeat(this.maxKeyLength - str.length)
+  }
+
+  private addMetadata(key: string, value: string | number | boolean): void {
+    const isBoolean = typeof value === 'boolean'
+    if (isBoolean && !value) return
+    value = !isBoolean ? `${this.addSpaces(key)}${value}` : ''
+    this.header.push(`// @${key}${value}`)
+  }
+
+  generate(): string {
+    for (const [key, value] of Object.entries(this.config)) {
+      if (Array.isArray(value)) {
+        value.forEach((value) => this.addMetadata(key, value))
+      } else {
+        if (value === undefined) continue
+        this.addMetadata(key, value)
+      }
+    }
+
+    return [
+      '// ==UserScript==',
+      ...this.header,
+      '// ==/UserScript=='
+    ].join('\n')
+  }
 }
