@@ -69,7 +69,7 @@ export default function UserscriptPlugin(
 
       config.server = {
         port: await getPort(),
-        open: true,
+        open: false,
         ...config.server
       }
     },

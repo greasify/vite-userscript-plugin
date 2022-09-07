@@ -225,7 +225,7 @@ export interface ServerConfig {
   port?: number
 
   /**
-   * @default true
+   * @default false
    */
   open?: boolean
 }
