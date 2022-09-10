@@ -19,3 +19,8 @@ test('removeDuplicates snapshot', () => {
 
   expect(removeDuplicates(grants)).toMatchSnapshot()
 })
+
+test('removeDuplicates insert string to array', () => {
+  const str = 'hello'
+  expect(removeDuplicates(str)).toEqual([str])
+})
