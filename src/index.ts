@@ -95,10 +95,12 @@ export default function UserscriptPlugin(
           (file as unknown as { modules: string[] }).modules
         )
 
-        const cssModules = modules.filter((module) => regexpStyles.test(module))
+        const styleModules = modules.filter((module) =>
+          regexpStyles.test(module)
+        )
 
-        if (cssModules.length > 0) {
-          css.merge(cssModules)
+        if (styleModules.length) {
+          css.merge(styleModules)
         }
       }
     },
