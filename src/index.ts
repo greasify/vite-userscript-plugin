@@ -124,6 +124,18 @@ export default function UserscriptPlugin(
 
           try {
             let source = readFileSync(outPath, 'utf8')
+            source = source.replace('__STYLE__', `${css.inject()}`)
+            source = await transform({
+              file: source,
+              name: fileName,
+              loader: 'js'
+            })
+
+            config.header.grant = removeDuplicates(
+              isBuildWatch
+                ? grants
+                : [...defineGrants(source), ...(config.header.grant ?? [])]
+            )
 
             if (isBuildWatch) {
               const hotReloadFile = readFileSync(
@@ -154,23 +166,10 @@ export default function UserscriptPlugin(
               )
             }
 
-            source = source.replace('__STYLE__', `${css.inject()}`)
-            source = await transform({
-              file: source,
-              name: fileName,
-              loader: 'js'
-            })
-
-            config.header.grant = removeDuplicates(
-              isBuildWatch
-                ? grants
-                : [...defineGrants(source), ...(config.header.grant ?? [])]
-            )
-
             const banner = new Banner(config.header).generate()
             writeFileSync(outPath, source)
-            writeFileSync(userFilePath, `${banner}\n\n${source}`)
             writeFileSync(metaFilePath, banner)
+            writeFileSync(userFilePath, `${banner}\n\n${source}`)
           } catch (err) {
             console.log(err)
           }
