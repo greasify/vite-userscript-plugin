@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { Banner } from '../src/banner.js'
 import { grants } from '../src/constants.js'
-import type { Grants, HeaderConfig } from '../src/types.js'
+import type { HeaderConfig } from '../src/types.js'
 
 const defaultBanner: HeaderConfig = {
   name: 'vitest',
@@ -22,7 +22,7 @@ const defaultBanner: HeaderConfig = {
   updateURL: 'https://vitest.dev',
   resource: 'https://vitest.dev',
   require: 'https://example.com/index.js',
-  grant: grants as unknown as Exclude<Grants, 'GM_addStyle' | 'GM_info'>[],
+  grant: [...grants],
   match: 'https://vitest.dev',
   'run-at': 'document-start'
 }

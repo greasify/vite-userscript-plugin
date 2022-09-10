@@ -180,7 +180,7 @@ export type HeaderConfig = {
    * some powerful window functions. If no `@grant` tag is given TM guesses
    * the scripts needs.
    */
-  grant?: Exclude<Grants, 'GM_addStyle' | 'GM_info'>[]
+  grant?: Grants[]
 
   /**
    * Defines the moment the script is injected. In opposition to other script
