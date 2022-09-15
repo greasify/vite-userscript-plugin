@@ -3,7 +3,8 @@
 ![npm](https://img.shields.io/npm/v/vite-userscript-plugin)
 ![license](https://img.shields.io/github/license/crashmax-dev/vite-userscript-plugin)
 
-> Tampermonkey userscript developing and build plugin based on [Vite](https://vitejs.dev).
+> ⚡️ Tampermonkey userscript developing and build plugin based on [Vite](https://vitejs.dev).\
+> 📦 Use this [template](https://github.com/crashmax-dev/vite-userscript-template) to initialize your project.
 
 ## Features
 
@@ -58,7 +59,7 @@ export default defineConfig({
 ```json
 {
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "vite build --watch --mode development",
     "build": "vite build"
   }
 }
