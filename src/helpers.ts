@@ -13,7 +13,9 @@ export async function transform({
 }: Transform): Promise<string> {
   const { code } = await transformWithEsbuild(file, name, {
     loader,
-    minify: true
+    minify: true,
+    sourcemap: false,
+    legalComments: 'none'
   })
 
   return code
