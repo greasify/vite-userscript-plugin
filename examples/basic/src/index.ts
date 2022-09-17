@@ -4,3 +4,5 @@ import './styles/style.sass'
 
 const div = document.querySelector('div')!
 div.appendChild(createButton())
+
+GM_addStyle('')

@@ -1,7 +1,9 @@
 {
   "extends": "@crashmax/tsconfig",
   "compilerOptions": {
-    "outDir": "dist",
-    "resolveJsonModule": true
-  }
+    "outDir": "dist"
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

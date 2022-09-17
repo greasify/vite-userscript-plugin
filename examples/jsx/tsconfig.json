@@ -2,10 +2,12 @@
   "extends": "@crashmax/tsconfig",
   "compilerOptions": {
     "outDir": "dist",
-    "resolveJsonModule": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "types": [
+      "vite-userscript-plugin/tampermonkey"
+    ]
   },
   "include": [
-    "src"
+    "src/**/*"
   ]
 }
