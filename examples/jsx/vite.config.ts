@@ -11,7 +11,7 @@ export default defineConfig({
       header: {
         name,
         version,
-        match: 'https://example.com'
+        match: '*://example.com'
       }
     })
   ]

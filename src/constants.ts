@@ -1,32 +1,43 @@
+import type { Grants } from './types.js'
+
 export const regexpScripts = new RegExp(/.(t|j)sx?/)
 export const regexpStyles = new RegExp(/\.(s?css|sass)$/)
 
-export const grants = [
+export const GM = [
+  'setValue',
+  'getValue',
+  'deleteValue',
+  'listValues',
+  'setClipboard',
+  'addStyle',
+  'addElement',
+  'addValueChangeListener',
+  'removeValueChangeListener',
+  'registerMenuCommand',
+  'unregisterMenuCommand',
+  'download',
+  'getTab',
+  'getTabs',
+  'saveTab',
+  'openInTab',
+  'notification',
+  'getResourceURL',
+  'getResourceText',
+  'xmlhttpRequest',
+  'log',
+  'info'
+] as const
+
+export const GMwindow = [
   'unsafeWindow',
   'window.onurlchange',
   'window.focus',
-  'window.close',
-  'GM_setValue',
-  'GM_getValue',
-  'GM_deleteValue',
-  'GM_listValues',
-  'GM_setClipboard',
-  'GM_addStyle',
-  'GM_addElement',
-  'GM_addValueChangeListener',
-  'GM_removeValueChangeListener',
-  'GM_registerMenuCommand',
-  'GM_unregisterMenuCommand',
-  'GM_download',
-  'GM_getTab',
-  'GM_getTabs',
-  'GM_saveTab',
-  'GM_openInTab',
-  'GM_notification',
-  'GM_getResourceURL',
-  'GM_getResourceText',
-  'GM_xmlhttpRequest',
-  'GM_webRequest',
-  'GM_log',
-  'GM_info'
+  'window.close'
 ] as const
+
+export const grants = GM.map<Grants[]>((grant) => [
+  `GM_${grant}`,
+  `GM.${grant}`
+]).flat()
+
+grants.push(...GMwindow)

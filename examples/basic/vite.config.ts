@@ -10,9 +10,9 @@ export default defineConfig({
         name,
         version,
         match: [
-          'https://example.com',
-          'https://example.org',
-          'https://example.edu'
+          '*://example.com',
+          '*://example.org',
+          '*://example.edu'
         ]
       }
     })
