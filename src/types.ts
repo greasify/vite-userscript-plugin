@@ -1,4 +1,4 @@
-import { grants } from './constants.js'
+import { GM, GMwindow } from './constants.js'
 
 export interface Transform {
   file: string
@@ -13,7 +13,9 @@ export type RunAt =
   | 'document-idle'
   | 'context-menu'
 
-export type Grants = typeof grants[number]
+export type GMLiterals<T extends string> = [`GM_${T}` | `GM.${T}`]
+export type GMWindow = typeof GMwindow[number]
+export type Grants = GMWindow | GMLiterals<typeof GM[number]>[number]
 
 export type HeaderConfig = {
   [property: string]: string | boolean | number | string[] | undefined
