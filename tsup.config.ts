@@ -1,11 +1,22 @@
 import { defineConfig } from 'tsup'
 
-export default defineConfig((option) => ({
-  entry: ['src/index.ts', 'src/hot-reload.ts'],
-  format: ['cjs', 'esm'],
-  external: ['vite'],
-  dts: true,
-  clean: true,
-  minify: true,
-  watch: option.watch
-}))
+export default defineConfig((option) => {
+  return [
+    {
+      entry: ['src/index.ts'],
+      format: ['cjs', 'esm'],
+      external: ['vite'],
+      dts: true,
+      clean: true,
+      minify: true,
+      watch: option.watch
+    },
+    {
+      entry: ['src/hot-reload.ts'],
+      format: ['esm'],
+      clean: true,
+      minify: true,
+      watch: option.watch
+    }
+  ]
+})

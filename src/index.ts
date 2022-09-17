@@ -26,6 +26,7 @@ export default function UserscriptPlugin(
   let isBuildWatch: boolean
   let socketConnection: connection | null = null
 
+  const workdir = dirname(fileURLToPath(import.meta.url))
   const logger = createLogger('info', {
     prefix: '[vite-userscript-plugin]',
     allowClearScreen: true
@@ -120,7 +121,7 @@ export default function UserscriptPlugin(
           const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
           const metaFilePath = resolve(rootDir, outDir, metaFilename)
           const hotReloadPath = resolve(
-            dirname(fileURLToPath(import.meta.url)),
+            workdir,
             `hot-reload-${config.header.name}.js`
           )
 
@@ -141,10 +142,7 @@ export default function UserscriptPlugin(
 
             if (isBuildWatch) {
               const hotReloadFile = readFileSync(
-                resolve(
-                  dirname(fileURLToPath(import.meta.url)),
-                  'hot-reload.js'
-                ),
+                resolve(workdir, 'hot-reload.js'),
                 'utf8'
               )
 
