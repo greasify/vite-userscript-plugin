@@ -12,6 +12,7 @@
 - 🔧 Configure Tampermonkey's Userscript header.
 - 💨 Import all `grant` by default in development mode.
 - 📝 Automatically add used `grant` when building for production.
+- 📦 Built-in Tampermonkey's TypeScript type difinition.
 
 ## Install
 
@@ -36,21 +37,23 @@ import { defineConfig } from 'vite'
 import Userscript from 'vite-userscript-plugin'
 import { name, version } from './package.json'
 
-export default defineConfig({
-  plugins: [
-    Userscript({
-      entry: 'src/index.ts',
-      header: {
-        name,
-        version,
-        match: [
-          'https://example.com',
-          'https://example.org',
-          'https://example.edu'
-        ]
-      }
-    })
-  ]
+export default defineConfig((config) => {
+  return {
+    plugins: [
+      Userscript({
+        entry: 'src/index.ts',
+        header: {
+          name,
+          version,
+          match: [
+            '*://example.com',
+            '*://example.org',
+            '*://example.edu'
+          ]
+        }
+      })
+    ]
+  }
 })
 ```
 
@@ -61,6 +64,18 @@ export default defineConfig({
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build"
+  }
+}
+```
+
+### `tsconfig.json`
+
+```json
+{
+  "compilerOptions": {
+    "types": [
+      "vite-userscript-plugin/tampermonkey"
+    ]
   }
 }
 ```
