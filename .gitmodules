@@ -1,0 +1,4 @@
+[submodule "examples/reatom"]
+	path = examples/reatom
+	url = https://github.com/crashmax-dev/vite-userscript-template
+	branch = reatom

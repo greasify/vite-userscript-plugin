@@ -1,10 +1,10 @@
 # vite-userscript-plugin
 
-![npm](https://img.shields.io/npm/v/vite-userscript-plugin)
-![license](https://img.shields.io/github/license/crashmax-dev/vite-userscript-plugin)
+[![npm](https://img.shields.io/npm/v/vite-userscript-plugin)](https://npmjs.com/vite-userscript-plugin)
+[![license](https://img.shields.io/github/license/crashmax-dev/vite-userscript-plugin)](./LICENCE)
+[![template](https://img.shields.io/github/package-json/v/crashmax-dev/vite-userscript-template?label=vite-userscript-template)](https://github.com/crashmax-dev/vite-userscript-template)
 
-> ⚡️ Tampermonkey userscript developing and build plugin based on [Vite](https://vitejs.dev).\
-> 📦 Use this [template](https://github.com/crashmax-dev/vite-userscript-template) to initialize your project.
+> ⚡️ Tampermonkey userscript developing and build plugin based on [Vite](https://vitejs.dev).
 
 ## Features
 
@@ -12,7 +12,7 @@
 - 🔧 Configure Tampermonkey's Userscript header.
 - 💨 Import all `grant` by default in development mode.
 - 📝 Automatically add used `grant` when building for production.
-- 📦 Built-in Tampermonkey's TypeScript type difinition.
+- 📦 Built-in Tampermonkey's TypeScript type definition.
 
 ## Install
 
@@ -110,16 +110,9 @@ interface UserscriptPluginConfig {
 }
 ```
 
-## Example
+## Examples
 
 See the [examples](https://github.com/crashmax-dev/vite-userscript-plugin/tree/master/examples) folder.
-
-## Used by
-
-- [vite-userscript-template](https://github.com/crashmax-dev/vite-userscript-template)
-- [netangels-userscript](https://github.com/crashmax-dev/netangels-userscript)
-- [godev-code-highlight](https://github.com/crashmax-dev/godev-code-highlight)
-- [beautifier-userscript](https://github.com/crashmax-dev/beautifier-userscript)
 
 ## License
 
