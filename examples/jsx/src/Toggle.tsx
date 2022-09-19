@@ -1,5 +1,5 @@
 import { RedomComponent, RedomEl } from 'redom-jsx'
-import { Heading } from './Heading.jsx'
+import { Heading } from './Heading.js'
 
 export class Toggle implements RedomComponent {
   el: RedomEl

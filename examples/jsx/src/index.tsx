@@ -1,7 +1,7 @@
 import { mount } from 'redom-jsx'
-import { App } from './App.jsx'
-import { List } from './List.jsx'
-import { Toggle } from './Toggle.jsx'
+import { App } from './App.js'
+import { List } from './List.js'
+import { Toggle } from './Toggle.js'
 
 mount(document.body, <App />)
 mount(document.body, <Toggle />)

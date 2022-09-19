@@ -1,7 +1,7 @@
 import type { Grants } from './types.js'
 
-export const regexpScripts = new RegExp(/.(t|j)sx?/)
-export const regexpStyles = new RegExp(/\.(s?css|sass)$/)
+export const regexpScripts = new RegExp(/\.(t|j)sx?$/)
+export const regexpStyles = new RegExp(/\.(s[ac]|c|le)ss$/)
 
 export const GM = [
   'setValue',
