@@ -4,7 +4,7 @@
     "outDir": "dist",
     "jsx": "preserve",
     "types": [
-      "vite-userscript-plugin/tampermonkey"
+      "vite-userscript-plugin/types/tampermonkey"
     ]
   },
   "include": [

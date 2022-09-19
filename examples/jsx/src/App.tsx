@@ -1,6 +1,6 @@
 import { mount, unmount } from 'redom-jsx'
 import type { RedomComponent, RedomEl } from 'redom-jsx'
-import { Counter } from './Counter.jsx'
+import { Counter } from './Counter.js'
 
 export class App implements RedomComponent {
   el: RedomEl
