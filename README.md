@@ -74,7 +74,9 @@ export default defineConfig((config) => {
 {
   "compilerOptions": {
     "types": [
-      "vite-userscript-plugin/tampermonkey"
+      "vite-userscript-plugin/types/tampermonkey",
+      // "vite-userscript-plugin/types/greasemonkey",
+      // "vite-userscript-plugin/types/violentmonkey"
     ]
   }
 }
