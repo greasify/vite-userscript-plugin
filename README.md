@@ -28,9 +28,7 @@ yarn add vite-userscript-plugin -D
 pnpm add vite-userscript-plugin -D
 ```
 
-## Usage
-
-### `vite.config.ts`
+### Setup `vite.config.ts`
 
 ```js
 import { defineConfig } from 'vite'
@@ -45,11 +43,10 @@ export default defineConfig((config) => {
         header: {
           name,
           version,
-          match: [
-            '*://example.com',
-            '*://example.org',
-            '*://example.edu'
-          ]
+          match: '*://example.com'
+        },
+        server: {
+          port: 3000
         }
       })
     ]
@@ -57,9 +54,10 @@ export default defineConfig((config) => {
 })
 ```
 
-### `package.json`
+### Setup scripts
 
 ```json
+// package.json
 {
   "scripts": {
     "dev": "vite build --watch --mode development",
@@ -68,15 +66,14 @@ export default defineConfig((config) => {
 }
 ```
 
-### `tsconfig.json`
+### Setup TypeScript
 
 ```json
+// tsconfig.json
 {
   "compilerOptions": {
     "types": [
-      "vite-userscript-plugin/types/tampermonkey",
-      // "vite-userscript-plugin/types/greasemonkey",
-      // "vite-userscript-plugin/types/violentmonkey"
+      "vite-userscript-plugin/types/tampermonkey"
     ]
   }
 }
