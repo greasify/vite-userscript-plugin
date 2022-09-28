@@ -12,7 +12,7 @@ export default defineConfig((option) => {
       watch: option.watch
     },
     {
-      entry: ['src/hot-reload.ts'],
+      entry: ['src/ws.ts'],
       format: ['esm'],
       clean: true,
       minify: true,

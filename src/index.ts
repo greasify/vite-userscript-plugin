@@ -120,10 +120,7 @@ export default function UserscriptPlugin(
           const userFilePath = resolve(rootDir, outDir, userFilename)
           const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
           const metaFilePath = resolve(rootDir, outDir, metaFilename)
-          const hotReloadPath = resolve(
-            workdir,
-            `hot-reload-${config.header.name}.js`
-          )
+          const wsPath = resolve(workdir, `ws-${config.header.name}.js`)
 
           try {
             let source = readFileSync(outPath, 'utf8')
@@ -141,25 +138,22 @@ export default function UserscriptPlugin(
             )
 
             if (isBuildWatch) {
-              const hotReloadFile = readFileSync(
-                resolve(workdir, 'hot-reload.js'),
-                'utf8'
-              )
+              const wsFile = readFileSync(resolve(workdir, 'ws.js'), 'utf8')
 
-              const hotReloadScript = await transform({
-                file: hotReloadFile.replace('__WS__', `ws://localhost:${port}`),
-                name: hotReloadPath,
+              const wsScript = await transform({
+                file: wsFile.replace('__WS__', `ws://localhost:${port}`),
+                name: wsPath,
                 loader: 'js'
               })
 
-              writeFileSync(hotReloadPath, hotReloadScript)
+              writeFileSync(wsPath, wsScript)
               writeFileSync(
                 proxyFilePath,
                 new Banner({
                   ...config.header,
                   require: [
                     ...config.header.require!,
-                    'file://' + hotReloadPath,
+                    'file://' + wsPath,
                     'file://' + outPath
                   ]
                 }).generate()
