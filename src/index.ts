@@ -12,7 +12,7 @@ import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { Banner } from './banner.js'
 import { userConfig } from './config.js'
-import { grants, regexpScripts, regexpStyles } from './constants.js'
+import { grants, regexpScripts, regexpStyles, styleTemplate } from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
@@ -82,7 +82,7 @@ export default function UserscriptPlugin(
       }
 
       if (path.includes(config.entry)) {
-        code = src + '__STYLE__'
+        code = src + styleTemplate
       }
 
       return {
@@ -124,7 +124,7 @@ export default function UserscriptPlugin(
 
           try {
             let source = readFileSync(outPath, 'utf8')
-            source = source.replace('__STYLE__', `${css.inject()}`)
+            source = source.replace(styleTemplate, `${css.inject()}`)
             source = await transform({
               file: source,
               name: fileName,
