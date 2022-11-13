@@ -15,6 +15,7 @@ export async function transform({
     loader,
     minify: true,
     sourcemap: false,
+    format: 'iife',
     legalComments: 'none'
   })
 

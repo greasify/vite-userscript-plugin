@@ -12,7 +12,6 @@ export function userConfig({ entry, header }: ViteConfig): UserConfig {
       lib: {
         entry,
         name: header.name,
-        formats: ['iife'],
         fileName: () => `${header.name}.js`
       },
       rollupOptions: {
