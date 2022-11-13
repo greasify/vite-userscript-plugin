@@ -12,12 +12,7 @@ import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { Banner } from './banner.js'
 import { userConfig } from './config.js'
-import {
-  grants,
-  regexpScripts,
-  regexpStyles,
-  styleTemplate
-} from './constants.js'
+import { grants, regexpScripts, regexpStyles, styleTemplate } from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
@@ -86,7 +81,7 @@ export default function UserscriptPlugin(
         code = await css.add(src, path)
       }
 
-      if (path.includes(config.entry) && !src.includes(styleTemplate)) {
+      if (path.includes(config.entry)) {
         code = src + styleTemplate
       }
 
