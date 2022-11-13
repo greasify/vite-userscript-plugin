@@ -1,6 +1,6 @@
 {
   "name": "vite-userscript-plugin",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
