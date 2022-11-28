@@ -4,14 +4,14 @@
 [![license](https://img.shields.io/github/license/crashmax-dev/vite-userscript-plugin)](./LICENCE)
 [![template](https://img.shields.io/github/package-json/v/crashmax-dev/vite-userscript-template?label=vite-userscript-template)](https://github.com/crashmax-dev/vite-userscript-template)
 
-> ⚡️ Tampermonkey userscript developing and build plugin based on [Vite](https://vitejs.dev).
+> ⚡️ A plugin for developing and building a Tampermonkey userscript based on [Vite](https://vitejs.dev).
 
 ## Features
 
 - 🔥 Hot reloading after changing any files.
 - 🔧 Configure Tampermonkey's Userscript header.
-- 💨 Import all `grant` by default in development mode.
-- 📝 Automatically add used `grant` when building for production.
+- 💨 Import all [`grant`](https://www.tampermonkey.net/documentation.php#_grant)'s to the header by default in development mode.
+- 📝 Automatic addition of used [`grant`](https://www.tampermonkey.net/documentation.php#_grant)'s in the code when building for production.
 - 📦 Built-in Tampermonkey's TypeScript type definition.
 
 ## Install
@@ -43,7 +43,11 @@ export default defineConfig((config) => {
         header: {
           name,
           version,
-          match: '*://example.com'
+          match: [
+            'https://example.com',
+            'https://example.org',
+            'https://example.edu'
+          ]
         },
         server: {
           port: 3000
@@ -54,7 +58,7 @@ export default defineConfig((config) => {
 })
 ```
 
-### Setup scripts
+### Setup NPM scripts
 
 ```json
 // package.json
@@ -66,7 +70,7 @@ export default defineConfig((config) => {
 }
 ```
 
-### Setup TypeScript
+### Setup TypeScript [types](https://www.typescriptlang.org/tsconfig#types)
 
 ```json
 // tsconfig.json
