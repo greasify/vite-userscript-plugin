@@ -17,15 +17,36 @@ declare interface VMScriptGMInfoPlatform {
   os: 'mac' | 'win' | 'android' | 'cros' | 'linux' | 'openbsd' | 'fuchsia'
 }
 
+/**
+ * GM_info.script and GM.info.script
+ * Non-optional string property will be an empty string '' if omitted.
+ */
 declare interface VMScriptGMInfoScriptMeta {
+  antifeature?: string[]
+  author?: string
+  compatible?: string[]
+  connect?: string[]
   description: string
+  downloadURL?: string
+  excludeMatches: string[]
   excludes: string[]
+  /** Empty is the same as `@grant none` */
+  grant: string[]
+  /** Use homepageURL instead */
+  homepage?: string
+  homepageURL?: string
+  icon?: string
   includes: string[]
   matches: string[]
   name: string
   namespace: string
-  resources: Array<{ name: string; url: string }>
-  runAt: VMScriptRunAt
+  noframes?: boolean
+  require: string[]
+  resources: { name: string; url: string }[]
+  runAt: VMScriptRunAt | ''
+  supportURL?: string
+  unwrap?: boolean
+  updateURL?: string
   version: string
 }
 
@@ -57,6 +78,9 @@ declare interface VMScriptGMInfoObject {
  * An object that exposes information about the current userscript.
  */
 declare const GM_info: VMScriptGMInfoObject
+
+/** The original console.log */
+declare function GM_log(...args: any): void
 
 /** Retrieves a value for current script from storage. */
 declare function GM_getValue<T>(name: string, defaultValue?: T): T
@@ -196,7 +220,7 @@ declare function GM_registerMenuCommand(
   /** The name to show in the popup menu. */
   caption: string,
   /** Callback function when the command is clicked in the menu. */
-  onClick: (event: MouseEvent) => void
+  onClick: (event: MouseEvent | KeyboardEvent) => void
 ): string
 /** Unregisters a command which has been registered to Violentmonkey popup menu. */
 declare function GM_unregisterMenuCommand(
@@ -264,30 +288,47 @@ declare type VMScriptResponseType =
   | 'arraybuffer'
   | 'document'
 
+/**
+ * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#properties
+ * https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent#properties
+ */
 declare interface VMScriptResponseObject<T> {
   status: number
   statusText: string
   readyState: number
   responseHeaders: string
-  response: T
-  responseText: string | null
+  response: T | null
+  responseText: string | undefined
+  responseXML: Document | null
   /** The final URL after redirection. */
   finalUrl: string
+  lengthComputable?: boolean
+  loaded?: number
+  total?: number
   /** The same `context` object you specified in `details`. */
   context?: unknown
 }
 
-declare interface VMScriptGMXHRDetails<T> {
+type TypedArray =
+  | Uint8Array
+  | Uint8ClampedArray
+  | Uint16Array
+  | Uint32Array
+  | Int8Array
+  | Int16Array
+  | Int32Array
+  | BigUint64Array
+  | BigInt64Array
+  | Float32Array
+  | Float64Array
+
+interface GMRequestBase<T> {
   /** URL relative to current page is also allowed. */
   url: string
-  /** HTTP method, default as `GET`. */
-  method?: string
   /** User for authentication. */
   user?: string
   /** Password for authentication. */
   password?: string
-  /** A MIME type to specify with the request. */
-  overrideMimeType?: string
   /**
    * Some special headers are also allowed:
    *
@@ -298,22 +339,8 @@ declare interface VMScriptGMXHRDetails<T> {
    * - `User-Agent`
    */
   headers?: Record<string, string>
-  /**
-   * One of the following:
-   *
-   * - `text` (default value)
-   * - `json`
-   * - `blob`
-   * - `arraybuffer`
-   * - `document`
-   */
-  responseType?: VMScriptResponseType
   /** Time to wait for the request, none by default. */
   timeout?: number
-  /** Data to send with the request, usually for `POST` and `PUT` requests. */
-  data?: string | FormData | Blob
-  /** Send the `data` string as a `blob`. This is for compatibility with Tampermonkey/Greasemonkey, where only `string` type is allowed in `data`. */
-  binary?: boolean
   /** Can be an object and will be assigned to context of the response object. */
   context?: unknown
   /** When set to `true`, no cookie will be sent with the request and the response cookies will be ignored. The default value is `false`. */
@@ -328,23 +355,43 @@ declare interface VMScriptGMXHRDetails<T> {
   ontimeout?: (resp: VMScriptResponseObject<T>) => void
 }
 
-/** Makes a request like XMLHttpRequest, with some special capabilities, not restricted by same-origin policy. */
-declare function GM_xmlhttpRequest<T>(
-  details: VMScriptGMXHRDetails<T>
-): VMScriptXHRControl
+declare interface VMScriptGMXHRDetails<T> extends GMRequestBase<T> {
+  /** HTTP method, default as `GET`. */
+  method?: string
+  /** A MIME type to specify with the request. */
+  overrideMimeType?: string
+  /**
+   * One of the following:
+   *
+   * - `text` (default value)
+   * - `json`
+   * - `blob`
+   * - `arraybuffer`
+   * - `document`
+   */
+  responseType?: VMScriptResponseType
+  /** Data to send with the request, usually for `POST` and `PUT` requests. */
+  data?:
+    | string
+    | ArrayBuffer
+    | Blob
+    | DataView
+    | FormData
+    | ReadableStream
+    | TypedArray
+    | URLSearchParams
+  /** Send the `data` string as a `blob`. This is for compatibility with Tampermonkey/Greasemonkey, where only `string` type is allowed in `data`. */
+  binary?: boolean
+}
 
-declare interface VMScriptGMDownloadOptions {
-  /** The URL to download. */
-  url: string
+/** Makes a request like XMLHttpRequest, with some special capabilities, not restricted by same-origin policy. */
+declare function GM_xmlhttpRequest<
+  T = string | Blob | ArrayBuffer | Document | object
+>(details: VMScriptGMXHRDetails<T>): VMScriptXHRControl
+
+declare interface VMScriptGMDownloadOptions extends GMRequestBase<Blob> {
   /** The filename to save as. */
-  name?: string
-  /** The function to call when download starts successfully. */
-  onload?: () => void
-  headers?: Record<string, string>
-  timeout?: number
-  onerror?: (resp: VMScriptResponseObject<Blob>) => void
-  onprogress?: (resp: VMScriptResponseObject<Blob>) => void
-  ontimeout?: (resp: VMScriptResponseObject<Blob>) => void
+  name: string
 }
 
 /** Downloads a URL to a local file. */
@@ -353,18 +400,29 @@ declare function GM_download(
   /** The URL to download. */
   url: string,
   /** The filename to save as. */
-  name?: string
+  name: string
 ): void
 
-declare interface VMScriptGMObject {
+/** Aliases for GM_ methods that are not included in Greasemonkey4 API */
+declare interface VMScriptGMObjectVMExtensions {
+  addElement: typeof GM_addElement
+  addStyle: typeof GM_addStyle
+  addValueChangeListener: typeof GM_addValueChangeListener
+  download: typeof GM_download
+  getResourceText: typeof GM_getResourceText
+  log: typeof GM_log
+  removeValueChangeListener: typeof GM_removeValueChangeListener
+  unregisterMenuCommand: typeof GM_unregisterMenuCommand
+}
+
+/** The Greasemonkey4 API, https://wiki.greasespot.net/Greasemonkey_Manual:API */
+declare interface VMScriptGMObject extends VMScriptGMObjectVMExtensions {
   unsafeWindow: Window
   info: typeof GM_info
   getValue: <T>(name: string, defaultValue?: T) => Promise<T>
   setValue: <T>(name: string, value: T) => Promise<void>
   deleteValue: (name: string) => Promise<void>
   listValues: () => Promise<string[]>
-  addStyle: typeof GM_addStyle
-  addElement: typeof GM_addElement
   registerMenuCommand: typeof GM_registerMenuCommand
   getResourceUrl: (name: string, isBlobUrl?: boolean) => Promise<string>
   notification: typeof GM_notification
