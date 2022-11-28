@@ -10,10 +10,10 @@ export default defineConfig((config) => {
         header: {
           name,
           version,
-          match: '*://example.*'
+          match: 'https://example.com'
         },
         server: {
-          port: 3000
+          port: 2000
         }
       })
     ]
