@@ -1,18 +1,23 @@
-import getPort from 'get-port'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import getPort from 'get-port'
 import openLink from 'open'
 import colors from 'picocolors'
 import sanitize from 'sanitize-filename'
 import serveHandler from 'serve-handler'
-import { PluginOption, ResolvedConfig, createLogger } from 'vite'
+import { createLogger, PluginOption, ResolvedConfig } from 'vite'
 import { server } from 'websocket'
 import type { connection } from 'websocket'
 import { Banner } from './banner.js'
 import { userConfig } from './config.js'
-import { grants, regexpScripts, regexpStyles, styleTemplate } from './constants.js'
+import {
+  grants,
+  regexpScripts,
+  regexpStyles,
+  styleTemplate
+} from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
