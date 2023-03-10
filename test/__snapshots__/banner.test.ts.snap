@@ -9,7 +9,7 @@ exports[`banner default snapshot 1`] = `
 // @namespace   vitest
 // @connect     vitest.dev
 // @license     MIT
-// @noframes
+// @noframes    
 // @icon        https://vitest.dev/favicon.ico
 // @icon64      https://vitest.dev/favicon.ico
 // @exclude     https://vitest.dev/guide/*
@@ -19,7 +19,7 @@ exports[`banner default snapshot 1`] = `
 // @downloadURL https://vitest.dev
 // @supportURL  https://vitest.dev
 // @updateURL   https://vitest.dev
-// @resource    https://vitest.dev
+// @resource    vitest https://vitest.dev
 // @require     https://example.com/index.js
 // @grant       GM_setValue
 // @grant       GM.setValue
