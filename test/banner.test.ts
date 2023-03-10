@@ -20,7 +20,7 @@ const defaultBanner: HeaderConfig = {
   downloadURL: 'https://vitest.dev',
   supportURL: 'https://vitest.dev',
   updateURL: 'https://vitest.dev',
-  resource: 'https://vitest.dev',
+  resource: [['vitest', 'https://vitest.dev']],
   require: 'https://example.com/index.js',
   grant: [...grants],
   match: 'https://vitest.dev',

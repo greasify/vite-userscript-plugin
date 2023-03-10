@@ -18,7 +18,7 @@ export type GMWindow = typeof GMwindow[number]
 export type Grants = GMWindow | GMLiterals<typeof GM[number]>[number]
 
 export type HeaderConfig = {
-  [property: string]: string | boolean | number | string[] | undefined
+  [property: string]: any
 
   /**
    * The name of the script.
@@ -146,7 +146,7 @@ export type HeaderConfig = {
    * Preloads resources that can by accessed
    * via `GM_getResourceURL` and `GM_getResourceText` by the script.
    */
-  resource?: string[] | string
+  resource?: [string, string][]
 
   /**
    * This tag defines the domains (no top-level domains) including subdomains

@@ -24,11 +24,10 @@ export class Banner {
     return ' '.repeat(this.maxKeyLength - str.length)
   }
 
-  private addMetadata(key: string, value: string | number | boolean): void {
-    const isBoolean = typeof value === 'boolean'
-    if (isBoolean && !value) return
-    value = !isBoolean ? `${this.addSpaces(key)}${value}` : ''
-    this.header.push(`// @${key}${value}`)
+  private addMetadata(key: string, value: string | string[] | number | boolean): void {
+    value = Array.isArray(value) ? value.join(' ') : value === true ? '' : value
+    const spaces = this.addSpaces(key)
+    this.header.push(`// @${key}${spaces}${value}`)
   }
 
   generate(): string {
