@@ -1,5 +1,5 @@
-import type { PluginOption } from 'vite'
 import type { UserscriptPluginConfig } from '../types.js'
+import type { PluginOption } from 'vite'
 
 export function configPlugin(userConfig: UserscriptPluginConfig): PluginOption {
   return {

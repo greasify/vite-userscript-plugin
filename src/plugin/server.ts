@@ -3,11 +3,11 @@ import getPort from 'get-port'
 import openLink from 'open'
 import colors from 'picocolors'
 import serveHandler from 'serve-handler'
-import type { PluginOption, ResolvedConfig } from 'vite'
 import { createLogger } from 'vite'
 import { server } from 'websocket'
-import type { connection } from 'websocket'
 import type { ServerConfig, UserscriptPluginConfig } from '../types.js'
+import type { PluginOption, ResolvedConfig } from 'vite'
+import type { connection } from 'websocket'
 
 export function serverPlugin(userConfig: UserscriptPluginConfig): PluginOption {
   let isBuildWatch: boolean

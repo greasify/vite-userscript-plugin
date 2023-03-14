@@ -2,7 +2,6 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sanitize from 'sanitize-filename'
-import type { PluginOption, ResolvedConfig } from 'vite'
 import { Banner } from '../banner.js'
 import {
   grants,
@@ -13,6 +12,7 @@ import {
 import { CSS } from '../css.js'
 import { defineGrants, removeDuplicates, transform } from '../helpers.js'
 import type { UserscriptPluginConfig } from '../types.js'
+import type { PluginOption, ResolvedConfig } from 'vite'
 
 export function userscriptPlugin(
   userConfig: UserscriptPluginConfig
@@ -75,7 +75,6 @@ export function userscriptPlugin(
       }
     },
     async writeBundle(_, bundle) {
-      const { open, port } = userConfig.server!
       const userFilename = `${userConfig.header.name}.user.js`
       const proxyFilename = `${userConfig.header.name}.proxy.user.js`
       const metaFilename = `${userConfig.header.name}.meta.js`
@@ -108,9 +107,11 @@ export function userscriptPlugin(
 
             if (isBuildWatch) {
               const wsFile = readFileSync(resolve(workdir, 'ws.js'), 'utf8')
-
               const wsScript = await transform({
-                file: wsFile.replace('__WS__', `ws://localhost:${port}`),
+                file: wsFile.replace(
+                  '__WS__',
+                  `ws://localhost:${userConfig.server!.port}`
+                ),
                 name: wsPath,
                 loader: 'js'
               })

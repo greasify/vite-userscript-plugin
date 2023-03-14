@@ -1,8 +1,8 @@
-import type { PluginOption } from 'vite'
 import { configPlugin } from './plugin/config.js'
 import { serverPlugin } from './plugin/server.js'
 import { userscriptPlugin } from './plugin/userscript.js'
 import type { UserscriptPluginConfig } from './types.js'
+import type { PluginOption } from 'vite'
 
 export type { UserscriptPluginConfig }
 

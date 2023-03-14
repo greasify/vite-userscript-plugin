@@ -6,6 +6,7 @@ export default defineConfig((option) => {
       entry: ['src/index.ts'],
       format: ['cjs', 'esm'],
       external: ['vite'],
+      target: 'node14',
       dts: true,
       clean: true,
       minify: true,
@@ -14,6 +15,8 @@ export default defineConfig((option) => {
     {
       entry: ['src/ws.ts'],
       format: ['esm'],
+      target: 'esnext',
+      platform: 'browser',
       clean: true,
       minify: true,
       watch: option.watch
