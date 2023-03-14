@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import sanitize from 'sanitize-filename'
 import { Banner } from '../banner.js'
 import {
   grants,
@@ -12,7 +11,7 @@ import {
 import { CSS } from '../css.js'
 import { defineGrants, removeDuplicates, transform } from '../helpers.js'
 import type { UserscriptPluginConfig } from '../types.js'
-import type { PluginOption, ResolvedConfig } from 'vite'
+import { PluginOption, ResolvedConfig } from 'vite'
 
 export function userscriptPlugin(
   userConfig: UserscriptPluginConfig
@@ -29,7 +28,6 @@ export function userscriptPlugin(
       pluginConfig = config
       isBuildWatch = Boolean(config.build.watch)
       userConfig.entry = resolve(config.root, userConfig.entry)
-      userConfig.header.name = sanitize(userConfig.header.name)
 
       Array.from([
         'match',
