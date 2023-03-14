@@ -44,9 +44,9 @@ export default defineConfig((config) => {
           name,
           version,
           match: [
-            'https://example.com',
-            'https://example.org',
-            'https://example.edu'
+            'https://example.com/',
+            'https://example.org/',
+            'https://example.edu/'
           ]
         },
         server: {
@@ -87,29 +87,34 @@ export default defineConfig((config) => {
 
 ```ts
 interface ServerConfig {
-    /**
-     * {@link https://github.com/sindresorhus/get-port}
-     */
-    port?: number;
-    /**
-     * @default false
-     */
-    open?: boolean;
+  /**
+   * {@link https://github.com/sindresorhus/get-port}
+   */
+  port?: number;
+
+  /**
+   * @default false
+   */
+  open?: boolean;
 }
 
 interface UserscriptPluginConfig {
-    /**
-     * Path of userscript entry.
-     */
-    entry: string;
-    /**
-     * Userscript header config.
-     */
-    header: HeaderConfig;
-    /**
-     * Server config.
-     */
-    server?: ServerConfig;
+  /**
+   * Path of userscript entry.
+   */
+  entry: string;
+
+  /**
+   * Userscript header config.
+   *
+   * @see https://www.tampermonkey.net/documentation.php
+   */
+  header: HeaderConfig;
+
+  /**
+   * Server config.
+   */
+  server?: ServerConfig;
 }
 ```
 
