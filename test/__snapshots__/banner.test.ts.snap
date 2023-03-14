@@ -16,9 +16,9 @@ exports[`banner default snapshot 1`] = `
 // @exclude     https://vitest.dev/api/*
 // @include     https://vitest.dev
 // @homepage    https://github.com/vitest-dev/vitest
-// @downloadURL https://vitest.dev
+// @downloadURL https://github.com/vitest-dev/vitest.user.js
 // @supportURL  https://vitest.dev
-// @updateURL   https://vitest.dev
+// @updateURL   https://github.com/vitest-dev/vitest.meta.js
 // @resource    vitest https://vitest.dev
 // @require     https://example.com/index.js
 // @grant       GM_setValue
