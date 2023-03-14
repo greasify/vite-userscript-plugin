@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { PluginOption, ResolvedConfig } from 'vite'
 import { Banner } from '../banner.js'
 import {
   grants,
@@ -11,7 +12,6 @@ import {
 import { CSS } from '../css.js'
 import { defineGrants, removeDuplicates, transform } from '../helpers.js'
 import type { UserscriptPluginConfig } from '../types.js'
-import { PluginOption, ResolvedConfig } from 'vite'
 
 export function userscriptPlugin(
   userConfig: UserscriptPluginConfig

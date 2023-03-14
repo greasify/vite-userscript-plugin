@@ -5,16 +5,22 @@ export class Banner {
   private maxKeyLength: number
 
   constructor(private readonly config: HeaderConfig) {
-    this.downloadMeta()
+    this.addHomepageMeta()
     this.maxKeyLength =
       Math.max(...Object.keys(this.config).map((key) => key.length)) + 1
   }
 
-  private downloadMeta(): void {
-    const { name, homepage } = this.config
-    if (homepage) {
-      this.config.updateURL = new URL(`${name}.meta.js`, homepage).href
-      this.config.downloadURL = new URL(`${name}.user.js`, homepage).href
+  private addHomepageMeta(): void {
+    const homePage = this.config.homepage ?? this.config.homepageURL
+    if (homePage) {
+      this.config.updateURL = new URL(
+        `${this.config.name}.meta.js`,
+        homePage
+      ).href
+      this.config.downloadURL = new URL(
+        `${this.config.name}.user.js`,
+        homePage
+      ).href
     }
   }
 

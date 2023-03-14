@@ -45,14 +45,16 @@ export function serverPlugin(userConfig: UserscriptPluginConfig): PluginOption {
     },
     async writeBundle() {
       if (isBuildWatch && !httpServer.listening) {
-        const link = `http://localhost:${serverConfig.port}`
+        const linkToProxyScript = `http://localhost:${serverConfig.port}/${userConfig.header.name}.proxy.user.js`
         httpServer.listen(serverConfig.port, () => {
           logger.clearScreen('info')
-          logger.info(colors.blue(`Running at: ${colors.gray(link)}`))
+          logger.info(
+            colors.blue(`Running at: ${colors.gray(linkToProxyScript)}`)
+          )
         })
 
         if (serverConfig.open) {
-          await openLink(`${link}/${userConfig.header.name}.proxy.user.js`)
+          await openLink(linkToProxyScript)
         }
       } else if (!isBuildWatch) {
         httpServer.close()
