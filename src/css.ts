@@ -33,5 +33,3 @@ export class CSS {
     styleModules.forEach((style) => this.styles.set(...style))
   }
 }
-
-export default new CSS()

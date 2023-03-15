@@ -12,7 +12,7 @@ export default defineConfig((config) => {
         header: {
           name,
           version,
-          match: 'https://example.com'
+          match: 'https://example.com/'
         },
         server: {
           port: 4000

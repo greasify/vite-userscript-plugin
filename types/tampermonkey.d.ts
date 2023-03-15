@@ -2,6 +2,8 @@
 // Project: https://tampermonkey.net
 // Definitions by: Steven Wang <https://github.com/silverwzw>
 //                 Nikolay Borzov <https://github.com/nikolay-borzov>
+//                 taozhiyu <https://github.com/taozhiyu>
+//                 double-beep <https://github.com/double-beep>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
 // This definition is based on the API reference of Tampermonkey
@@ -69,19 +71,8 @@ declare namespace Tampermonkey {
     response: TResponse
   ) => void
 
-  type RequestMethods =
-    | 'POST'
-    | 'GET'
-    | 'PUT'
-    | 'PATCH'
-    | 'DELETE'
-    | 'HEAD'
-    | 'TRACE'
-    | 'OPTIONS'
-    | 'CONNECT'
-
   interface Request<TContext = object> {
-    method?: RequestMethods
+    method?: 'GET' | 'HEAD' | 'POST' | undefined
     /** Destination URL */
     url: string
     /**
@@ -284,11 +275,16 @@ declare namespace Tampermonkey {
     comment: string | null
     compat_foreach: boolean
     compat_metadata: boolean
+    compat_powerful_this: boolean | null
     compat_prototypes: boolean
     compat_wrappedjsobject: boolean
     compatopts_for_requires: boolean
     noframes: boolean | null
     run_at: string
+    sandbox: string | null
+    tab_types: string | null
+    unwrap: boolean | null
+
     override: ScriptMetadataOverrides
   }
 
@@ -298,9 +294,32 @@ declare namespace Tampermonkey {
    */
   interface ScriptResource {
     name: string
-    url: string
-    content: string
-    meta: string
+    url?: string
+    content?: string
+    meta?: string
+    error?: string
+  }
+
+  interface WebRequestRule {
+    selector:
+      | {
+          include?: string | string[]
+          match?: string | string[]
+          exclude?: string | string[]
+        }
+      | string
+    action:
+      | string
+      | {
+          cancel?: boolean
+          redirect?:
+            | {
+                url: string
+                from?: string
+                to?: string
+              }
+            | string
+        }
   }
 
   /**
@@ -311,18 +330,17 @@ declare namespace Tampermonkey {
     antifeatures: Record<string, Record<string, string>>
     author: string | null
 
-    /**
-     * Idk what this is, nothing I did changed this from any empty array
-     * and it's not documented anywhere
-     */
-    blockers: any[]
+    blockers: string[]
 
     copyright: string | null
+    deleted?: number | undefined
     description: string | null
-    description_i18n: Record<string, string>
+    description_i18n: Record<string, string> | null
     downloadURL: string | null
+    enabled?: boolean
     evilness: number
     excludes: string[]
+    fileURL?: string | null
     grant: string[]
     header: string
     homepage: string | null
@@ -332,7 +350,7 @@ declare namespace Tampermonkey {
     lastModified: number
     matches: string[]
     name: string
-    name_i18n: Record<string, string>
+    name_i18n: Record<string, string> | null
     namespace: string | null
     options: ScriptSettings
 
@@ -345,21 +363,23 @@ declare namespace Tampermonkey {
     'run-at': string
 
     supportURL: string | null
-    sync: {
-      imported: boolean
+    sync?: {
+      imported?: number | undefined
     }
+    system?: boolean | undefined
     unwrap: boolean
     updateURL: string | null
     uuid: string
     version: string
-    webRequest: string[]
+    webRequest: WebRequestRule[] | null
   }
 
   interface ScriptInfo {
     downloadMode: 'native' | 'browser' | 'disabled'
-    isFirstPartyIsolation: boolean | undefined
+    isFirstPartyIsolation?: boolean
     isIncognito: boolean
     script: ScriptMetadata
+    sandboxMode: 'js' | 'raw' | 'dom'
 
     /**
      * In tampermonkey it's "Tampermonkey"
@@ -368,13 +388,13 @@ declare namespace Tampermonkey {
      */
     scriptHandler: string
 
-    scriptMetaStr: string
+    scriptMetaStr: string | null
     scriptSource: string
-    scriptUpdateURL: string | undefined
+    scriptUpdateURL: string | null
     scriptWillUpdate: boolean
 
     /** This refers to tampermonkey's version */
-    version: string
+    version?: string
   }
 
   type ContentType =
@@ -386,7 +406,57 @@ declare namespace Tampermonkey {
  * The unsafeWindow object provides full access to the pages javascript
  * functions and variables
  */
-declare var unsafeWindow: Window
+declare var unsafeWindow: Window &
+  Omit<
+    typeof globalThis,
+    | 'GM_addStyle'
+    | 'GM_addValueChangeListener'
+    | 'GM_deleteValue'
+    | 'GM_download'
+    | 'GM_download'
+    | 'GM_getResourceText'
+    | 'GM_getResourceURL'
+    | 'GM_getTab'
+    | 'GM_getTabs'
+    | 'GM_getValue'
+    | 'GM_info'
+    | 'GM_listValues'
+    | 'GM_log'
+    | 'GM_notification'
+    | 'GM_notification'
+    | 'GM_openInTab'
+    | 'GM_registerMenuCommand'
+    | 'GM_removeValueChangeListener'
+    | 'GM_saveTab'
+    | 'GM_setClipboard'
+    | 'GM_setValue'
+    | 'GM_unregisterMenuCommand'
+    | 'GM_xmlhttpRequest'
+    | 'GM'
+  >
+
+/**
+ *
+ * Patched onurlchange attribute based on document {@link https://www.tampermonkey.net/documentation.php#meta:grant}
+ * @url https://www.tampermonkey.net/documentation.php#meta:grant
+ */
+interface Window {
+  /**
+   * check before use addEventListener
+   *
+   * According to the documentation and code, the value can currently only be of type null
+   * @url https://www.tampermonkey.net/documentation.php#meta:grant
+   * @example
+   * if (window.onurlchange === null) {
+   *   window.addEventListener('urlchange', (info) => console.log(info));
+   * }
+   */
+  onurlchange: null
+  addEventListener(
+    type: 'urlchange',
+    listener: (urlObject: { url: string }) => void
+  ): void
+}
 
 // Styles
 
@@ -461,7 +531,7 @@ declare function GM_unregisterMenuCommand(menuCommandId: number): void
 
 /** Makes an xmlHttpRequest */
 declare function GM_xmlhttpRequest<TContext = any>(
-  details: Tampermonkey.Request<TContext> // tslint:disable-line:no-unnecessary-generics
+  details: Tampermonkey.Request<TContext> // eslint-disable-line no-unnecessary-generics
 ): Tampermonkey.AbortHandle<void>
 
 /** Downloads a given URL to the local disk */
@@ -488,7 +558,7 @@ declare function GM_getTabs(
 
 // Utils
 
-declare const GM_info: Tampermonkey.ScriptInfo
+declare var GM_info: Tampermonkey.ScriptInfo
 
 /** Log a message to the console */
 declare function GM_log(...message: any[]): void
@@ -552,7 +622,7 @@ declare function GM_setClipboard(
 /**
  * `GM` has all the `GM_*` apis in promisified form
  */
-declare const GM: Readonly<{
+declare var GM: Readonly<{
   // Styles
 
   /**
@@ -628,7 +698,7 @@ declare const GM: Readonly<{
    */
   xmlHttpRequest<TContext = any>(
     // onload and the like still work
-    details: Tampermonkey.Request<TContext> // tslint:disable-line:no-unnecessary-generics
+    details: Tampermonkey.Request<TContext> // eslint-disable-line no-unnecessary-generics
   ): Promise<Tampermonkey.Response<TContext>>
 
   // GM_download has two signatures, GM.download has one
