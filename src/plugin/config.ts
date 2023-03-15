@@ -14,7 +14,9 @@ export function configPlugin(userConfig: UserscriptPluginConfig): PluginOption {
             fileName: () => `${userConfig.header.name}.js`
           },
           rollupOptions: {
-            input: userConfig.entry
+            output: {
+              extend: true
+            }
           }
         }
       }
