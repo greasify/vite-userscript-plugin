@@ -9,8 +9,10 @@ export type { UserscriptPluginConfig }
 export default function UserscriptPlugin(
   config: UserscriptPluginConfig
 ): PluginOption {
+  // prettier-ignore
   return [
-    configPlugin(config),
     userscriptPlugin(config),
-    serverPlugin(config)]
+    serverPlugin(config),
+    configPlugin(config)
+  ]
 }

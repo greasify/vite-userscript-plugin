@@ -34,6 +34,7 @@ export function serverPlugin(userConfig: UserscriptPluginConfig): PluginOption {
 
   return {
     name: 'vite-userscript-plugin:server',
+    apply: 'serve',
     async configResolved(config) {
       isBuildWatch = Boolean(config.build.watch)
       resolvedConfig = config
