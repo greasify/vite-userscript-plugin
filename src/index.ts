@@ -1,21 +1,20 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 import getPort from 'get-port'
 import openLink from 'open'
 import colors from 'picocolors'
-import sanitize from 'sanitize-filename'
 import serveHandler from 'serve-handler'
 import { createLogger, PluginOption, ResolvedConfig } from 'vite'
 import { server } from 'websocket'
 import { Banner } from './banner.js'
 import {
   grants,
+  pluginDir,
+  pluginName,
   regexpScripts,
   regexpStyles,
-  styleTemplate,
-  vitePluginName
+  styleTemplate
 } from './constants.js'
 import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
@@ -32,9 +31,8 @@ export default function UserscriptPlugin(
     let isBuildWatch: boolean
     let socketConnection: connection | null = null
 
-    const workdir = dirname(fileURLToPath(import.meta.url))
     const logger = createLogger('info', {
-      prefix: `[${vitePluginName}]`,
+      prefix: `[${pluginName}]`,
       allowClearScreen: true
     })
 
@@ -51,7 +49,7 @@ export default function UserscriptPlugin(
     })
 
     return {
-      name: vitePluginName,
+      name: pluginName,
       apply: 'build',
       config() {
         return {
@@ -74,7 +72,6 @@ export default function UserscriptPlugin(
         pluginConfig = userConfig
         isBuildWatch = (userConfig.build.watch ?? false) as boolean
         config.entry = resolve(userConfig.root, config.entry)
-        config.header.name = sanitize(config.header.name)
 
         Array.from([
           'match',
@@ -126,11 +123,12 @@ export default function UserscriptPlugin(
           }
         }
       },
-      async writeBundle(_, bundle) {
+      async writeBundle(output, bundle) {
         const { open, port } = config.server!
-        const userFilename = `${config.header.name}.user.js`
-        const proxyFilename = `${config.header.name}.proxy.user.js`
-        const metaFilename = `${config.header.name}.meta.js`
+        const sanitizedFilename = output.sanitizeFileName(config.header.name)
+        const userFilename = `${sanitizedFilename}.user.js`
+        const proxyFilename = `${sanitizedFilename}.proxy.user.js`
+        const metaFilename = `${sanitizedFilename}.meta.js`
 
         for (const [fileName] of Object.entries(bundle)) {
           if (regexpScripts.test(fileName)) {
@@ -141,7 +139,7 @@ export default function UserscriptPlugin(
             const userFilePath = resolve(rootDir, outDir, userFilename)
             const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
             const metaFilePath = resolve(rootDir, outDir, metaFilename)
-            const wsPath = resolve(workdir, `ws-${config.header.name}.js`)
+            const wsPath = resolve(pluginDir, `ws-${sanitizedFilename}.js`)
 
             try {
               let source = readFileSync(outPath, 'utf8')
@@ -159,7 +157,7 @@ export default function UserscriptPlugin(
               )
 
               if (isBuildWatch) {
-                const wsFile = readFileSync(resolve(workdir, 'ws.js'), 'utf8')
+                const wsFile = readFileSync(resolve(pluginDir, 'ws.js'), 'utf8')
 
                 const wsScript = await transform({
                   file: wsFile.replace('__WS__', `ws://localhost:${port}`),
@@ -173,7 +171,7 @@ export default function UserscriptPlugin(
                   new Banner({
                     ...config.header,
                     require: [
-                      ...config.header.require!,
+                      ...(config.header.require ?? []),
                       'file://' + wsPath,
                       'file://' + outPath
                     ]
@@ -195,7 +193,13 @@ export default function UserscriptPlugin(
           const link = `http://localhost:${port}`
           httpServer.listen(port, () => {
             logger.clearScreen('info')
-            logger.info(colors.blue(`Running at: ${colors.gray(link)}`))
+            logger.info(
+              colors.bold(
+                `${colors.cyan('>>> [vite-userscript-plugin]')} ${colors.gray(
+                  link
+                )}`
+              )
+            )
           })
 
           if (open) {
@@ -223,7 +227,7 @@ export default function UserscriptPlugin(
   } catch (err) {
     console.error(err)
     return {
-      name: vitePluginName
+      name: pluginName
     }
   }
 }

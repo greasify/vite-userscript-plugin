@@ -1,6 +1,9 @@
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Grants } from './types.js'
 
-export const vitePluginName = 'vite-userscript-plugin'
+export const pluginDir = dirname(fileURLToPath(import.meta.url))
+export const pluginName = 'vite-userscript-plugin'
 export const styleTemplate = 'console.warn("__STYLE__")'
 export const regexpScripts = new RegExp(/\.(t|j)sx?$/)
 export const regexpStyles = new RegExp(/\.(s[ac]|c|le)ss$/)

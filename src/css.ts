@@ -1,6 +1,6 @@
 import { transform } from './helpers.js'
 
-class CSS {
+export class CSS {
   private readonly styles = new Map<string, string>()
 
   async add(code: string, path: string): Promise<string> {
