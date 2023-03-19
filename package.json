@@ -48,6 +48,7 @@
     "get-port": "6.1.2",
     "open": "8.4.2",
     "picocolors": "1.0.0",
+    "sanitize-filename": "1.6.3",
     "serve-handler": "6.1.5",
     "websocket": "1.0.34"
   },

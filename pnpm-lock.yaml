@@ -13,6 +13,7 @@ importers:
       get-port: 6.1.2
       open: 8.4.2
       picocolors: 1.0.0
+      sanitize-filename: 1.6.3
       serve-handler: 6.1.5
       tsup: 6.6.3
       turbo: 1.8.3
@@ -25,6 +26,7 @@ importers:
       get-port: 6.1.2
       open: 8.4.2
       picocolors: 1.0.0
+      sanitize-filename: 1.6.3
       serve-handler: 6.1.5
       websocket: 1.0.34
     devDependencies:
@@ -2134,6 +2136,12 @@ packages:
       queue-microtask: 1.2.3
     dev: true
 
+  /sanitize-filename/1.6.3:
+    resolution: {integrity: sha512-y/52Mcy7aw3gRm7IrcGDFx/bCk4AhRh2eI9luHOQM86nZsqwiRkkq2GekHXBBD+SmPidc8i2PqtYZl+pWJ8Oeg==}
+    dependencies:
+      truncate-utf8-bytes: 1.0.2
+    dev: false
+
   /sass/1.59.2:
     resolution: {integrity: sha512-jJyO6SmbzkJexF8MUorHx5tAilcgabioYxT/BHbY4+OvoqmbHxsYlrjZ8Adhqcgl6Zqwie0TgMXLCAmPFxXOuw==}
     engines: {node: '>=12.0.0'}
@@ -2363,6 +2371,12 @@ packages:
     hasBin: true
     dev: true
 
+  /truncate-utf8-bytes/1.0.2:
+    resolution: {integrity: sha512-95Pu1QXQvruGEhv62XCMO3Mm90GscOCClvrIUwCM0PYOXK3kaF3l3sIHxx71ThJfcbM2O5Au6SO3AWCSEfW4mQ==}
+    dependencies:
+      utf8-byte-length: 1.0.4
+    dev: false
+
   /ts-interface-checker/0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
@@ -2544,6 +2558,10 @@ packages:
     requiresBuild: true
     dependencies:
       node-gyp-build: 4.5.0
+    dev: false
+
+  /utf8-byte-length/1.0.4:
+    resolution: {integrity: sha512-4+wkEYLBbWxqTahEsWrhxepcoVOJ+1z5PGIjPZxRkytcdSUaNjIjBM7Xn8E+pdSuV7SzvWovBFA54FO0JSoqhA==}
     dev: false
 
   /validator/13.9.0:

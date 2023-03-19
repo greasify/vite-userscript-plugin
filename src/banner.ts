@@ -33,7 +33,6 @@ export class Banner {
     value: string | string[] | number | boolean
   ): void {
     value = Array.isArray(value) ? value.join(' ') : value === true ? '' : value
-
     this.header.push(`// @${key}${this.addSpaces(key)}${value}`)
   }
 

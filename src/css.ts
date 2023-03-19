@@ -1,6 +1,6 @@
 import { transform } from './helpers.js'
 
-export class CSS {
+class CSS {
   private readonly styles = new Map<string, string>()
 
   async add(code: string, path: string): Promise<string> {
@@ -33,3 +33,5 @@ export class CSS {
     styleModules.forEach((style) => this.styles.set(...style))
   }
 }
+
+export default new CSS()
