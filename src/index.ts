@@ -54,6 +54,7 @@ export default function UserscriptPlugin(
       config() {
         return {
           build: {
+            minify: false,
             lib: {
               entry: config.entry,
               name: config.header.name,
