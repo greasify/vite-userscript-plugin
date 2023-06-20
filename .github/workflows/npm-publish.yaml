@@ -13,24 +13,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Cache PNPM
-        uses: actions/cache@v3
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - name: Setup Node
+      - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
 
-      - name: Installing packages
-        uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
         with:
-          version: 7.x.x
-          run_install: |
-            - args: [--frozen-lockfile]
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Build
         run: pnpm build
 
