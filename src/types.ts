@@ -1,6 +1,7 @@
 import { GM, GMwindow } from './constants.js'
 
 export interface Transform {
+  minify: boolean
   file: string
   name: string
   loader: 'js' | 'css'

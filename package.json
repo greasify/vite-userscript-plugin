@@ -45,8 +45,8 @@
     "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
   },
   "dependencies": {
-    "get-port": "6.1.2",
-    "open": "8.4.2",
+    "get-port": "7.0.0",
+    "open": "9.1.0",
     "picocolors": "1.0.0",
     "serve-handler": "6.1.5",
     "websocket": "1.0.34"
@@ -57,13 +57,13 @@
     "@types/node": "18.15.3",
     "@types/serve-handler": "6.1.1",
     "@types/websocket": "1.0.5",
-    "@vitest/ui": "0.29.2",
-    "tsup": "6.6.3",
-    "turbo": "1.8.3",
-    "typescript": "4.9.5",
-    "vite": "4.1.4",
-    "vite-plugin-dts": "2.1.0",
-    "vitest": "0.29.2"
+    "@vitest/ui": "0.32.2",
+    "tsup": "7.0.0",
+    "turbo": "1.10.3",
+    "typescript": "5.1.3",
+    "vite": "4.3.9",
+    "vite-plugin-dts": "2.3.0",
+    "vitest": "0.32.2"
   },
   "peerDependencies": {
     "vite": ">=3.0.0"

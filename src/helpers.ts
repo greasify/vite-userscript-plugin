@@ -7,13 +7,14 @@ export function removeDuplicates(arr: any): any[] {
 }
 
 export async function transform({
+  minify,
   file,
   name,
   loader
 }: Transform): Promise<string> {
   const { code } = await transformWithEsbuild(file, name, {
+    minify,
     loader,
-    minify: true,
     sourcemap: false,
     legalComments: 'none'
   })
