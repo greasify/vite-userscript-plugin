@@ -146,6 +146,7 @@ export default function UserscriptPlugin(
               let source = readFileSync(outPath, 'utf8')
               source = source.replace(styleTemplate, `${css.inject()}`)
               source = await transform({
+                minify: !isBuildWatch,
                 file: source,
                 name: fileName,
                 loader: 'js'
@@ -161,6 +162,7 @@ export default function UserscriptPlugin(
                 const wsFile = readFileSync(resolve(pluginDir, 'ws.js'), 'utf8')
 
                 const wsScript = await transform({
+                  minify: !isBuildWatch,
                   file: wsFile.replace('__WS__', `ws://localhost:${port}`),
                   name: wsPath,
                   loader: 'js'
