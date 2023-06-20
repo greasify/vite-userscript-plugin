@@ -54,6 +54,7 @@ export default function UserscriptPlugin(
       config() {
         return {
           build: {
+            target: 'esnext',
             minify: false,
             lib: {
               entry: config.entry,
