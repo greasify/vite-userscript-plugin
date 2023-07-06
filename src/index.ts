@@ -97,7 +97,13 @@ export default function UserscriptPlugin(
         let code = src
 
         if (regexpStyles.test(path)) {
-          code = await css.add(src, path)
+          const styles = await transform({
+            minify: !isBuildWatch,
+            file: code,
+            name: path,
+            loader: 'css'
+          })
+          code = css.add(path, styles)
         }
 
         if (path.includes(config.entry)) {

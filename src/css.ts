@@ -1,16 +1,8 @@
-import { transform } from './helpers.js'
-
 export class CSS {
   private readonly styles = new Map<string, string>()
 
-  async add(code: string, path: string): Promise<string> {
-    const style = await transform({
-      file: code,
-      name: path,
-      loader: 'css'
-    })
-
-    this.styles.set(path, style.replace('\n', ''))
+  add(path: string, styles: string): string {
+    this.styles.set(path, styles.replace('\n', ''))
     return ''
   }
 
