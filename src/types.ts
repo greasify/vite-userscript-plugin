@@ -1,4 +1,5 @@
 import { GM, GMwindow } from './constants.js'
+import type { EsbuildTransformOptions } from 'vite'
 
 export interface Transform {
   minify: boolean
@@ -212,4 +213,20 @@ export interface UserscriptPluginConfig {
    * Server config.
    */
   server?: ServerConfig
+
+  /**
+   * Override default esbuild transform options.
+   *
+   * @default
+   * ```json
+   * {
+   *   "minify": true,
+   *   "legalComments": "none"
+   * }
+   * ```
+   */
+  esbuildTransformOptions?: Omit<
+    EsbuildTransformOptions,
+    'format' | 'target' | 'loader' | 'sourcemap'
+  >
 }
