@@ -20,15 +20,15 @@ const style2 = `
 
 test('snapshot css modules', async () => {
   const css = new CSS()
-  await css.add(style1, '/style1.css')
-  await css.add(style2, '/style2.css')
+  await css.add('/style1.css', style1, true)
+  await css.add('/style2.css', style2, true)
   css.merge(['/style2.css'])
   expect(css.inject()).toMatchSnapshot()
 })
 
 test('snapshot css modules (undefined)', async () => {
   const css = new CSS()
-  await css.add(style1, '/style1.css')
+  await css.add('/style1.css', style1, true)
   css.merge([])
   expect(css.inject()).toMatchSnapshot()
 })
