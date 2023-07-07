@@ -31,6 +31,8 @@ export default function UserscriptPlugin(
     let isBuildWatch: boolean
     let socketConnection: connection | null = null
 
+    const fileName = config.fileName ?? config.header.name
+
     const logger = createLogger('info', {
       prefix: `[${pluginName}]`,
       allowClearScreen: true
@@ -57,10 +59,10 @@ export default function UserscriptPlugin(
             target: 'esnext',
             minify: false,
             lib: {
+              name: fileName,
               entry: config.entry,
-              name: config.header.name,
               formats: ['iife'],
-              fileName: () => `${config.header.name}.js`
+              fileName: () => `${fileName}.js`
             },
             rollupOptions: {
               output: {
@@ -127,7 +129,7 @@ export default function UserscriptPlugin(
       },
       async writeBundle(output, bundle) {
         const { open, port } = config.server!
-        const sanitizedFilename = output.sanitizeFileName(config.header.name)
+        const sanitizedFilename = output.sanitizeFileName(fileName)
         const userFilename = `${sanitizedFilename}.user.js`
         const proxyFilename = `${sanitizedFilename}.proxy.user.js`
         const metaFilename = `${sanitizedFilename}.meta.js`
