@@ -148,12 +148,15 @@ export default function UserscriptPlugin(
             try {
               let source = readFileSync(outPath, 'utf8')
               source = source.replace(styleTemplate, `${css.inject()}`)
-              source = await transform({
-                minify: !isBuildWatch,
-                file: source,
-                name: fileName,
-                loader: 'js'
-              })
+              source = await transform(
+                {
+                  minify: !isBuildWatch,
+                  file: source,
+                  name: fileName,
+                  loader: 'js'
+                },
+                config.esbuildTransformOptions
+              )
 
               config.header.grant = removeDuplicates(
                 isBuildWatch
@@ -164,12 +167,15 @@ export default function UserscriptPlugin(
               if (isBuildWatch) {
                 const wsFile = readFileSync(resolve(pluginDir, 'ws.js'), 'utf8')
 
-                const wsScript = await transform({
-                  minify: !isBuildWatch,
-                  file: wsFile.replace('__WS__', `ws://localhost:${port}`),
-                  name: wsPath,
-                  loader: 'js'
-                })
+                const wsScript = await transform(
+                  {
+                    minify: !isBuildWatch,
+                    file: wsFile.replace('__WS__', `ws://localhost:${port}`),
+                    name: wsPath,
+                    loader: 'js'
+                  },
+                  config.esbuildTransformOptions
+                )
 
                 writeFileSync(wsPath, wsScript)
                 writeFileSync(
