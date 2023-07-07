@@ -202,6 +202,11 @@ export interface UserscriptPluginConfig {
   entry: string
 
   /**
+   * Userscript file name.
+   */
+  fileName?: string
+
+  /**
    * Userscript header config.
    *
    * @see https://www.tampermonkey.net/documentation.php
