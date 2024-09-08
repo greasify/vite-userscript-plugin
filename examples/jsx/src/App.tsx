@@ -1,6 +1,7 @@
 import { mount, unmount } from 'redom-jsx'
-import { Counter } from './Counter.js'
 import type { RedomComponent, RedomEl } from 'redom-jsx'
+
+import { Counter } from './Counter.js'
 
 export class App implements RedomComponent {
   el: RedomEl
@@ -10,7 +11,7 @@ export class App implements RedomComponent {
 
   constructor() {
     // prettier-ignore
-    <div this="el">
+    ;<div this="el">
       <Counter
         this="counter"
         initialValue={-10}

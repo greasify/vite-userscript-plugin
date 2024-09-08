@@ -5,18 +5,15 @@ import getPort from 'get-port'
 import openLink from 'open'
 import colors from 'picocolors'
 import serveHandler from 'serve-handler'
-import { createLogger, PluginOption, ResolvedConfig } from 'vite'
+import { createLogger } from 'vite'
 import { server } from 'websocket'
+import type { PluginOption, ResolvedConfig } from 'vite'
+import type { connection } from 'websocket'
+
 import { Banner } from './banner.js'
-import {
-  grants,
-  pluginDir,
-  pluginName,
-  regexpScripts,
-} from './constants.js'
+import { grants, pluginDir, pluginName, regexpScripts } from './constants.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
-import type { connection } from 'websocket'
 
 export type { UserscriptPluginConfig }
 

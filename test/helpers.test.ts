@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { defineGrants, removeDuplicates } from '../src/helpers.js'
 import type { Grants } from '../src/types.js'
 

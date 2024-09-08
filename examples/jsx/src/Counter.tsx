@@ -38,6 +38,6 @@ export class Counter implements RedomComponent {
 
   private render(): void {
     // prettier-ignore
-    <h1 this="el"></h1>
+    ;<h1 this="el"></h1>
   }
 }

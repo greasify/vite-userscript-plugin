@@ -1,5 +1,6 @@
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 import type { Grants } from './types.js'
 
 export const pluginDir = dirname(fileURLToPath(import.meta.url))
