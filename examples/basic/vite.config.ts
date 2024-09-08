@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import Userscript from 'vite-userscript-plugin'
+
 import { name, version } from './package.json'
 
 export default defineConfig((config) => {
@@ -14,8 +15,12 @@ export default defineConfig((config) => {
         },
         server: {
           port: 2000
+        },
+        esbuildTransformOptions: {
+          minify: false
         }
       })
+
     ]
   }
 })

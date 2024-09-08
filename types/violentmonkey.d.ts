@@ -9,10 +9,21 @@ declare type VMScriptRunAt =
 /** Injection mode of a script. */
 declare type VMScriptInjectInto = 'auto' | 'page' | 'content'
 
+declare type GenericObject = Record<string, unknown>
+
 declare interface VMScriptGMInfoPlatform {
-  arch: 'arm' | 'arm64' | 'x86-32' | 'x86-64' | 'mips' | 'mips64'
-  /** `chrome`, `firefox` or whatever was returned by the API. */
-  browserName: string
+  arch:
+    | 'aarch64'
+    | 'arm'
+    | 'arm64'
+    | 'mips'
+    | 'mips64'
+    | 'ppc64'
+    | 's390x'
+    | 'sparc64'
+    | 'x86-32'
+    | 'x86-64'
+  browserName: 'chrome' | 'firefox' | string
   browserVersion: string
   os: 'mac' | 'win' | 'android' | 'cros' | 'linux' | 'openbsd' | 'fuchsia'
 }
@@ -53,6 +64,10 @@ declare interface VMScriptGMInfoScriptMeta {
 declare interface VMScriptGMInfoObject {
   /** Unique ID of the script. */
   uuid: string
+  /** The injection mode of current script. */
+  injectInto: VMScriptInjectInto
+  /** Contains structured fields from the *Metadata Block*. */
+  script: VMScriptGMInfoScriptMeta
   /** The meta block of the script. */
   scriptMetaStr: string
   /** Whether the script will be updated automatically. */
@@ -68,10 +83,14 @@ declare interface VMScriptGMInfoObject {
    * extension API (`browser.runtime.getPlatformInfo` and `getBrowserInfo`).
    */
   platform: VMScriptGMInfoPlatform
-  /** Contains structured fields from the *Metadata Block*. */
-  script: VMScriptGMInfoScriptMeta
-  /** The injection mode of current script. */
-  injectInto: VMScriptInjectInto
+  /**
+   * A copy of navigator.userAgentData from the content script of the extension.
+   * @since VM2.20.2 */
+  userAgentData?: {
+    brands: { brand: string; version: string }[]
+    mobile: boolean
+    platform: string
+  }
 }
 
 /**
@@ -84,10 +103,18 @@ declare function GM_log(...args: any): void
 
 /** Retrieves a value for current script from storage. */
 declare function GM_getValue<T>(name: string, defaultValue?: T): T
+/** @since VM2.19.1 */
+declare function GM_getValues(names: string[]): GenericObject
+/** @since VM2.19.1 */
+declare function GM_getValues(namesWithDefaults: GenericObject): GenericObject
 /** Sets a key / value pair for current script to storage. */
 declare function GM_setValue<T>(name: string, value: T): void
+/** @since VM2.19.1 */
+declare function GM_setValues(values: GenericObject): void
 /** Deletes an existing key / value pair for current script from storage. */
 declare function GM_deleteValue(name: string): void
+/** @since VM2.19.1 */
+declare function GM_deleteValues(names: string[]): void
 /** Returns an array of keys of all available values within this script. */
 declare function GM_listValues(): string[]
 
@@ -214,13 +241,25 @@ declare function GM_openInTab(
 
 /**
  * Registers a command in Violentmonkey popup menu.
+ * Returns the command's id since VM2.12.5, see description of the `id` parameter.
  * If you want to add a shortcut, please see `@violentmonkey/shortcut`.
  */
 declare function GM_registerMenuCommand(
   /** The name to show in the popup menu. */
   caption: string,
   /** Callback function when the command is clicked in the menu. */
-  onClick: (event: MouseEvent | KeyboardEvent) => void
+  onClick: (event: MouseEvent | KeyboardEvent) => void,
+  /** @since VM2.15.9 */
+  options?: {
+    /** Default: the `caption` parameter.
+     * In 2.15.9-2.16.1 the default was a randomly generated string. */
+    id?: string
+    /** A hint shown in the status bar when hovering the command. */
+    title?: string
+    /** Default: `true`.
+     * Whether to auto-close the popup after the user invoked the command. */
+    autoClose?: boolean
+  }
 ): string
 /** Unregisters a command which has been registered to Violentmonkey popup menu. */
 declare function GM_unregisterMenuCommand(
@@ -244,6 +283,30 @@ declare interface VMScriptGMNotificationOptions {
   title?: string
   /** URL of an image to show in the notification. */
   image?: string
+  /** No sounds/vibrations when showing the notification.
+   * @since VM2.15.2, Chrome 70. */
+  silent?: boolean
+  /**
+   * Unique name of the notification, e.g. 'abc', same as the web Notification API.
+   * Names are scoped to each userscript i.e. your tag won't clash with another script's tag.
+   * The purpose of a tagged notification is to replace an older notification with the same tag,
+   * even if it was shown in another tab (or before this tab was navigated elsewhere
+   * and your notification had `zombieTimeout`).
+   * @since VM2.15.4
+   */
+  tag?: string
+  /**
+   * Number of milliseconds to keep the notification after the userscript "dies",
+   * i.e. when its tab or frame is reloaded/closed/navigated. If not specified or invalid,
+   * the default behavior is to immediately remove the notifications.
+   * @since VM2.15.4
+   */
+  zombieTimeout?: number
+  /**
+   * URL to open when a zombie notification is clicked, see `zombieTimeout` for more info.
+   * @since VM2.16.1
+   */
+  zombieUrl?: string
   /** Callback when the notification is clicked by user. */
   onclick?: () => void
   /** Callback when the notification is closed, either by user or by system. */
@@ -408,10 +471,20 @@ declare interface VMScriptGMObjectVMExtensions {
   addElement: typeof GM_addElement
   addStyle: typeof GM_addStyle
   addValueChangeListener: typeof GM_addValueChangeListener
-  download: typeof GM_download
+  /** @since VM2.19.1 */
+  deleteValues: (names: string[]) => Promise<void>
+  download:
+    | ((options: VMScriptGMDownloadOptions) => Promise<Blob> | void)
+    | ((url: string, name: string) => Promise<Blob> | void)
   getResourceText: typeof GM_getResourceText
+  /** @since VM2.19.1 */
+  getValues:
+    | ((names: string[]) => Promise<GenericObject>)
+    | ((namesWithDefaults: GenericObject) => Promise<GenericObject>)
   log: typeof GM_log
   removeValueChangeListener: typeof GM_removeValueChangeListener
+  /** @since VM2.19.1 */
+  setValues: (values: GenericObject) => Promise<void>
   unregisterMenuCommand: typeof GM_unregisterMenuCommand
 }
 
@@ -428,7 +501,9 @@ declare interface VMScriptGMObject extends VMScriptGMObjectVMExtensions {
   notification: typeof GM_notification
   openInTab: typeof GM_openInTab
   setClipboard: typeof GM_setClipboard
-  xmlHttpRequest: typeof GM_xmlhttpRequest
+  xmlHttpRequest: <T = string | Blob | ArrayBuffer | Document | object>(
+    details: VMScriptGMXHRDetails<T>
+  ) => Promise<T> & VMScriptXHRControl
 }
 
 declare const GM: VMScriptGMObject

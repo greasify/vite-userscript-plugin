@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { Banner } from '../src/banner.js'
 import { grants } from '../src/constants.js'
 import type { HeaderConfig } from '../src/types.js'

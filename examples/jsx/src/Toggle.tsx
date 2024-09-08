@@ -1,4 +1,5 @@
-import { RedomComponent, RedomEl } from 'redom-jsx'
+import type { RedomComponent, RedomEl } from 'redom-jsx'
+
 import { Heading } from './Heading.js'
 
 export class Toggle implements RedomComponent {
@@ -8,7 +9,7 @@ export class Toggle implements RedomComponent {
 
   constructor() {
     // prettier-ignore
-    <div this="el">
+    ;<div this="el">
       <Heading this="heading" />
       <button
         onclick={() => {

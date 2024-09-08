@@ -40,7 +40,7 @@ class Items implements RedomComponent {
 
   private render(): void {
     // prettier-ignore
-    <span this="el">{this.generateList()}</span>
+    ;<span this="el">{this.generateList()}</span>
   }
 }
 
@@ -55,7 +55,7 @@ export class List implements RedomComponent {
 
   private render(): void {
     // prettier-ignore
-    <div this="el">
+    ;<div this="el">
       <h1 this="h1">List</h1>
       <Items this="items" count={5} />
       <button onclick={() => this.items.update()}>Update</button>

@@ -11,18 +11,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory
@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -46,7 +46,7 @@ jobs:
         run: pnpm build
 
       - name: Publish
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          access: public
+        shell: bash
+        run: |
+          echo "//registry.npmjs.org/:_authToken="${{ secrets.NPM_TOKEN }}"" > ~/.npmrc
+          pnpm publish --access public

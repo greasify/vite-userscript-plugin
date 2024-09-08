@@ -1,27 +1,27 @@
 {
   "name": "vite-userscript-plugin",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "type": "module",
   "types": "./dist/index.d.ts",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
   "exports": {
-    "require": "./dist/index.cjs",
-    "import": "./dist/index.js"
+    ".": "./dist/index.js"
   },
   "files": [
     "dist",
     "types"
   ],
+  "packageManager": "pnpm@9.9.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
     "test": "vitest",
     "test:ui": "vitest --ui --watch",
-    "dev:examples": "turbo run dev --filter='./examples/*'",
-    "build:examples": "turbo run build --filter='./examples/*'",
-    "format": "prettier --write --ignore-unknown **",
-    "prepublishOnly": "pnpm build"
+    "dev:examples": "turbo run dev --filter=./examples/*",
+    "build:examples": "turbo run build --filter=./examples/*",
+    "format": "prettier --write --ignore-unknown **"
   },
   "repository": {
     "type": "git",
@@ -45,25 +45,25 @@
     "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
   },
   "dependencies": {
-    "get-port": "7.0.0",
-    "open": "9.1.0",
-    "picocolors": "1.0.0",
+    "get-port": "7.1.0",
+    "open": "10.1.0",
+    "picocolors": "1.1.0",
     "serve-handler": "6.1.5",
-    "websocket": "1.0.34"
+    "websocket": "1.0.35"
   },
   "devDependencies": {
-    "@crashmax/prettier-config": "3.2.1",
-    "@crashmax/tsconfig": "2.0.1",
-    "@types/node": "18.15.3",
-    "@types/serve-handler": "6.1.1",
-    "@types/websocket": "1.0.5",
-    "@vitest/ui": "0.33.0",
-    "tsup": "7.1.0",
-    "turbo": "1.10.7",
-    "typescript": "5.1.6",
-    "vite": "4.4.2",
-    "vite-plugin-dts": "3.1.1",
-    "vitest": "0.33.0"
+    "@crashmax/prettier-config": "5.0.2",
+    "@crashmax/tsconfig": "2.1.0",
+    "@types/node": "22.5.4",
+    "@types/serve-handler": "6.1.4",
+    "@types/websocket": "1.0.10",
+    "@vitest/ui": "2.0.5",
+    "tsup": "8.2.4",
+    "turbo": "2.1.1",
+    "typescript": "5.5.4",
+    "vite": "5.4.3",
+    "vite-plugin-dts": "4.1.1",
+    "vitest": "2.0.5"
   },
   "peerDependencies": {
     "vite": ">=3.0.0"

@@ -1,4 +1,5 @@
 import { mount } from 'redom-jsx'
+
 import { App } from './App.js'
 import { List } from './List.js'
 import { Toggle } from './Toggle.js'

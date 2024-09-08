@@ -1,7 +1,8 @@
 import { transformWithEsbuild } from 'vite'
+import type { EsbuildTransformOptions } from 'vite'
+
 import { grants } from './constants.js'
 import type { Grants, Transform } from './types.js'
-import type { EsbuildTransformOptions } from 'vite'
 
 export function removeDuplicates(arr: any): any[] {
   return [...new Set(Array.isArray(arr) ? arr : arr ? [arr] : [])]

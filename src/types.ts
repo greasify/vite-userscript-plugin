@@ -1,5 +1,6 @@
-import { GM, GMwindow } from './constants.js'
 import type { EsbuildTransformOptions } from 'vite'
+
+import { GM, GMwindow } from './constants.js'
 
 export interface Transform {
   minify: boolean
@@ -16,8 +17,8 @@ export type RunAt =
   | 'context-menu'
 
 export type GMLiterals<T extends string> = [`GM_${T}` | `GM.${T}`]
-export type GMWindow = typeof GMwindow[number]
-export type Grants = GMWindow | GMLiterals<typeof GM[number]>[number]
+export type GMWindow = (typeof GMwindow)[number]
+export type Grants = GMWindow | GMLiterals<(typeof GM)[number]>[number]
 
 export type HeaderConfig = {
   [property: string]: any
