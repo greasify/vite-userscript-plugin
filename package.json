@@ -11,6 +11,9 @@
     "types"
   ],
   "packageManager": "pnpm@9.9.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
@@ -18,8 +21,7 @@
     "test:ui": "vitest --ui --watch",
     "dev:examples": "turbo run dev --filter=./examples/*",
     "build:examples": "turbo run build --filter=./examples/*",
-    "format": "prettier --write --ignore-unknown **",
-    "prepublishOnly": "pnpm build"
+    "format": "prettier --write --ignore-unknown **"
   },
   "repository": {
     "type": "git",
