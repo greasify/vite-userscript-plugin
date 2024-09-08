@@ -13,10 +13,7 @@ import {
   pluginDir,
   pluginName,
   regexpScripts,
-  regexpStyles,
-  styleTemplate
 } from './constants.js'
-import css from './css.js'
 import { defineGrants, removeDuplicates, transform } from './helpers.js'
 import type { UserscriptPluginConfig } from './types.js'
 import type { connection } from 'websocket'
@@ -95,38 +92,6 @@ export default function UserscriptPlugin(
           ...config.server
         }
       },
-      async transform(src: string, path: string) {
-        let code = src
-
-        if (regexpStyles.test(path)) {
-          code = await css.add(path, code, !isBuildWatch)
-        }
-
-        if (path.includes(config.entry)) {
-          code = src + styleTemplate
-        }
-
-        return {
-          code,
-          map: null
-        }
-      },
-      generateBundle(_, bundle) {
-        for (const outputChunk of Object.values(bundle)) {
-          if (outputChunk.type === 'asset') {
-            continue
-          }
-
-          // prettier-ignore
-          const styleModules = Object
-            .keys(outputChunk.modules)
-            .filter((module) => regexpStyles.test(module))
-
-          if (styleModules.length) {
-            css.merge(styleModules)
-          }
-        }
-      },
       async writeBundle(output, bundle) {
         const { open, port } = config.server!
         const sanitizedFilename = output.sanitizeFileName(fileName)
@@ -147,7 +112,6 @@ export default function UserscriptPlugin(
 
             try {
               let source = readFileSync(outPath, 'utf8')
-              source = source.replace(styleTemplate, `${css.inject()}`)
               source = await transform(
                 {
                   minify: !isBuildWatch,

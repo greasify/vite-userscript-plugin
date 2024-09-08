@@ -14,6 +14,9 @@ export default defineConfig((config) => {
         },
         server: {
           port: 2000
+        },
+        esbuildTransformOptions: {
+          minify: false
         }
       })
     ]

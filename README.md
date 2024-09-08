@@ -6,9 +6,17 @@
 
 > ⚡️ A plugin for developing and building a Tampermonkey userscript based on [Vite](https://vitejs.dev).
 
+## Table of contents
+
+- [Features](#features)
+- [Install](#install)
+- [Setup config](#setup-config)
+- [Using style modules](#using-style-modules)
+- [Plugin configuration](#plugin-configuration)
+
 ## Features
 
-- 🔥 Hot reloading after changing any files.
+- 🔥 Reloading page after changing any files.
 - 🔧 Configure Tampermonkey's Userscript header.
 - 💨 Import all [`grant`](https://www.tampermonkey.net/documentation.php#_grant)'s to the header by default in development mode.
 - 📝 Automatic addition of used [`grant`](https://www.tampermonkey.net/documentation.php#_grant)'s in the code when building for production.
@@ -28,7 +36,7 @@ yarn add vite-userscript-plugin -D
 pnpm add vite-userscript-plugin -D
 ```
 
-### Setup `vite.config.ts`
+### Setup config
 
 ```js
 import { defineConfig } from 'vite'
@@ -83,7 +91,19 @@ export default defineConfig((config) => {
 }
 ```
 
-## Plugin Configuration
+### Using style modules
+
+```js
+import style from './style.css?raw'
+
+// inject style element
+const styleElement = GM_addStyle(style)
+
+// remove style element
+styleElement.remove()
+```
+
+## Plugin configuration
 
 ```ts
 interface ServerConfig {
