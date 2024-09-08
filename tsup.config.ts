@@ -4,21 +4,19 @@ export default defineConfig((option) => {
   return [
     {
       entry: ['src/index.ts'],
-      format: ['cjs', 'esm'],
+      format: 'esm',
       external: ['vite'],
-      target: 'node14',
+      target: 'node20',
       dts: true,
       clean: true,
-      minify: true,
       watch: option.watch
     },
     {
       entry: ['src/ws.ts'],
-      format: ['esm'],
+      format: 'esm',
       target: 'esnext',
       platform: 'browser',
       clean: true,
-      minify: true,
       watch: option.watch
     }
   ]

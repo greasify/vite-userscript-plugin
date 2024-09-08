@@ -2,7 +2,8 @@
   "extends": "@crashmax/tsconfig",
   "compilerOptions": {
     "outDir": "dist",
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "verbatimModuleSyntax": true
   },
   "include": [
     "src",
