@@ -53,16 +53,16 @@
   },
   "devDependencies": {
     "@crashmax/prettier-config": "5.0.2",
-    "@crashmax/tsconfig": "2.1.0",
+    "@crashmax/tsconfig": "2.2.0",
     "@types/node": "22.5.4",
     "@types/serve-handler": "6.1.4",
     "@types/websocket": "1.0.10",
     "@vitest/ui": "2.0.5",
     "tsup": "8.2.4",
     "turbo": "2.1.1",
-    "typescript": "5.5.4",
-    "vite": "5.4.3",
-    "vite-plugin-dts": "4.1.1",
+    "typescript": "5.6.2",
+    "vite": "5.4.4",
+    "vite-plugin-dts": "4.2.1",
     "vitest": "2.0.5"
   },
   "peerDependencies": {
