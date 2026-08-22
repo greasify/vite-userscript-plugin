@@ -16,9 +16,9 @@ exports[`banner default snapshot 1`] = `
 // @exclude     https://vitest.dev/api/*
 // @include     https://vitest.dev
 // @homepage    https://github.com/vitest-dev/vitest
-// @downloadURL https://github.com/vitest-dev/vitest.user.js
+// @downloadURL https://vitest.dev
 // @supportURL  https://vitest.dev
-// @updateURL   https://github.com/vitest-dev/vitest.meta.js
+// @updateURL   https://vitest.dev
 // @resource    vitest https://vitest.dev
 // @require     https://example.com/index.js
 // @grant       GM_setValue
@@ -29,6 +29,12 @@ exports[`banner default snapshot 1`] = `
 // @grant       GM.deleteValue
 // @grant       GM_listValues
 // @grant       GM.listValues
+// @grant       GM_setValues
+// @grant       GM.setValues
+// @grant       GM_getValues
+// @grant       GM.getValues
+// @grant       GM_deleteValues
+// @grant       GM.deleteValues
 // @grant       GM_setClipboard
 // @grant       GM.setClipboard
 // @grant       GM_addStyle
@@ -61,6 +67,12 @@ exports[`banner default snapshot 1`] = `
 // @grant       GM.getResourceText
 // @grant       GM_xmlhttpRequest
 // @grant       GM.xmlhttpRequest
+// @grant       GM_webRequest
+// @grant       GM.webRequest
+// @grant       GM_cookie
+// @grant       GM.cookie
+// @grant       GM_audio
+// @grant       GM.audio
 // @grant       GM_log
 // @grant       GM.log
 // @grant       GM_info
@@ -69,18 +81,9 @@ exports[`banner default snapshot 1`] = `
 // @grant       window.onurlchange
 // @grant       window.focus
 // @grant       window.close
+// @grant       GM.xmlHttpRequest
+// @grant       GM.getResourceUrl
 // @match       https://vitest.dev
 // @run-at      document-start
-// ==/UserScript=="
-`;
-
-exports[`banner meta snapshot 1`] = `
-"// ==UserScript==
-// @name        vitest
-// @version     1.0.0
-// @match       https://example.com
-// @homepage    https://crashmax-dev.github.io/jsx/
-// @updateURL   https://crashmax-dev.github.io/jsx/vitest.meta.js
-// @downloadURL https://crashmax-dev.github.io/jsx/vitest.user.js
 // ==/UserScript=="
 `;

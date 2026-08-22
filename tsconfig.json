@@ -1,12 +1,9 @@
 {
-  "extends": "@crashmax/tsconfig",
-  "compilerOptions": {
-    "outDir": "dist",
-    "emitDeclarationOnly": true,
-    "verbatimModuleSyntax": true
-  },
+  "extends": "./tsconfig.base.json",
   "include": [
     "src",
-    "types"
+    "test/**/*.test.ts",
+    "vitest.config.ts",
+    "tsdown.config.ts"
   ]
 }

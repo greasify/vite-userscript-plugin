@@ -1,7 +1,6 @@
-import { createButton } from './button.js'
-import style from './style.scss?raw'
+import { createCounter } from "./counter.js";
+import "./style.scss";
 
-GM_addStyle(style)
-
-const div = document.querySelector('div')!
-div.appendChild(createButton())
+if (document.body) {
+  document.body.append(createCounter());
+}

@@ -3,3 +3,6 @@
 **/.turbo
 *.log
 *.tgz
+.pnpm-store
+.DS_Store
+.eslintcache

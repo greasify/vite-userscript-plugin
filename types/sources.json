@@ -1,0 +1,14 @@
+{
+  "tampermonkey": {
+    "package": "@types/tampermonkey",
+    "version": "5.5.0"
+  },
+  "greasemonkey": {
+    "package": "@types/greasemonkey",
+    "version": "4.0.7"
+  },
+  "violentmonkey": {
+    "package": "@violentmonkey/types",
+    "version": "0.3.4"
+  }
+}

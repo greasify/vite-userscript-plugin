@@ -1,26 +1,22 @@
-import { defineConfig } from 'vite'
-import Userscript from 'vite-userscript-plugin'
+import { createRequire } from "node:module";
 
-import { name, version } from './package.json'
+import { defineConfig } from "vite";
+import Userscript from "vite-userscript-plugin";
 
-export default defineConfig((config) => {
-  return {
-    plugins: [
-      Userscript({
-        entry: 'src/index.ts',
-        header: {
-          name,
-          version,
-          match: 'https://example.com/'
-        },
-        server: {
-          port: 2000
-        },
-        esbuildTransformOptions: {
-          minify: false
-        }
-      })
+const { name, version } = createRequire(import.meta.url)("./package.json") as {
+  name: string;
+  version: string;
+};
 
-    ]
-  }
-})
+export default defineConfig({
+  plugins: [
+    Userscript({
+      entry: "src/index.ts",
+      header: {
+        name,
+        version,
+        match: "https://example.com/",
+      },
+    }),
+  ],
+});

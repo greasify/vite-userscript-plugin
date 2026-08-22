@@ -4,84 +4,61 @@
 [![license](https://img.shields.io/github/license/crashmax-dev/vite-userscript-plugin)](./LICENCE)
 [![template](https://img.shields.io/github/package-json/v/crashmax-dev/vite-userscript-template?label=vite-userscript-template)](https://github.com/crashmax-dev/vite-userscript-template)
 
-> ⚡️ A plugin for developing and building a Tampermonkey userscript based on [Vite](https://vitejs.dev).
-
-## Table of contents
-
-- [Features](#features)
-- [Install](#install)
-- [Setup config](#setup-config)
-- [Using style modules](#using-style-modules)
-- [Plugin configuration](#plugin-configuration)
+> A Vite 8 plugin for developing and building Tampermonkey / Violentmonkey / Greasemonkey userscripts.
 
 ## Features
 
-- 🔥 Reloading page after changing any files.
-- 🔧 Configure Tampermonkey's Userscript header.
-- 💨 Import all [`grant`](https://www.tampermonkey.net/documentation.php#_grant)'s to the header by default in development mode.
-- 📝 Automatic addition of used [`grant`](https://www.tampermonkey.net/documentation.php#_grant)'s in the code when building for production.
-- 📦 Built-in Tampermonkey's TypeScript type definition.
+- 🔥 Vite HMR
+- 🎨 CSS from imports and SFC `<style>`
+- 🔧 Configure Userscript header
+- 💨 All `@grant`s in the header during `vite` / `vite serve`
+- 📝 Used `@grant`s only in the production build
+- 📦 Built-in types for Tampermonkey / Violentmonkey / Greasemonkey
 
 ## Install
 
-```
-npm install vite-userscript-plugin -D
+Requires **Vite 8** and Node `>=22`.
+
+```sh
+pnpm add -D vite-userscript-plugin vite@^8
 ```
 
-```
-yarn add vite-userscript-plugin -D
-```
+Put `Userscript()` **last** in `plugins`.
 
+## Setup
+
+```ts
+import { defineConfig } from "vite";
+import Userscript from "vite-userscript-plugin";
+import { name, version } from "./package.json";
+
+export default defineConfig({
+  plugins: [
+    Userscript({
+      entry: "src/index.ts",
+      header: {
+        name,
+        version,
+        match: [
+          "https://example.com/",
+          "https://example.org/"
+        ]
+      }
+    })
+  ]
+});
 ```
-pnpm add vite-userscript-plugin -D
-```
-
-### Setup config
-
-```js
-import { defineConfig } from 'vite'
-import Userscript from 'vite-userscript-plugin'
-import { name, version } from './package.json'
-
-export default defineConfig((config) => {
-  return {
-    plugins: [
-      Userscript({
-        entry: 'src/index.ts',
-        header: {
-          name,
-          version,
-          match: [
-            'https://example.com/',
-            'https://example.org/',
-            'https://example.edu/'
-          ]
-        },
-        server: {
-          port: 3000
-        }
-      })
-    ]
-  }
-})
-```
-
-### Setup NPM scripts
 
 ```json
-// package.json
 {
   "scripts": {
-    "dev": "vite build --watch --mode development",
+    "dev": "vite",
     "build": "vite build"
   }
 }
 ```
 
-### Setup TypeScript [types](https://www.typescriptlang.org/tsconfig#types)
-
 ```json
-// tsconfig.json
 {
   "compilerOptions": {
     "types": [
@@ -91,56 +68,104 @@ export default defineConfig((config) => {
 }
 ```
 
-### Using style modules
+`pnpm dev` prints an install URL (`/{fileName}.dev.user.js`). Open it once in the userscript manager. Code and SFC style changes go through Vite HMR. Changes to `@match` / `@grant` / `@name` need a reinstall.
 
-```js
-import style from './style.css?raw'
-
-// inject style element
-const styleElement = GM_addStyle(style)
-
-// remove style element
-styleElement.remove()
-```
-
-## Plugin configuration
+### Multiple scripts
 
 ```ts
-interface ServerConfig {
-  /**
-   * {@link https://github.com/sindresorhus/get-port}
-   */
-  port?: number;
-
-  /**
-   * @default false
-   */
-  open?: boolean;
-}
-
-interface UserscriptPluginConfig {
-  /**
-   * Path of userscript entry.
-   */
-  entry: string;
-
-  /**
-   * Userscript header config.
-   *
-   * @see https://www.tampermonkey.net/documentation.php
-   */
-  header: HeaderConfig;
-
-  /**
-   * Server config.
-   */
-  server?: ServerConfig;
-}
+Userscript({
+  header: { author: "you" },
+  scripts: [
+    {
+      entry: "src/foo.ts",
+      fileName: "foo",
+      header: {
+        name: "Foo",
+        version: "1.0.0",
+        match: "https://a.com/*"
+      }
+    },
+    {
+      entry: "src/bar.ts",
+      fileName: "bar",
+      header: {
+        name: "Bar",
+        version: "1.0.0",
+        match: "https://b.com/*"
+      }
+    }
+  ]
+});
 ```
+
+### Styles
+
+```ts
+import "./style.css";
+```
+
+Vue / Svelte SFC `<style>` works without `?raw`. `?raw` + `GM_addStyle` still works if you want to manage the node yourself.
+
+Imported images and `url()` in CSS are inlined. Do not use `public/` — those URLs point at the host site and 404.
+
+### Production
+
+`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. Sourcemaps follow `build.sourcemap`.
+
+## FAQ
+
+### Scripts fail on Firefox because of CSP
+
+The host page can block Vite modules from `localhost`. Use a CSP-disable extension for development, or a browser profile without the site CSP.
+
+- https://github.com/Tampermonkey/tampermonkey/issues/952#issuecomment-638373937
+
+### HTTPS site, HTTP Vite — mixed content
+
+`https://example.com` will not load `http://localhost:5173/@vite/client` or `ws://`. Disable-CSP does not help. Enable Vite HTTPS:
+
+```ts
+export default defineConfig({
+  server: {
+    https: {
+      // mkcert files
+    }
+  }
+});
+```
+
+### Old `file://` proxy scripts
+
+v1 used `{name}.proxy.user.js` and `file://` + “Allow access to file URLs”. Remove those scripts from the manager and install `{name}.dev.user.js` from the Vite URL printed on `vite`.
+
+### `public/` assets 404 on the target site
+
+Userscripts run on someone else’s origin. Files in `public/` are not copied there. Import the file so Vite inlines it as a data URL.
+
+### `@run-at document-start` feels late in dev
+
+Serve injects `type="module"`, which is async. Production output is a synchronous IIFE.
+
+### Header changes do not hot-reload
+
+`@match`, `@grant`, `@name` live in the installed metablock. Re-open the `.dev.user.js` URL after changing them.
+
+## Migration from v1
+
+| v1 | v2 |
+| --- | --- |
+| `vite build --watch` | `vite` |
+| `esbuildTransformOptions` | removed |
+| `server.port` | `server.port` in Vite config |
+| minify on production by default | minify off; set `build.minify` |
+| `*.proxy.user.js` + `file://` | `*.dev.user.js` from the Vite server |
+| Vite 3–5 | Vite 8 |
+
+`entry` + `header` still works as sugar for a single script.
 
 ## Examples
 
-See the [examples](https://github.com/crashmax-dev/vite-userscript-plugin/tree/master/examples) folder.
+See [examples](./examples): `basic`, `react`, `vue`, `svelte`, `multi`.
 
 ## License
 

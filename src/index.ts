@@ -1,206 +1,225 @@
-import { readFileSync, writeFileSync } from 'node:fs'
-import { createServer } from 'node:http'
-import { resolve } from 'node:path'
-import getPort from 'get-port'
-import openLink from 'open'
-import colors from 'picocolors'
-import serveHandler from 'serve-handler'
-import { createLogger } from 'vite'
-import { server } from 'websocket'
-import type { PluginOption, ResolvedConfig } from 'vite'
-import type { connection } from 'websocket'
+import type { Plugin } from "vite";
 
-import { Banner } from './banner.js'
-import { grants, pluginDir, pluginName, regexpScripts } from './constants.js'
-import { defineGrants, removeDuplicates, transform } from './helpers.js'
-import type { UserscriptPluginConfig } from './types.js'
+import type { OutputBundle } from "./build.js";
+import type { UserscriptPluginConfig } from "./types.js";
 
-export type { UserscriptPluginConfig }
+import { resolve } from "node:path";
+import openLink from "open";
+import { applyUserscriptBundle } from "./build.js";
+import { pluginName } from "./constants.js";
+import { createGmShimPrelude, shouldShimModule } from "./gm-shim.js";
+import { collectAutoMetaUrlsWarnings, resolvePluginConfig } from "./resolve.js";
+import {
+  createAfterLocalLogger,
+  createDevUserscript,
+  createReactBootstrapModule,
+  createReactPreambleModule,
+  DEV_SCRIPT_HEADERS,
+  findDevScript,
+  formatInstallLine,
+  hasReactRefreshPlugin,
+  matchReactBootstrap,
+  matchReactPreamble,
+  resolveBootstrapEntry,
+  toInstallUrl,
+} from "./serve.js";
+
+export { Banner, generateBanner } from "./banner.js";
+
+export type {
+  BannerGenerateContext,
+  CssInject,
+  HeaderConfig,
+  ResolvedScript,
+  ScriptOptions,
+  ServerConfig,
+  UserscriptPluginConfig,
+} from "./types.js";
+
+function resolveServerOrigin(urls?: { local: string[]; network: string[] } | null): string {
+  const url = urls?.local[0] ?? urls?.network[0];
+  return url ? url.replace(/\/$/, "") : "http://localhost:5173";
+}
 
 export default function UserscriptPlugin(
-  config: UserscriptPluginConfig
-): PluginOption {
-  try {
-    let pluginConfig: ResolvedConfig
-    let isBuildWatch: boolean
-    let socketConnection: connection | null = null
+  config: UserscriptPluginConfig,
+): Plugin[] {
+  const resolved = resolvePluginConfig(config);
+  let reactPreamble = false;
 
-    const fileName = config.fileName ?? config.header.name
+  return [
+    {
+      name: `${pluginName}:config`,
+      config(userConfig) {
+        const input = Object.fromEntries(
+          resolved.scripts.map(script => [script.fileName, script.entry]),
+        );
 
-    const logger = createLogger('info', {
-      prefix: `[${pluginName}]`,
-      allowClearScreen: true
-    })
-
-    const httpServer = createServer((req, res) => {
-      return serveHandler(req, res, {
-        public: pluginConfig.build.outDir
-      })
-    })
-
-    const WebSocketServer = server
-    const ws = new WebSocketServer({ httpServer })
-    ws.on('request', (request) => {
-      socketConnection = request.accept(null, request.origin)
-    })
-
-    return {
-      name: pluginName,
-      apply: 'build',
-      config() {
         return {
+          appType: userConfig.appType ?? "custom",
+          optimizeDeps: {
+            entries: resolved.scripts.map(script => script.entry),
+          },
+          server: {
+            cors: userConfig.server?.cors ?? true,
+          },
           build: {
-            target: 'esnext',
-            minify: false,
-            lib: {
-              name: fileName,
-              entry: config.entry,
-              formats: ['iife'],
-              fileName: () => `${fileName}.js`
-            },
-            rollupOptions: {
+            minify: userConfig.build?.minify ?? false,
+            assetsInlineLimit:
+              userConfig.build?.assetsInlineLimit ?? Number.MAX_SAFE_INTEGER,
+            rolldownOptions: {
+              input,
               output: {
-                extend: true
+                format: resolved.scripts.length > 1 ? "es" : "iife",
+                extend: true,
+                entryFileNames: "[name].js",
+                name: "userscript",
+              },
+            },
+          },
+        };
+      },
+      configResolved(viteConfig) {
+        for (const script of resolved.scripts) {
+          script.entry = resolve(viteConfig.root, script.entry);
+        }
+        reactPreamble = hasReactRefreshPlugin(viteConfig.plugins);
+
+        for (const message of collectAutoMetaUrlsWarnings(resolved)) {
+          viteConfig.logger.warn(message);
+        }
+      },
+    },
+    {
+      name: `${pluginName}:serve`,
+      apply: "serve",
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          const url = req.url ?? "";
+          if (matchReactPreamble(url)) {
+            for (const [key, value] of Object.entries(DEV_SCRIPT_HEADERS)) {
+              res.setHeader(key, value);
+            }
+            res.end(createReactPreambleModule());
+            return;
+          }
+
+          if (matchReactBootstrap(url)) {
+            const entry = resolveBootstrapEntry(url);
+            if (!entry) {
+              res.statusCode = 400;
+              res.end();
+              return;
+            }
+
+            for (const [key, value] of Object.entries(DEV_SCRIPT_HEADERS)) {
+              res.setHeader(key, value);
+            }
+            res.end(createReactBootstrapModule(entry));
+            return;
+          }
+
+          const script = findDevScript(url, resolved.scripts);
+          if (!script) {
+            next();
+            return;
+          }
+
+          const origin = resolveServerOrigin(server.resolvedUrls);
+          const body = createDevUserscript(resolved, {
+            origin,
+            root: server.config.root,
+            script,
+            reactPreamble,
+          });
+
+          for (const [key, value] of Object.entries(DEV_SCRIPT_HEADERS)) {
+            res.setHeader(key, value);
+          }
+          res.end(body);
+        });
+
+        const printUrls = server.printUrls.bind(server);
+        server.printUrls = () => {
+          const urls = server.resolvedUrls;
+          const info = server.config.logger.info.bind(server.config.logger);
+          let origins: string[] = [];
+          if (urls) {
+            origins = urls.local.length ? urls.local : urls.network;
+          }
+
+          const printInstall = (): void => {
+            for (const origin of origins) {
+              for (const script of resolved.scripts) {
+                info(formatInstallLine(toInstallUrl(origin, script.fileName)));
               }
             }
+          };
+
+          const logger = createAfterLocalLogger(
+            info,
+            urls?.local.length ?? 0,
+            printInstall,
+          );
+          const previousInfo = server.config.logger.info;
+          server.config.logger.info = logger.info;
+
+          try {
+            printUrls();
+          } finally {
+            server.config.logger.info = previousInfo;
+            logger.flush();
           }
-        }
-      },
-      async configResolved(userConfig) {
-        pluginConfig = userConfig
-        isBuildWatch = (userConfig.build.watch ?? false) as boolean
-        config.entry = resolve(userConfig.root, config.entry)
+        };
 
-        Array.from([
-          'match',
-          'require',
-          'include',
-          'exclude',
-          'resource',
-          'connect'
-        ]).forEach((key) => {
-          const value = config.header[key]
-          config.header[key] = removeDuplicates(value)
-        })
+        server.httpServer?.once("listening", () => {
+          if (!resolved.server.open) {
+            return;
+          }
 
-        config.server = {
-          port: await getPort(),
-          open: false,
-          ...config.server
-        }
-      },
-      async writeBundle(output, bundle) {
-        const { open, port } = config.server!
-        const sanitizedFilename = output.sanitizeFileName(fileName)
-        const userFilename = `${sanitizedFilename}.user.js`
-        const proxyFilename = `${sanitizedFilename}.proxy.user.js`
-        const metaFilename = `${sanitizedFilename}.meta.js`
-
-        for (const [fileName] of Object.entries(bundle)) {
-          if (regexpScripts.test(fileName)) {
-            const rootDir = pluginConfig.root
-            const outDir = pluginConfig.build.outDir
-
-            const outPath = resolve(rootDir, outDir, fileName)
-            const userFilePath = resolve(rootDir, outDir, userFilename)
-            const proxyFilePath = resolve(rootDir, outDir, proxyFilename)
-            const metaFilePath = resolve(rootDir, outDir, metaFilename)
-            const wsPath = resolve(pluginDir, `ws-${sanitizedFilename}.js`)
-
-            try {
-              let source = readFileSync(outPath, 'utf8')
-              source = await transform(
-                {
-                  minify: !isBuildWatch,
-                  file: source,
-                  name: fileName,
-                  loader: 'js'
-                },
-                config.esbuildTransformOptions
-              )
-
-              config.header.grant = removeDuplicates(
-                isBuildWatch
-                  ? grants
-                  : [...defineGrants(source), ...(config.header.grant ?? [])]
-              )
-
-              if (isBuildWatch) {
-                const wsFile = readFileSync(resolve(pluginDir, 'ws.js'), 'utf8')
-
-                const wsScript = await transform(
-                  {
-                    minify: !isBuildWatch,
-                    file: wsFile.replace('__WS__', `ws://localhost:${port}`),
-                    name: wsPath,
-                    loader: 'js'
-                  },
-                  config.esbuildTransformOptions
-                )
-
-                writeFileSync(wsPath, wsScript)
-                writeFileSync(
-                  proxyFilePath,
-                  new Banner({
-                    ...config.header,
-                    require: [
-                      ...(config.header.require ?? []),
-                      'file://' + wsPath,
-                      'file://' + outPath
-                    ]
-                  }).generate()
-                )
-              }
-
-              const banner = new Banner(config.header).generate()
-              writeFileSync(outPath, source)
-              writeFileSync(metaFilePath, banner)
-              writeFileSync(userFilePath, `${banner}\n\n${source}`)
-            } catch (err) {
-              console.log(err)
+          queueMicrotask(() => {
+            const origin = resolveServerOrigin(server.resolvedUrls);
+            for (const script of resolved.scripts) {
+              void openLink(toInstallUrl(origin, script.fileName));
             }
-          }
-        }
-
-        if (isBuildWatch && !httpServer.listening) {
-          const link = `http://localhost:${port}`
-          httpServer.listen(port, () => {
-            logger.clearScreen('info')
-            logger.info(
-              colors.bold(
-                `${colors.cyan('>>> [vite-userscript-plugin]')} ${colors.gray(
-                  link
-                )}`
-              )
-            )
-          })
-
-          if (open) {
-            await openLink(`${link}/${proxyFilename}`)
-          }
-        } else if (!isBuildWatch) {
-          httpServer.close()
-          process.exit(0)
-        }
+          });
+        });
       },
-      buildEnd() {
-        if (isBuildWatch) {
-          logger.clearScreen('info')
-
-          if (socketConnection) {
-            socketConnection.sendUTF(
-              JSON.stringify({
-                message: 'reload'
-              })
-            )
+    },
+    {
+      name: `${pluginName}:gm-shim`,
+      apply: "serve",
+      transform: {
+        filter: {
+          id: {
+            exclude: [/node_modules/],
+          },
+        },
+        handler(code, id) {
+          if (!shouldShimModule(id)) {
+            return null;
           }
-        }
-      }
-    }
-  } catch (err) {
-    console.error(err)
-    return {
-      name: pluginName
-    }
-  }
+
+          return {
+            code: `${createGmShimPrelude()}${code}`,
+            map: null,
+          };
+        },
+      },
+    },
+    {
+      name: `${pluginName}:build`,
+      apply: "build",
+      enforce: "post",
+      generateBundle(_options, bundle) {
+        applyUserscriptBundle(bundle as OutputBundle, resolved, (fileName, source) => {
+          this.emitFile({
+            type: "asset",
+            fileName,
+            source,
+          });
+        });
+      },
+    },
+  ];
 }

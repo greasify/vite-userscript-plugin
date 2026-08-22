@@ -1,31 +1,19 @@
 {
   "name": "vite-userscript-plugin",
-  "version": "1.11.0",
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": "./dist/index.js"
+  "version": "2.0.0",
+  "packageManager": "pnpm@11.22.0",
+  "author": {
+    "name": "Vitalij Ryndin",
+    "url": "https://github.com/crashmax-dev"
   },
-  "files": [
-    "dist",
-    "types"
-  ],
-  "packageManager": "pnpm@9.9.0",
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup",
-    "test": "vitest",
-    "test:ui": "vitest --ui --watch",
-    "dev:examples": "turbo run dev --filter=./examples/*",
-    "build:examples": "turbo run build --filter=./examples/*",
-    "format": "prettier --write --ignore-unknown **"
-  },
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/crashmax-dev/vite-userscript-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
   },
   "keywords": [
     "vite",
@@ -35,37 +23,54 @@
     "greasemonkey",
     "violentmonkey"
   ],
-  "author": {
-    "name": "Vitalij Ryndin",
-    "email": "sys@crashmax.ru",
-    "url": "https://crashmax.ru"
+  "exports": {
+    ".": "./dist/index.js",
+    "./types/tampermonkey": "./types/tampermonkey.d.ts",
+    "./types/greasemonkey": "./types/greasemonkey.d.ts",
+    "./types/violentmonkey": "./types/violentmonkey.d.ts"
   },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "types"
+  ],
+  "engines": {
+    "node": ">=22"
   },
-  "dependencies": {
-    "get-port": "7.1.0",
-    "open": "10.1.0",
-    "picocolors": "1.1.0",
-    "serve-handler": "6.1.5",
-    "websocket": "1.0.35"
-  },
-  "devDependencies": {
-    "@crashmax/prettier-config": "5.0.2",
-    "@crashmax/tsconfig": "2.1.0",
-    "@types/node": "22.5.4",
-    "@types/serve-handler": "6.1.4",
-    "@types/websocket": "1.0.10",
-    "@vitest/ui": "2.0.5",
-    "tsup": "8.2.4",
-    "turbo": "2.1.1",
-    "typescript": "5.5.4",
-    "vite": "5.4.3",
-    "vite-plugin-dts": "4.1.1",
-    "vitest": "2.0.5"
+  "scripts": {
+    "dev": "tsdown --watch",
+    "dev:examples": "turbo run dev --filter=./examples/*",
+    "build": "tsdown",
+    "build:examples": "turbo run build --filter=./examples/*",
+    "test": "vitest",
+    "test:ui": "vitest --ui --watch",
+    "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p scripts/tsconfig.json && turbo run type-check --filter=./examples/*",
+    "sync-types": "node scripts/sync-types.ts",
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix --cache"
   },
   "peerDependencies": {
-    "vite": ">=3.0.0"
+    "vite": "^8.0.0"
+  },
+  "dependencies": {
+    "open": "11.0.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "7.2.0",
+    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "@types/node": "22.20.1",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "@vitejs/plugin-vue": "6.0.8",
+    "@vitest/ui": "4.1.11",
+    "eslint": "9.39.2",
+    "eslint-plugin-format": "2.0.1",
+    "prettier-plugin-css-order": "2.2.0",
+    "svelte": "5.56.10",
+    "tsdown": "0.22.14",
+    "turbo": "2.10.11",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vite": "8.2.2",
+    "vitest": "4.1.11",
+    "vue": "3.5.41"
   }
 }

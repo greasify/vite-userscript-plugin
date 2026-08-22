@@ -1,0 +1,17 @@
+{
+  "name": "vue-example",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.8",
+    "vite": "8.2.2",
+    "vite-userscript-plugin": "workspace:*",
+    "vue": "3.5.41"
+  }
+}
