@@ -57,20 +57,20 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "7.2.0",
-    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "@sveltejs/vite-plugin-svelte": "catalog:",
     "@types/node": "22.20.1",
     "@typescript/native": "npm:typescript@7.0.2",
-    "@vitejs/plugin-vue": "6.0.8",
+    "@vitejs/plugin-vue": "catalog:",
     "@vitest/ui": "4.1.11",
     "eslint": "9.39.2",
     "eslint-plugin-format": "2.0.1",
     "prettier-plugin-css-order": "2.2.0",
-    "svelte": "5.56.10",
+    "svelte": "catalog:",
     "tsdown": "0.22.14",
     "turbo": "2.10.11",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.2.2",
+    "vite": "catalog:",
     "vitest": "4.1.11",
-    "vue": "3.5.41"
+    "vue": "catalog:"
   }
 }

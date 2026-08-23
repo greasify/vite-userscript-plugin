@@ -9,9 +9,9 @@
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "7.3.0",
-    "svelte": "5.56.10",
-    "vite": "8.2.2",
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "svelte": "catalog:",
+    "vite": "catalog:",
     "vite-userscript-plugin": "workspace:*"
   }
 }

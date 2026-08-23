@@ -9,7 +9,7 @@
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "vite": "8.2.2",
+    "vite": "catalog:",
     "vite-userscript-plugin": "workspace:*"
   }
 }

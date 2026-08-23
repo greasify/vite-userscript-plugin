@@ -4,6 +4,24 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@sveltejs/vite-plugin-svelte':
+      specifier: 7.3.0
+      version: 7.3.0
+    '@vitejs/plugin-vue':
+      specifier: 6.0.8
+      version: 6.0.8
+    svelte:
+      specifier: 5.56.10
+      version: 5.56.10
+    vite:
+      specifier: 8.2.2
+      version: 8.2.2
+    vue:
+      specifier: 3.5.41
+      version: 3.5.41
+
 importers:
 
   .:
@@ -16,7 +34,7 @@ importers:
         specifier: 7.2.0
         version: 7.2.0(@typescript-eslint/typescript-estree@8.67.0(@typescript/typescript6@6.0.2)(supports-color@8.1.1))(@typescript-eslint/utils@8.67.0(@typescript/typescript6@6.0.2)(eslint@9.39.2(supports-color@8.1.1))(supports-color@8.1.1))(@typescript/typescript6@6.0.2)(@vue/compiler-sfc@3.5.41)(eslint-plugin-format@2.0.1(eslint@9.39.2(supports-color@8.1.1)))(eslint@9.39.2(supports-color@8.1.1))(supports-color@8.1.1)(vitest@4.1.11)
       '@sveltejs/vite-plugin-svelte':
-        specifier: 7.3.0
+        specifier: 'catalog:'
         version: 7.3.0(svelte@5.56.10(@typescript-eslint/types@8.67.0))(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0))
       '@types/node':
         specifier: 22.20.1
@@ -25,7 +43,7 @@ importers:
         specifier: npm:typescript@7.0.2
         version: typescript@7.0.2
       '@vitejs/plugin-vue':
-        specifier: 6.0.8
+        specifier: 'catalog:'
         version: 6.0.8(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0))(vue@3.5.41(@typescript/typescript6@6.0.2))
       '@vitest/ui':
         specifier: 4.1.11
@@ -40,7 +58,7 @@ importers:
         specifier: 2.2.0
         version: 2.2.0(postcss@8.5.26)(prettier@3.9.6)
       svelte:
-        specifier: 5.56.10
+        specifier: 'catalog:'
         version: 5.56.10(@typescript-eslint/types@8.67.0)
       tsdown:
         specifier: 0.22.14
@@ -52,13 +70,13 @@ importers:
         specifier: npm:@typescript/typescript6@6.0.2
         version: '@typescript/typescript6@6.0.2'
       vite:
-        specifier: 8.2.2
+        specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
       vitest:
         specifier: 4.1.11
         version: 4.1.11(@types/node@22.20.1)(@vitest/ui@4.1.11)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0))
       vue:
-        specifier: 3.5.41
+        specifier: 'catalog:'
         version: 3.5.41(@typescript/typescript6@6.0.2)
 
   examples/basic:
@@ -67,7 +85,7 @@ importers:
         specifier: 1.103.1
         version: 1.103.1
       vite:
-        specifier: 8.2.2
+        specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
       vite-userscript-plugin:
         specifier: workspace:*
@@ -76,7 +94,7 @@ importers:
   examples/multiple-entries:
     devDependencies:
       vite:
-        specifier: 8.2.2
+        specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
       vite-userscript-plugin:
         specifier: workspace:*
@@ -100,7 +118,7 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       vite:
-        specifier: 8.2.2
+        specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
       vite-userscript-plugin:
         specifier: workspace:*
@@ -109,7 +127,7 @@ importers:
   examples/sourcemap:
     devDependencies:
       vite:
-        specifier: 8.2.2
+        specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
       vite-userscript-plugin:
         specifier: workspace:*
@@ -118,13 +136,13 @@ importers:
   examples/svelte:
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
-        specifier: 7.3.0
+        specifier: 'catalog:'
         version: 7.3.0(svelte@5.56.10(@typescript-eslint/types@8.67.0))(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0))
       svelte:
-        specifier: 5.56.10
+        specifier: 'catalog:'
         version: 5.56.10(@typescript-eslint/types@8.67.0)
       vite:
-        specifier: 8.2.2
+        specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
       vite-userscript-plugin:
         specifier: workspace:*
@@ -133,16 +151,16 @@ importers:
   examples/vue:
     devDependencies:
       '@vitejs/plugin-vue':
-        specifier: 6.0.8
+        specifier: 'catalog:'
         version: 6.0.8(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0))(vue@3.5.41(@typescript/typescript6@6.0.2))
       vite:
-        specifier: 8.2.2
+        specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
       vite-userscript-plugin:
         specifier: workspace:*
         version: link:../..
       vue:
-        specifier: 3.5.41
+        specifier: 'catalog:'
         version: 3.5.41(@typescript/typescript6@6.0.2)
 
 packages:
