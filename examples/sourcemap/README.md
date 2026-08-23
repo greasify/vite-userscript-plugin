@@ -1,17 +1,19 @@
 # Sourcemap example
 
-Vanilla userscript with `build.minify` and `build.sourcemap`. The metablock stays readable; the body is minified. The map is inlined into `.user.js` as a `data:` `sourceMappingURL`, so DevTools can open `src/` without a sibling `.map` file or a static host.
+Vanilla userscript with Vite `build.minify` and `build.sourcemap`. The metablock stays readable; the body is minified.
 
-`homepage` + `autoMetaUrls` still fill `@updateURL` / `@downloadURL`. They do not host the map.
+The map is inlined as a `data:` `sourceMappingURL`. Offset includes the metablock and the CSS prelude. No sibling `.map` file.
+
+`homepage` + `autoMetaUrls` fill `@updateURL` / `@downloadURL`. They do not host the map.
 
 ```bash
 pnpm build
 ```
 
-Writes `{fileName}.user.js` and `{fileName}.meta.js`. Install the userscript, click **Throw**, and open the stack in DevTools — it should land on `src/counter.ts`, not the IIFE. The inline map is offset past the metablock.
+Install the userscript, click **Throw**, and open the stack in DevTools. It should land on `src/counter.ts`, not the IIFE.
 
 ```bash
 pnpm dev
 ```
 
-Install the printed `*.dev.user.js` URL. On HTTPS sites use `server.https`. Do not use `public/` for assets.
+Install the printed `*.dev.user.js` URL. HTTPS and `public/` notes: [FAQ](../../README.md#faq).

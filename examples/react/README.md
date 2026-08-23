@@ -1,9 +1,10 @@
 # React example
 
-React JSX userscript. Imported CSS is applied in both `vite` and `vite build`.
+JSX, imported CSS, and React refresh in `pnpm dev`.
 
 ```bash
 pnpm dev
+pnpm build
 ```
 
-Install the printed `*.dev.user.js` URL. On HTTPS sites use `server.https`. Do not use `public/` for assets.
+Install the printed `*.dev.user.js` URL. HTTPS and `public/` notes: [FAQ](../../README.md#faq).

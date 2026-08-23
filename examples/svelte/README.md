@@ -4,6 +4,7 @@ Svelte SFC userscript.
 
 ```bash
 pnpm dev
+pnpm build
 ```
 
-Install the printed `*.dev.user.js` URL. On HTTPS sites use `server.https`. Do not use `public/` for assets.
+Install the printed `*.dev.user.js` URL. HTTPS and `public/` notes: [FAQ](../../README.md#faq).

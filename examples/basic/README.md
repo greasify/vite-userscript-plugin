@@ -1,9 +1,10 @@
 # Basic example
 
-Vanilla userscript with SCSS.
+Vanilla userscript with SCSS. Minimal `Userscript({ entry, header })`.
 
 ```bash
 pnpm dev
+pnpm build
 ```
 
-Install the printed `*.dev.user.js` URL in Tampermonkey. On HTTPS sites set `server.https` in Vite (mkcert). Do not put assets in `public/` — import them so they are inlined.
+Install the printed `*.dev.user.js` URL. HTTPS and `public/` notes: [FAQ](../../README.md#faq).

@@ -68,11 +68,19 @@ export default defineConfig({
 }
 ```
 
-`pnpm dev` prints an install URL (`/{fileName}.dev.user.js`). Open it once in the userscript manager. Code and SFC style changes go through Vite HMR. Changes to `@match` / `@grant` / `@name` need a reinstall.
+Manager typings: [types/README.md](./types/README.md).
 
-### Multiple scripts
+## Development
+
+- `pnpm dev` prints `/{fileName}.dev.user.js`. Open that URL once in the manager.
+- Code and SFC style changes go through Vite HMR.
+- Changing `@match`, `@grant`, or `@name` needs a reinstall.
+
+## Multiple scripts
 
 Pass an array of the same config shape. There is no shared `header` and no `scripts` key.
+
+See [examples/multiple-entries](./examples/multiple-entries).
 
 ```ts
 Userscript([
@@ -97,38 +105,96 @@ Userscript([
 ]);
 ```
 
-### Styles
+## Styles
 
 ```ts
 import "./style.css";
 ```
 
-Vue / Svelte SFC `<style>` works without `?raw`. `?raw` + `GM_addStyle` still works if you want to manage the node yourself.
+Vue and Svelte SFC `<style>` work without `?raw`. Use `?raw` + `GM_addStyle` if you want to own the node.
 
 Imported images and `url()` in CSS are inlined. Do not use `public/` — those URLs point at the host site and 404.
 
-### Production
+## Production
 
-`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. The bundle is an IIFE so the manager can inject it as a classic script; top-level `await` becomes `(async function () { … })()`. If `build.sourcemap` is on, the map is inlined into `.user.js` as a `data:` `sourceMappingURL` so DevTools can decode it after the manager injects the script. A sibling `.map` file is not emitted. The inline map keeps `sourcesContent` for app sources only — `node_modules` and virtual modules are omitted — and its line offset includes the metablock and the CSS prelude.
+- `vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`.
+- Minify is off. Turn it on with Vite `build.minify`.
+- The bundle is an IIFE. The manager injects it as a classic script.
+- Top-level `await` becomes `(async function () { … })()`.
+- With Vite `build.sourcemap`, the map is inlined as a `data:` `sourceMappingURL` at the end of `.user.js`.
+- A sibling `.map` file is not written.
+- `sourcesContent` keeps your files only. `node_modules` and virtual modules are omitted.
+- The map offset includes the metablock and the CSS prelude.
+
+Demo: [examples/sourcemap](./examples/sourcemap).
 
 ## Options
 
-`Userscript(config)` or `Userscript([config, config, …])`. Each object is a full script — options are not shared across the array.
+`Userscript(config)` or `Userscript([config, config, …])`. Each object is one full script. Options are not shared across the array.
 
 | Option | Default | Description |
 | --- | --- | --- |
 | `entry` | — | Userscript entry. Required on every config. |
-| `header` | — | Metablock fields. Required `name`, `version`, `match`. |
+| `header` | — | Metablock. Required: `name`, `version`, `match`. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the `.dev.user.js` install URL when Vite starts. |
-| `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. Set `false` to disable. |
-| `cssInject` | `'auto'` | How production CSS is injected. `'auto'` uses `GM_addStyle` with a `<style>` fallback. Pass a function or source string for a custom injector. |
-| `align` | `1` | Extra spaces after the longest `@key`. `false` prints a single space. |
-| `generate` | — | Rewrite the generated metablock (`{ userscript, mode }`). |
-| `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage`, `homepageURL`, `website`, or `source`. |
-| `metaFile` | `true` | Emit `{fileName}.meta.js`. Keep this on when using `autoMetaUrls`. |
+| `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
+| `cssInject` | `'auto'` | How production CSS is injected. |
+| `align` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
+| `generate` | — | Rewrite the generated metablock. |
+| `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from a homepage alias. |
+| `metaFile` | `true` | Emit `{fileName}.meta.js`. |
 
-Production `@grant`s are detected from identifiers in the bundled code (`GM_setValue`, `GM.setValue`, `window.focus`, …). Serve mode still lists every grant so the manager sandbox can copy APIs into the page. `window.focus` / `window.close` / `window.onurlchange` are real Tampermonkey grants — they are added when those identifiers appear. Set `grant: "none"` to disable GM APIs; that value is never mixed with auto-detected grants.
+### `header`
+
+Required fields: `name`, `version`, `match`. Everything else follows the manager metablock (`@grant`, `@require`, `@connect`, …).
+
+### Grants
+
+In serve mode the header lists every grant so the manager can copy APIs into the page.
+
+In production the plugin scans the bundle for identifiers (`GM_setValue`, `GM.setValue`, `window.focus`, …). Only those grants are written.
+
+`window.focus`, `window.close`, and `window.onurlchange` are real Tampermonkey grants. They are added when those identifiers appear.
+
+`grant: "none"` disables GM APIs. That value is never mixed with auto-detected grants.
+
+### `cssInject`
+
+`'auto'` calls `GM_addStyle` when it exists, otherwise appends a `<style>` node. `@grant GM_addStyle` is added only in this mode.
+
+Pass a function or a JS expression string for a custom injector. The plugin does not add a CSS grant for those.
+
+### `autoMetaUrls` and `metaFile`
+
+When `autoMetaUrls` is on, empty `updateURL` / `downloadURL` are filled from `homepage`, `homepageURL`, `website`, or `source`.
+
+Keep `metaFile: true` if you use that. Otherwise `@updateURL` points at a file that is not emitted.
+
+Demo: [examples/sourcemap](./examples/sourcemap).
+
+### `server`
+
+`open: true` opens the install URL when Vite starts. With several scripts, only those with `open: true` are opened.
+
+`prefix` is prepended to `@name` in serve mode so the dev script does not clash with the installed production one.
+
+### `align` and `generate`
+
+`align` pads `@key` columns. `false` prints a single space.
+
+`generate({ userscript, mode })` rewrites the metablock. `mode` is `serve`, `build`, or `meta`.
+
+## Examples
+
+| Example | What it shows |
+| --- | --- |
+| [basic](./examples/basic) | Vanilla + SCSS. Minimal `Userscript({ entry, header })`. |
+| [react](./examples/react) | JSX, imported CSS, React refresh in dev. |
+| [vue](./examples/vue) | SFC `<style>`. This config also sets `minify` and `sourcemap`. |
+| [svelte](./examples/svelte) | SFC `<style>`. |
+| [multiple-entries](./examples/multiple-entries) | Array of configs, a shared module, two `.user.js` files. |
+| [sourcemap](./examples/sourcemap) | Inline map, `autoMetaUrls` + `homepage`. |
 
 ## FAQ
 
@@ -183,7 +249,9 @@ Userscripts run on someone else’s origin. Files in `public/` are not copied th
 
 ### `@run-at document-start` feels late in dev
 
-Serve injects `type="module"`, which is async. Production output is a synchronous IIFE.
+Serve injects `type="module"`, which is async.
+
+Production is a synchronous IIFE unless you use top-level `await`. Then the wrapper is `async`, and the first `await` yields a turn.
 
 ### Header changes do not hot-reload
 
@@ -199,12 +267,10 @@ Serve injects `type="module"`, which is async. Production output is a synchronou
 | minify on production by default | minify off; set `build.minify` |
 | `*.proxy.user.js` + `file://` | `*.dev.user.js` from the Vite server |
 | Vite 3–7 | Vite 8 |
+| `scripts` + a shared `header` | `Userscript([config, config, …])` |
+| `ScriptOptions` | removed |
 
-`entry` + `header` is one script. Pass an array of that shape for multiple scripts. The `scripts` key and a shared default `header` are gone.
-
-## Examples
-
-See [examples](./examples): `basic`, `react`, `vue`, `svelte`, `multiple-entries`, `sourcemap`.
+`entry` + `header` is one script. Pass an array of that shape for multiple scripts.
 
 ## License
 

@@ -1,9 +1,10 @@
 # Multiple entries example
 
-Two userscripts from one Vite config: pass an array of configs, each with its own `entry` and `header`.
+Two userscripts from one Vite config: an array of configs, a shared module, two `.user.js` files.
 
 ```bash
 pnpm dev
+pnpm build
 ```
 
-Install both printed `*.dev.user.js` URLs. On HTTPS sites use `server.https`. Do not use `public/` for assets.
+Install both printed `*.dev.user.js` URLs. HTTPS and `public/` notes: [FAQ](../../README.md#faq).
