@@ -30,7 +30,10 @@ function uniqueHeaderValues(value: unknown): unknown[] {
   return value == null ? [] : [value];
 }
 
-function mergeHeader(defaults: Partial<HeaderConfig> | undefined, header: HeaderConfig): HeaderConfig {
+function mergeHeader(
+  defaults: Partial<HeaderConfig> | undefined,
+  header: HeaderConfig,
+): HeaderConfig {
   const merged: HeaderConfig = {
     ...(defaults ?? {}),
     ...header,
@@ -86,7 +89,10 @@ function assertHeader(header: Partial<HeaderConfig>, label: string): void {
   }
 }
 
-function toResolvedScript(script: ScriptOptions, defaults?: Partial<HeaderConfig>): ResolvedScript {
+function toResolvedScript(
+  script: ScriptOptions,
+  defaults?: Partial<HeaderConfig>,
+): ResolvedScript {
   const header = mergeHeader(defaults, script.header);
   assertHeader(header, script.entry);
 

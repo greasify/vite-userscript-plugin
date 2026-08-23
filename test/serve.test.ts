@@ -7,7 +7,6 @@ import {
   createAfterLocalLogger,
   createDevUserscript,
   createReactBootstrapModule,
-  createReactPreambleModule,
   DEV_SCRIPT_HEADERS,
   formatFaqHint,
   formatInstallLine,
@@ -17,6 +16,7 @@ import {
   matchDevUserscript,
   matchReactBootstrap,
   matchReactPreamble,
+  REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
   stripAnsi,
   toInstallUrl,
@@ -85,8 +85,8 @@ it("generateDevWrapper boots React through the preamble module", () => {
   expect(wrapper).not.toContain("http://localhost:5173/@vite/client");
   expect(createReactBootstrapModule("/src/index.tsx")).toContain(REACT_PREAMBLE_PATH);
   expect(createReactBootstrapModule("/src/index.tsx")).toContain("/src/index.tsx");
-  expect(createReactPreambleModule()).toContain("/@react-refresh");
-  expect(createReactPreambleModule()).toContain("__vite_plugin_react_preamble_installed__");
+  expect(REACT_PREAMBLE_MODULE).toContain("/@react-refresh");
+  expect(REACT_PREAMBLE_MODULE).toContain("__vite_plugin_react_preamble_installed__");
 });
 
 it("react preamble helpers match plugin-react and reject unsafe entries", () => {

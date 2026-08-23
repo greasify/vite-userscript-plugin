@@ -14,7 +14,11 @@ export function countBannerLines(prefix: string): number {
     : prefix.split("\n").length;
 }
 
-export function offsetSourceMap<T extends { mappings: string; file?: string }>(map: T, lineOffset: number, fileName?: string): T {
+export function offsetSourceMap<T extends { mappings: string; file?: string }>(
+  map: T,
+  lineOffset: number,
+  fileName?: string,
+): T {
   if (lineOffset <= 0) {
     return fileName ? { ...map, file: fileName } : map;
   }

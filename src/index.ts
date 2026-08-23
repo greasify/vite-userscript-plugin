@@ -1,6 +1,5 @@
 import type { Plugin } from "vite";
 
-import type { OutputBundle } from "./build.js";
 import type { UserscriptPluginConfig } from "./types.js";
 
 import { resolve } from "node:path";
@@ -13,7 +12,6 @@ import {
   createAfterLocalLogger,
   createDevUserscript,
   createReactBootstrapModule,
-  createReactPreambleModule,
   DEV_SCRIPT_HEADERS,
   findDevScript,
   formatFaqHint,
@@ -21,6 +19,7 @@ import {
   hasReactRefreshPlugin,
   matchReactBootstrap,
   matchReactPreamble,
+  REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
   toInstallUrl,
 } from "./serve.js";
@@ -68,8 +67,7 @@ export default function UserscriptPlugin(
           },
           build: {
             minify: userConfig.build?.minify ?? false,
-            assetsInlineLimit:
-              userConfig.build?.assetsInlineLimit ?? Number.MAX_SAFE_INTEGER,
+            assetsInlineLimit: userConfig.build?.assetsInlineLimit ?? Number.MAX_SAFE_INTEGER,
             rolldownOptions: {
               input,
               output: {
@@ -103,7 +101,7 @@ export default function UserscriptPlugin(
             for (const [key, value] of Object.entries(DEV_SCRIPT_HEADERS)) {
               res.setHeader(key, value);
             }
-            res.end(createReactPreambleModule());
+            res.end(REACT_PREAMBLE_MODULE);
             return;
           }
 
@@ -151,7 +149,7 @@ export default function UserscriptPlugin(
             origins = urls.local.length ? urls.local : urls.network;
           }
 
-          const printInstall = (): void => {
+          function printInstall() {
             for (const origin of origins) {
               for (const script of resolved.scripts) {
                 info(formatInstallLine(toInstallUrl(origin, script.fileName)));
@@ -216,7 +214,7 @@ export default function UserscriptPlugin(
       apply: "build",
       enforce: "post",
       generateBundle(_options, bundle) {
-        applyUserscriptBundle(bundle as OutputBundle, resolved, (fileName, source) => {
+        applyUserscriptBundle(bundle, resolved, (fileName, source) => {
           this.emitFile({
             type: "asset",
             fileName,

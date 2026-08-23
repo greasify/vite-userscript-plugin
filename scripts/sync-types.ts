@@ -90,8 +90,9 @@ async function main(): Promise<void> {
     try {
       const tgz = await packPackage(source.pkg, tmp);
       const { dts, version } = await extractIndexDts(tgz, tmp);
-      const body
-        = source.name === "violentmonkey" ? rewriteViolentmonkey(dts) : dts;
+      const body = source.name === "violentmonkey"
+        ? rewriteViolentmonkey(dts)
+        : dts;
 
       await writeFile(
         join(typesDir, `${source.name}.d.ts`),

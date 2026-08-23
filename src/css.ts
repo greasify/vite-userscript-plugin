@@ -7,7 +7,7 @@ export function escapeCssForTemplate(css: string): string {
     .replace(/\$\{/g, "\\${");
 }
 
-const defaultInjector = `(function (css) {
+const defaultCssInjector = `(function (css) {
   if (typeof GM_addStyle === 'function') {
     GM_addStyle(css)
   } else {
@@ -17,11 +17,14 @@ const defaultInjector = `(function (css) {
   }
 })`;
 
-export function createCssInject(css: string, cssInject: CssInject = "auto"): string {
+export function createCssInject(
+  css: string,
+  cssInject: CssInject = "auto",
+): string {
   const payload = JSON.stringify(css);
 
   if (cssInject === "auto") {
-    return `${defaultInjector}(${payload});\n`;
+    return `${defaultCssInjector}(${payload});\n`;
   }
 
   if (typeof cssInject === "function") {

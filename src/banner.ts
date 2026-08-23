@@ -115,5 +115,7 @@ export class Banner {
     private readonly options: BannerOptions = {},
   ) {}
 
-  generate = (): string => generateBanner(this.config, this.options);
+  generate() {
+    return generateBanner(this.config, this.options);
+  }
 }

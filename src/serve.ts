@@ -62,7 +62,11 @@ export function isViteLocalUrlLine(message: string): boolean {
   return /Local:\s/.test(stripAnsi(message));
 }
 
-export function createAfterLocalLogger(info: Logger["info"], localCount: number, onAfterLocal: () => void): { info: Logger["info"]; flush: () => void } {
+export function createAfterLocalLogger(
+  info: Logger["info"],
+  localCount: number,
+  onAfterLocal: () => void,
+): { info: Logger["info"]; flush: () => void } {
   let remaining = localCount;
   let printed = false;
 
@@ -96,7 +100,10 @@ export function toServeEntryPath(root: string, entry: string): string {
   return `/${rel}`;
 }
 
-export function applyServeHeader(header: HeaderConfig, prefix: string | false): HeaderConfig {
+export function applyServeHeader(
+  header: HeaderConfig,
+  prefix: string | false,
+): HeaderConfig {
   if (header.grant === "none") {
     return {
       ...header,
@@ -135,14 +142,12 @@ export function resolveBootstrapEntry(url: string): string | undefined {
   return entry;
 }
 
-export function createReactPreambleModule(): string {
-  return `import { injectIntoGlobalHook } from "/@react-refresh";
+export const REACT_PREAMBLE_MODULE = `import { injectIntoGlobalHook } from "/@react-refresh";
 injectIntoGlobalHook(window);
 window.$RefreshReg$ = () => {};
 window.$RefreshSig$ = () => (type) => type;
 window.__vite_plugin_react_preamble_installed__ = true;
 `;
-}
 
 export function createReactBootstrapModule(entryPath: string): string {
   return `import "/@vite/client";
@@ -214,16 +219,22 @@ export function generateDevUserscript(options: {
   return `${banner}\n\n${wrapper}`;
 }
 
-export function findDevScript(url: string, scripts: ResolvedScript[]): ResolvedScript | undefined {
+export function findDevScript(
+  url: string,
+  scripts: ResolvedScript[],
+): ResolvedScript | undefined {
   return scripts.find(script => matchDevUserscript(url, script.fileName));
 }
 
-export function createDevUserscript(config: ResolvedPluginConfig, options: {
-  origin: string;
-  root: string;
-  script: ResolvedScript;
-  reactPreamble?: boolean;
-}): string {
+export function createDevUserscript(
+  config: ResolvedPluginConfig,
+  options: {
+    origin: string;
+    root: string;
+    script: ResolvedScript;
+    reactPreamble?: boolean;
+  },
+): string {
   return generateDevUserscript({
     script: options.script,
     origin: options.origin,

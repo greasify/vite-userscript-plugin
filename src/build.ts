@@ -15,7 +15,10 @@ export interface OutputChunk {
   fileName: string;
   code: string;
   imports: string[];
-  map?: { mappings: string; file?: string } | null;
+  map?: {
+    mappings: string;
+    file?: string;
+  } | null;
   viteMetadata?: {
     importedCss?: Set<string>;
   };
@@ -74,7 +77,11 @@ export function ensureIife(code: string): string {
   return `(function () {\n${body}\n})();\n`;
 }
 
-function inlineImportedChunks(chunk: OutputChunk, bundle: OutputBundle, seen = new Set<string>()): string {
+function inlineImportedChunks(
+  chunk: OutputChunk,
+  bundle: OutputBundle,
+  seen = new Set<string>(),
+): string {
   let prelude = "";
 
   for (const imported of chunk.imports) {
@@ -95,7 +102,11 @@ function inlineImportedChunks(chunk: OutputChunk, bundle: OutputBundle, seen = n
   return prelude;
 }
 
-export function resolveBuildHeader(header: HeaderConfig, code: string, hasCss: boolean): HeaderConfig {
+export function resolveBuildHeader(
+  header: HeaderConfig,
+  code: string,
+  hasCss: boolean,
+): HeaderConfig {
   if (header.grant === "none") {
     return header;
   }
@@ -113,7 +124,11 @@ export function resolveBuildHeader(header: HeaderConfig, code: string, hasCss: b
   };
 }
 
-export function findScriptForChunk(chunk: OutputChunk, fileName: string, scripts: ResolvedScript[]): ResolvedScript | undefined {
+export function findScriptForChunk(
+  chunk: OutputChunk,
+  fileName: string,
+  scripts: ResolvedScript[],
+): ResolvedScript | undefined {
   return scripts.find(
     script => chunk.name === script.fileName
       || fileName === `${script.fileName}.js`
@@ -121,7 +136,11 @@ export function findScriptForChunk(chunk: OutputChunk, fileName: string, scripts
   );
 }
 
-export function applyUserscriptBundle(bundle: OutputBundle, config: ResolvedPluginConfig, emitMeta: (fileName: string, source: string) => void): void {
+export function applyUserscriptBundle(
+  bundle: OutputBundle,
+  config: ResolvedPluginConfig,
+  emitMeta: (fileName: string, source: string) => void,
+): void {
   const leftoverChunks: string[] = [];
 
   for (const [fileName, item] of Object.entries(bundle)) {
