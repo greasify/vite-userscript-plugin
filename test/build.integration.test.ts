@@ -148,25 +148,26 @@ it('sourcemap is inlined into the userscript', async () => {
 })
 
 it('top-level await wraps in an async IIFE', async () => {
-  const outDir = await buildFixture('tla', {
+  const name = 'top-level-await'
+  const outDir = await buildFixture(name, {
     entry: 'src/main.ts',
-    fileName: 'tla',
+    fileName: name,
     header: {
-      name: 'TLA',
+      name,
       version: '1.0.0',
       match: 'https://example.com/*',
     },
   })
 
-  const userscript = await readOut(outDir, 'tla.user.js')
+  const userscript = await readOut(outDir, `${name}.user.js`)
   expect(userscript).toContain('(async function')
   expect(userscript).toContain('await')
-  expect(userscript).toContain('tla-ok')
+  expect(userscript).toContain('ok')
   expect(userscript).not.toMatch(/\bimport\s/)
 })
 
 it('multiple entries emit two userscripts', async () => {
-  const outDir = await buildFixture('multi', [
+  const outDir = await buildFixture('multiple-entries', [
     {
       entry: 'src/foo.ts',
       fileName: 'foo',
@@ -209,7 +210,7 @@ it('multiple entries emit two userscripts', async () => {
 
 it('multiple entries keep a single sourceMappingURL after the IIFE', async () => {
   const outDir = await buildFixture(
-    'multi',
+    'multiple-entries',
     [
       {
         entry: 'src/foo.ts',

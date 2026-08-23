@@ -3,6 +3,8 @@
   "include": [
     "src",
     "test/**/*.test.ts",
+    "test/fixtures/**/*.ts",
+    "test/fixtures/**/*.d.ts",
     "vitest.config.ts",
     "tsdown.config.ts"
   ]
