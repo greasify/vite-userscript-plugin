@@ -2,8 +2,8 @@ name: NPM Publish
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - "v*"
 
 jobs:
   publish:
@@ -22,6 +22,7 @@ jobs:
 
       - run: pnpm type-check
       - run: pnpm test
+      - run: pnpm lint
       - run: pnpm build
 
       - name: Publish

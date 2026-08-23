@@ -24,6 +24,7 @@ it("createGmShimPrelude reads GM APIs from the namespace", () => {
   const prelude = createGmShimPrelude();
 
   expect(prelude).toContain(`globalThis.${GM_NAMESPACE}`);
+  expect(prelude).toContain("GM,");
   expect(prelude).toContain("GM_addStyle");
   expect(prelude).toContain("unsafeWindow");
 });

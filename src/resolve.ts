@@ -79,9 +79,17 @@ function mergeHeader(
   return merged;
 }
 
+function isEmptyHeaderField(value: unknown): boolean {
+  if (value == null || value === "") {
+    return true;
+  }
+
+  return Array.isArray(value) && value.length === 0;
+};
+
 function assertHeader(header: Partial<HeaderConfig>, label: string): void {
   for (const field of ["name", "version", "match"] as const) {
-    if (header[field] == null || header[field] === "") {
+    if (isEmptyHeaderField(header[field])) {
       throw new Error(
         `[${pluginName}] ${label} is missing required header.${field}`,
       );
@@ -122,7 +130,7 @@ export function collectAutoMetaUrlsWarnings(config: ResolvedPluginConfig): strin
   for (const script of config.scripts) {
     if (!resolveHomePage(script.header)) {
       warnings.push(
-        `[${pluginName}] autoMetaUrls is enabled but "${script.fileName}" has no homepage or homepageURL`,
+        `[${pluginName}] autoMetaUrls is enabled but "${script.fileName}" has no homepage, homepageURL, website, or source`,
       );
     }
   }

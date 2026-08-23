@@ -67,8 +67,23 @@ it("collectAutoMetaUrlsWarnings when homepage is missing", () => {
   });
 
   expect(collectAutoMetaUrlsWarnings(resolved)).toEqual([
-    "[vite-userscript-plugin] autoMetaUrls is enabled but \"Demo\" has no homepage or homepageURL",
+    "[vite-userscript-plugin] autoMetaUrls is enabled but \"Demo\" has no homepage, homepageURL, website, or source",
   ]);
+});
+
+it("collectAutoMetaUrlsWarnings skips scripts with website", () => {
+  const resolved = resolvePluginConfig({
+    entry: "src/main.ts",
+    autoMetaUrls: true,
+    header: {
+      name: "Demo",
+      version: "1.0.0",
+      match: "https://example.com/*",
+      website: "https://example.com/project",
+    },
+  });
+
+  expect(collectAutoMetaUrlsWarnings(resolved)).toEqual([]);
 });
 
 it("collectAutoMetaUrlsWarnings skips scripts with homepageURL", () => {
@@ -142,6 +157,13 @@ it("userscriptPluginConfig rejects entry together with scripts", () => {
       header: { name: string; version: string; match: string };
     }];
   }>().not.toExtend<UserscriptPluginConfig>();
+});
+
+it("resolvePluginConfig throws on empty match", () => {
+  expect(() => resolvePluginConfig({
+    entry: "src/a.ts",
+    header: { name: "A", version: "1", match: [] },
+  })).toThrow(/header\.match/);
 });
 
 it("resolvePluginConfig throws on duplicate fileName", () => {

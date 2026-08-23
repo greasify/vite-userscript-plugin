@@ -141,6 +141,69 @@ it("banner generate hook receives userscript text", () => {
   expect(banner).toContain("// mode:meta");
 });
 
+it("banner sanitizes newlines in header values", () => {
+  const banner = generateBanner({
+    name: "x\n// @grant unsafeWindow",
+    version: "1.0.0",
+    match: "https://example.com",
+  });
+
+  expect(banner).toContain("// @name");
+  expect(banner.split("\n").filter(line => line.startsWith("// @name"))).toHaveLength(1);
+  expect(banner).not.toMatch(/^\/\/ @grant unsafeWindow$/m);
+});
+
+it("banner skips object header values", () => {
+  const banner = generateBanner({
+    name: "vitest",
+    version: "1.0.0",
+    match: "https://example.com",
+    extra: { nested: true },
+  });
+
+  expect(banner).not.toContain("[object Object]");
+  expect(banner).not.toContain("@extra");
+});
+
+it("banner autoMetaUrls uses website and source aliases", () => {
+  const fromWebsite = generateBanner(
+    {
+      name: "vitest",
+      version: "1.0.0",
+      match: "https://example.com",
+      website: "https://example.com/project",
+    },
+    { autoMetaUrls: true, fileName: "vitest" },
+  );
+  const fromSource = generateBanner(
+    {
+      name: "vitest",
+      version: "1.0.0",
+      match: "https://example.com",
+      source: "https://example.com/src/",
+    },
+    { autoMetaUrls: true, fileName: "vitest" },
+  );
+
+  expect(fromWebsite).toContain("https://example.com/project/vitest.meta.js");
+  expect(fromSource).toContain("https://example.com/src/vitest.user.js");
+});
+
+it("banner autoMetaUrls ignores an invalid homepage", () => {
+  const banner = generateBanner(
+    {
+      name: "vitest",
+      version: "1.0.0",
+      match: "https://example.com",
+      homepage: "not a url",
+    },
+    { autoMetaUrls: true, fileName: "vitest" },
+  );
+
+  expect(banner).not.toContain("@updateURL");
+  expect(banner).not.toContain("@downloadURL");
+});
+
 it("banner align false uses a single space", () => {
   const banner = generateBanner(
     {

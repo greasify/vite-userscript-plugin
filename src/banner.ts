@@ -18,7 +18,7 @@ function ensureTrailingSlash(url: string): string {
 }
 
 export function resolveHomePage(header: HeaderConfig): string | undefined {
-  const homePage = header.homepage ?? header.homepageURL;
+  const homePage = header.homepage ?? header.homepageURL ?? header.website ?? header.source;
   if (typeof homePage !== "string") {
     return undefined;
   }
@@ -33,25 +33,37 @@ function applyAutoMetaUrls(header: HeaderConfig, fileName: string): HeaderConfig
     return header;
   }
 
-  const base = ensureTrailingSlash(homePage);
-  return {
-    ...header,
-    updateURL: header.updateURL ?? new URL(`${fileName}.meta.js`, base).href,
-    downloadURL: header.downloadURL ?? new URL(`${fileName}.user.js`, base).href,
-  };
+  try {
+    const base = ensureTrailingSlash(homePage);
+    return {
+      ...header,
+      updateURL: header.updateURL ?? new URL(`${fileName}.meta.js`, base).href,
+      downloadURL: header.downloadURL ?? new URL(`${fileName}.user.js`, base).href,
+    };
+  } catch {
+    return header;
+  }
+};
+
+function sanitizeMetaText(text: string): string {
+  return text.replace(/[\r\n\u2028\u2029]+/g, " ");
 }
 
-function formatValue(value: unknown): string {
+function formatValue(value: unknown): string | undefined {
   if (Array.isArray(value)) {
-    return value.join(" ");
+    return sanitizeMetaText(value.join(" "));
   }
 
   if (value === true) {
     return "";
   }
 
-  return String(value);
-}
+  if (typeof value === "object") {
+    return undefined;
+  }
+
+  return sanitizeMetaText(String(value));
+};
 
 export function generateBanner(config: HeaderConfig, options: BannerOptions = {}): string {
   const fileName = options.fileName ?? sanitizeFileName(config.name);
@@ -81,7 +93,17 @@ export function generateBanner(config: HeaderConfig, options: BannerOptions = {}
   const lines: string[] = [];
 
   const addMetadata = (key: string, value: unknown): void => {
-    lines.push(`// @${key}${pad(key)}${formatValue(value)}`);
+    const formatted = formatValue(value);
+    if (formatted === undefined) {
+      return;
+    }
+
+    const safeKey = key.replace(/[\r\n\u2028\u2029]+/g, "");
+    if (!safeKey) {
+      return;
+    }
+
+    lines.push(`// @${safeKey}${pad(key)}${formatted}`);
   };
 
   for (const key of keys) {

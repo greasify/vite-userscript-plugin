@@ -1,5 +1,5 @@
 import type { UserscriptPluginConfig } from "../src/types.js";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -48,6 +48,18 @@ function readOut(outDir: string, fileName: string) {
   return readFile(join(outDir, fileName), "utf8");
 }
 
+async function listOut(outDir: string) {
+  return (await readdir(outDir, { recursive: true })).map(String);
+}
+
+function leftoverScripts(files: string[]) {
+  return files.filter((file) => {
+    return file.endsWith(".js")
+      && !file.endsWith(".user.js")
+      && !file.endsWith(".meta.js");
+  });
+}
+
 it("vanilla CSS is inlined into an unminified userscript", async () => {
   const outDir = await buildFixture("vanilla", {
     entry: "src/main.ts",
@@ -69,6 +81,7 @@ it("vanilla CSS is inlined into an unminified userscript", async () => {
   expect(userscript).toContain("data-userscript");
   expect(meta).toContain("==UserScript==");
   expect(meta).not.toContain("userscript-fixture");
+  expect((await listOut(outDir)).filter(file => file.endsWith(".css"))).toEqual([]);
 });
 
 it("explicit minify still keeps the metablock", async () => {
@@ -109,11 +122,16 @@ it("sourcemap is emitted next to the userscript", async () => {
 
   const map = JSON.parse(await readOut(outDir, "vanilla.user.js.map")) as {
     file?: string;
+    mappings: string;
     sources: string[];
   };
 
   expect(map.file).toBe("vanilla.user.js");
   expect(map.sources.some(source => source.includes("main"))).toBe(true);
+  expect(map.mappings.startsWith(";")).toBe(true);
+  expect((await listOut(outDir)).filter(file => file.endsWith(".map"))).toEqual([
+    "vanilla.user.js.map",
+  ]);
 });
 
 it("multiple entries emit two userscripts", async () => {
@@ -145,10 +163,15 @@ it("multiple entries emit two userscripts", async () => {
 
   expect(foo).toMatch(/@name\s+Foo/);
   expect(foo).toContain("https://foo.example/*");
+  expect(foo).toContain("shared-helper");
+  expect(foo).not.toMatch(/\bimport\s/);
   expect(bar).toMatch(/@name\s+Bar/);
   expect(bar).toContain("https://bar.example/*");
+  expect(bar).toContain("shared-helper");
+  expect(bar).not.toMatch(/\bimport\s/);
   expect(await readOut(outDir, "foo.meta.js")).toMatch(/@name\s+Foo/);
   expect(await readOut(outDir, "bar.meta.js")).toMatch(/@name\s+Bar/);
+  expect(leftoverScripts(await listOut(outDir))).toEqual([]);
 });
 
 it("grant none is preserved and CSS grant is not added", async () => {
@@ -166,6 +189,24 @@ it("grant none is preserved and CSS grant is not added", async () => {
   const userscript = await readOut(outDir, "none.user.js");
   expect(userscript).toMatch(/@grant\s+none/);
   expect(userscript).not.toContain("GM_addStyle");
+});
+
+it("grant none with CSS keeps the none grant and still inlines styles", async () => {
+  const outDir = await buildFixture("vanilla", {
+    entry: "src/main.ts",
+    fileName: "none-css",
+    header: {
+      name: "None CSS",
+      version: "1.0.0",
+      match: "https://example.com/*",
+      grant: "none",
+    },
+  });
+
+  const userscript = await readOut(outDir, "none-css.user.js");
+  expect(userscript).toMatch(/@grant\s+none/);
+  expect(userscript).not.toMatch(/@grant\s+GM_addStyle/);
+  expect(userscript).toContain("userscript-fixture");
 });
 
 it("imported images are inlined as data URLs", async () => {

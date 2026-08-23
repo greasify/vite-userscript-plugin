@@ -68,6 +68,7 @@ it("generateDevWrapper injects vite client once and the entry", () => {
   });
 
   expect(wrapper).toContain(GM_NAMESPACE);
+  expect(wrapper).toContain("gm.GM = GM");
   expect(wrapper).toContain(VITE_CLIENT_FLAG);
   expect(wrapper).toContain("http://localhost:5173/@vite/client");
   expect(wrapper).toContain("http://localhost:5173/src/main.ts");

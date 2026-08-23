@@ -112,6 +112,24 @@ Imported images and `url()` in CSS are inlined. Do not use `public/` — those U
 
 `vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. Sourcemaps follow `build.sourcemap`.
 
+## Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `entry` | — | Single-script entry. Mutually exclusive with `scripts`. |
+| `scripts` | — | Multiple userscripts from one Vite config. Mutually exclusive with `entry`. |
+| `header` | — | Metablock fields. Required `name`, `version`, `match` on each script. With `scripts`, this object is the default merge source. |
+| `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
+| `server.open` | `false` | Open the `.dev.user.js` install URL when Vite starts. |
+| `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. Set `false` to disable. |
+| `cssInject` | `'auto'` | How production CSS is injected. `'auto'` uses `GM_addStyle` with a `<style>` fallback. Pass a function or source string for a custom injector. |
+| `align` | `1` | Extra spaces after the longest `@key`. `false` prints a single space. |
+| `generate` | — | Rewrite the generated metablock (`{ userscript, mode }`). |
+| `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage`, `homepageURL`, `website`, or `source`. |
+| `metaFile` | `true` | Emit `{fileName}.meta.js`. Keep this on when using `autoMetaUrls`. |
+
+Production `@grant`s are detected from identifiers in the bundled code (`GM_setValue`, `GM.setValue`, `window.focus`, …). Serve mode still lists every grant so the manager sandbox can copy APIs into the page. `window.focus` / `window.close` / `window.onurlchange` are real Tampermonkey grants — they are added when those identifiers appear. Set `grant: "none"` to disable GM APIs; that value is never mixed with auto-detected grants.
+
 ## FAQ
 
 ### Scripts fail on Firefox because of CSP
@@ -186,7 +204,7 @@ Serve injects `type="module"`, which is async. Production output is a synchronou
 
 ## Examples
 
-See [examples](./examples): `basic`, `react`, `vue`, `svelte`, `multi`, `sourcemap`.
+See [examples](./examples): `basic`, `react`, `vue`, `svelte`, `multiple-entries`, `sourcemap`.
 
 ## License
 

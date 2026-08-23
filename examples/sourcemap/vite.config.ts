@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [
     Userscript({
       entry: "src/index.ts",
+      autoMetaUrls: true,
       header: {
         name: pkg.name,
         version: pkg.version,

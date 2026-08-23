@@ -1,7 +1,7 @@
 import type { Grants } from "../src/types.js";
 
 import { expect, it } from "vitest";
-import { ensureIife, resolveBuildHeader } from "../src/build.js";
+import { ensureIife, resolveBuildHeader, stripImports } from "../src/build.js";
 import { defineGrants, removeDuplicates } from "../src/grants.js";
 
 it("defineGrants snapshot", () => {
@@ -47,6 +47,13 @@ it("defineGrants detects cookie and audio objects", () => {
   );
 });
 
+it("defineGrants does not match grant prefixes", () => {
+  const grants = defineGrants("GM.login(); const myGM_addStyle = 1");
+
+  expect(grants).not.toContain("GM.log");
+  expect(grants).not.toContain("GM_addStyle");
+});
+
 it("defineGrants detects official GM.* aliases", () => {
   const grants = defineGrants(
     "GM.xmlHttpRequest({ url: \"/\" }); await GM.getResourceUrl(\"icon\")",
@@ -68,7 +75,7 @@ it("resolveBuildHeader keeps grant none", () => {
       grant: "none",
     },
     "GM_addStyle(\"x\")",
-    true,
+    ["GM_addStyle"],
   );
 
   expect(header.grant).toBe("none");
@@ -89,6 +96,26 @@ it("ensureIife wraps side-effect ESM", () => {
   expect(wrapped).toContain("document.body.dataset.x");
 });
 
+it("stripImports removes leftover static imports after inlining", () => {
+  const stripped = stripImports(
+    "import { helper } from \"./shared-abc.js\";\nimport \"./side-effect.js\";\nhelper();\n",
+  );
+
+  expect(stripped).not.toMatch(/\bimport\s/);
+  expect(stripped).toContain("helper();");
+});
+
+it("ensureIife strips leftover imports before wrapping", () => {
+  const wrapped = ensureIife(
+    "import { name } from \"./shared.js\";\nconst value = name;\nexport { value };\n",
+  );
+
+  expect(wrapped.startsWith("(function () {")).toBe(true);
+  expect(wrapped).not.toMatch(/\bimport\s/);
+  expect(wrapped).not.toContain("export { value }");
+  expect(wrapped).toContain("const value = name");
+});
+
 it("resolveBuildHeader adds GM_addStyle when CSS is inlined", () => {
   const header = resolveBuildHeader(
     {
@@ -98,9 +125,22 @@ it("resolveBuildHeader adds GM_addStyle when CSS is inlined", () => {
       grant: ["GM_setValue"],
     },
     "console.log(1)",
-    true,
+    ["GM_addStyle"],
   );
 
   expect(header.grant).toContain("GM_addStyle");
   expect(header.grant).toContain("GM_setValue");
+});
+
+it("resolveBuildHeader skips extra CSS grant when none is requested", () => {
+  const header = resolveBuildHeader(
+    {
+      name: "a",
+      version: "1.0.0",
+      match: "https://example.com",
+    },
+    "console.log(1)",
+  );
+
+  expect(header.grant).not.toContain("GM_addStyle");
 });

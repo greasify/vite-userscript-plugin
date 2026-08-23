@@ -253,9 +253,10 @@ type UserscriptSharedConfig = {
   generate?: (ctx: BannerGenerateContext) => string;
 
   /**
-   * Derive `updateURL` / `downloadURL` from `homepage` (or `homepageURL`)
-   * when those fields are empty. Warns if neither homepage field is set,
-   * or if `metaFile` is `false` (`@updateURL` would point at a missing file).
+   * Derive `updateURL` / `downloadURL` from `homepage`, `homepageURL`,
+   * `website`, or `source` when those fields are empty. Warns if no homepage
+   * alias is set, or if `metaFile` is `false` (`@updateURL` would point at a
+   * missing file).
    *
    * @default false
    */

@@ -63,6 +63,7 @@ grants.push(...GMwindow);
 grants.push(...GM_DOT_ALIASES);
 
 export const gmIdentifiers = [
+  "GM",
   "unsafeWindow",
   ...GM.map(grant => `GM_${grant}`),
 ] as const;

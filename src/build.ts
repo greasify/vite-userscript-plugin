@@ -1,4 +1,5 @@
 import type {
+  Grants,
   HeaderConfig,
   ResolvedPluginConfig,
   ResolvedScript,
@@ -42,23 +43,33 @@ function isAsset(item: OutputBundle[string]): item is OutputAsset {
   return item.type === "asset";
 }
 
-function collectCss(chunk: ChunkWithMeta, bundle: OutputBundle): string {
-  const files = chunk.viteMetadata?.importedCss;
-  if (!files?.size) {
-    return "";
+function collectCss(chunk: ChunkWithMeta, bundle: OutputBundle): { css: string; files: string[] } {
+  const files = [...(chunk.viteMetadata?.importedCss ?? [])];
+  if (!files.length) {
+    return { css: "", files };
   }
 
-  return [...files]
+  const css = files
     .map((file) => {
       const asset = bundle[file];
       return asset && isAsset(asset) ? String(asset.source) : "";
     })
     .filter(Boolean)
     .join("\n");
+
+  return { css, files };
+}
+
+export function stripImports(code: string): string {
+  return code
+    .replace(/(^|\n)import(?:\s+type)?(?:\s+[\s\S]*?\s+|\s+)from\s*["'][^"']+["']\s*;?/g, "$1")
+    .replace(/(^|\n)import\s*["'][^"']+["']\s*;?/g, "$1");
 }
 
 export function stripExports(code: string): string {
   return code
+    .replace(/^export\s+\{[\s\S]*?\}\s+from\s+["'][^"']+["']\s*;?\s*$/gm, "")
+    .replace(/^export\s+\*\s+from\s+["'][^"']+["']\s*;?\s*$/gm, "")
     .replace(/^export\s+\{[\s\S]*?\};?\s*$/gm, "")
     .replace(/^export\s+default\s+/gm, "")
     .replace(/^export\s+async\s+function/gm, "async function")
@@ -67,14 +78,17 @@ export function stripExports(code: string): string {
     .replace(/^export\s+(const|let|var)/gm, "$1");
 }
 
+export function stripModuleSyntax(code: string): string {
+  return stripExports(stripImports(code));
+}
+
 export function ensureIife(code: string): string {
-  const alreadyIife = !/^\s*export\s/m.test(code) && /\(function\b/.test(code);
+  const alreadyIife = !/^\s*(?:import|export)\s/m.test(code) && /\(function\b/.test(code);
   if (alreadyIife) {
     return code;
   }
 
-  const body = /^\s*export\s/m.test(code) ? stripExports(code) : code;
-  return `(function () {\n${body}\n})();\n`;
+  return `(function () {\n${stripModuleSyntax(code)}\n})();\n`;
 }
 
 function inlineImportedChunks(
@@ -105,21 +119,18 @@ function inlineImportedChunks(
 export function resolveBuildHeader(
   header: HeaderConfig,
   code: string,
-  hasCss: boolean,
+  extraGrants: readonly Grants[] = [],
 ): HeaderConfig {
   if (header.grant === "none") {
     return header;
   }
 
-  const detected = defineGrants(code);
-  const extra = hasCss ? (["GM_addStyle"] as const) : [];
-
   return {
     ...header,
     grant: removeDuplicates([
-      ...detected,
+      ...defineGrants(code),
       ...removeDuplicates(header.grant),
-      ...extra,
+      ...extraGrants,
     ]),
   };
 }
@@ -136,12 +147,31 @@ export function findScriptForChunk(
   );
 }
 
+function deleteBundleFiles(bundle: OutputBundle, fileNames: Iterable<string>): void {
+  for (const fileName of fileNames) {
+    delete bundle[fileName];
+  }
+}
+
+function sweepNonUserscriptAssets(bundle: OutputBundle): void {
+  for (const [fileName, item] of Object.entries(bundle)) {
+    if (!isAsset(item)) {
+      continue;
+    }
+
+    if (fileName.endsWith(".css") || (fileName.endsWith(".map") && !fileName.endsWith(".user.js.map"))) {
+      delete bundle[fileName];
+    }
+  }
+}
+
 export function applyUserscriptBundle(
   bundle: OutputBundle,
   config: ResolvedPluginConfig,
   emitMeta: (fileName: string, source: string) => void,
 ): void {
   const leftoverChunks: string[] = [];
+  const leftoverAssets: string[] = [];
 
   for (const [fileName, item] of Object.entries(bundle)) {
     if (!isChunk(item) || !item.isEntry) {
@@ -157,14 +187,16 @@ export function applyUserscriptBundle(
     }
 
     const inlined = inlineImportedChunks(item, bundle);
-    const css = collectCss(item, bundle);
+    const { css, files: cssFiles } = collectCss(item, bundle);
+    leftoverAssets.push(...cssFiles);
+
     let code = ensureIife(`${inlined}${item.code}`);
+    const extraGrants = css && config.cssInject === "auto" ? (["GM_addStyle"] as const) : [];
+    const header = resolveBuildHeader(script.header, code, extraGrants);
 
     if (css) {
       code = `${createCssInject(css, config.cssInject)}${code}`;
     }
-
-    const header = resolveBuildHeader(script.header, code, Boolean(css));
     const banner = generateBanner(header, {
       align: config.align,
       autoMetaUrls: config.autoMetaUrls,
@@ -191,16 +223,11 @@ export function applyUserscriptBundle(
         nextCode += `\n//# sourceMappingURL=${mapFileName}\n`;
       }
       emitMeta(mapFileName, JSON.stringify(item.map));
+      leftoverAssets.push(`${fileName}.map`);
     }
 
     item.code = nextCode;
     item.fileName = nextFileName;
-
-    const previousMap = `${fileName}.map`;
-    const previousMapAsset = bundle[previousMap];
-    if (previousMapAsset && isAsset(previousMapAsset)) {
-      previousMapAsset.fileName = mapFileName;
-    }
 
     if (config.metaFile) {
       emitMeta(
@@ -217,9 +244,10 @@ export function applyUserscriptBundle(
   }
 
   for (const fileName of leftoverChunks) {
-    const chunk = bundle[fileName];
-    if (chunk && isChunk(chunk) && !chunk.isEntry) {
-      delete bundle[fileName];
-    }
+    leftoverAssets.push(`${fileName}.map`);
   }
+
+  deleteBundleFiles(bundle, leftoverChunks);
+  deleteBundleFiles(bundle, leftoverAssets);
+  sweepNonUserscriptAssets(bundle);
 }
