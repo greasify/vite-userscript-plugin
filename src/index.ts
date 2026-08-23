@@ -33,7 +33,9 @@ export type {
   ResolvedScript,
   ScriptOptions,
   ServerConfig,
+  UserscriptEntryConfig,
   UserscriptPluginConfig,
+  UserscriptScriptsConfig,
 } from "./types.js";
 
 function resolveServerOrigin(urls?: { local: string[]; network: string[] } | null): string {

@@ -227,28 +227,7 @@ export type CssInject
     | string
     | ((css: string) => void);
 
-export interface UserscriptPluginConfig {
-  /**
-   * Single-script sugar. Use `scripts` for multiple entries.
-   */
-  entry?: string;
-
-  /**
-   * Single-script sugar for `scripts[0].fileName`.
-   */
-  fileName?: string;
-
-  /**
-   * Default header fields merged into every script.
-   * For the single-script sugar this is the script header (`name`, `version`, `match` required).
-   */
-  header?: Partial<HeaderConfig>;
-
-  /**
-   * Multiple userscripts served/built from one Vite config.
-   */
-  scripts?: ScriptOptions[];
-
+type UserscriptSharedConfig = {
   /**
    * Serve-mode options.
    */
@@ -275,7 +254,8 @@ export interface UserscriptPluginConfig {
 
   /**
    * Derive `updateURL` / `downloadURL` from `homepage` (or `homepageURL`)
-   * when those fields are empty. Warns if neither homepage field is set.
+   * when those fields are empty. Warns if neither homepage field is set,
+   * or if `metaFile` is `false` (`@updateURL` would point at a missing file).
    *
    * @default false
    */
@@ -283,11 +263,56 @@ export interface UserscriptPluginConfig {
 
   /**
    * Emit `{fileName}.meta.js` alongside the userscript.
+   * Keep enabled when using `autoMetaUrls`, otherwise `@updateURL` 404s.
    *
    * @default true
    */
   metaFile?: boolean;
-}
+};
+
+/**
+ * Single-script sugar. Mutually exclusive with {@link UserscriptScriptsConfig}.
+ */
+export type UserscriptEntryConfig = UserscriptSharedConfig & {
+  /**
+   * Path of the userscript entry.
+   */
+  entry: string;
+
+  /**
+   * Output base name (`{fileName}.user.js`).
+   *
+   * @default sanitized `header.name`
+   */
+  fileName?: string;
+
+  /**
+   * Userscript header (`name`, `version`, `match` required).
+   */
+  header: HeaderConfig;
+
+  scripts?: never;
+};
+
+/**
+ * Multiple userscripts from one Vite config. Mutually exclusive with {@link UserscriptEntryConfig}.
+ */
+export type UserscriptScriptsConfig = UserscriptSharedConfig & {
+  /**
+   * Userscripts to serve and build. At least one entry is required.
+   */
+  scripts: [ScriptOptions, ...ScriptOptions[]];
+
+  /**
+   * Default header fields merged into every script.
+   */
+  header?: Partial<HeaderConfig>;
+
+  entry?: never;
+  fileName?: never;
+};
+
+export type UserscriptPluginConfig = UserscriptEntryConfig | UserscriptScriptsConfig;
 
 export interface ResolvedScript {
   entry: string;

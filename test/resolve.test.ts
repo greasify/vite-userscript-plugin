@@ -1,5 +1,6 @@
-import { expect, it } from "vitest";
+import type { UserscriptPluginConfig } from "../src/types.js";
 
+import { expect, expectTypeOf, it } from "vitest";
 import { collectAutoMetaUrlsWarnings, resolvePluginConfig } from "../src/resolve.js";
 
 it("resolvePluginConfig accepts entry sugar", () => {
@@ -37,7 +38,7 @@ it("resolvePluginConfig merges header defaults into scripts", () => {
 });
 
 it("resolvePluginConfig throws without entry or scripts", () => {
-  expect(() => resolvePluginConfig({})).toThrow(/entry/);
+  expect(() => resolvePluginConfig({} as UserscriptPluginConfig)).toThrow(/entry/);
 });
 
 it("resolvePluginConfig throws when both entry and scripts are set", () => {
@@ -50,7 +51,7 @@ it("resolvePluginConfig throws when both entry and scripts are set", () => {
         header: { name: "B", version: "1", match: "*" },
       },
     ],
-  }),
+  } as unknown as UserscriptPluginConfig),
   ).toThrow(/either/);
 });
 
@@ -85,6 +86,24 @@ it("collectAutoMetaUrlsWarnings skips scripts with homepageURL", () => {
   expect(collectAutoMetaUrlsWarnings(resolved)).toEqual([]);
 });
 
+it("collectAutoMetaUrlsWarnings when metaFile is false", () => {
+  const resolved = resolvePluginConfig({
+    entry: "src/main.ts",
+    autoMetaUrls: true,
+    metaFile: false,
+    header: {
+      name: "Demo",
+      version: "1.0.0",
+      match: "https://example.com/*",
+      homepage: "https://example.com/project",
+    },
+  });
+
+  expect(collectAutoMetaUrlsWarnings(resolved)).toEqual([
+    "[vite-userscript-plugin] autoMetaUrls is enabled but metaFile is false — @updateURL points at a .meta.js that will not be emitted",
+  ]);
+});
+
 it("collectAutoMetaUrlsWarnings is empty when autoMetaUrls is off", () => {
   const resolved = resolvePluginConfig({
     entry: "src/main.ts",
@@ -96,6 +115,33 @@ it("collectAutoMetaUrlsWarnings is empty when autoMetaUrls is off", () => {
   });
 
   expect(collectAutoMetaUrlsWarnings(resolved)).toEqual([]);
+});
+
+it("userscriptPluginConfig accepts entry sugar", () => {
+  expectTypeOf<{
+    entry: string;
+    header: { name: string; version: string; match: string };
+  }>().toExtend<UserscriptPluginConfig>();
+});
+
+it("userscriptPluginConfig accepts scripts", () => {
+  expectTypeOf<{
+    scripts: [{
+      entry: string;
+      header: { name: string; version: string; match: string };
+    }];
+  }>().toExtend<UserscriptPluginConfig>();
+});
+
+it("userscriptPluginConfig rejects entry together with scripts", () => {
+  expectTypeOf<{
+    entry: string;
+    header: { name: string; version: string; match: string };
+    scripts: [{
+      entry: string;
+      header: { name: string; version: string; match: string };
+    }];
+  }>().not.toExtend<UserscriptPluginConfig>();
 });
 
 it("resolvePluginConfig throws on duplicate fileName", () => {

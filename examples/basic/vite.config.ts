@@ -1,20 +1,14 @@
-import { createRequire } from "node:module";
-
 import { defineConfig } from "vite";
 import Userscript from "vite-userscript-plugin";
-
-const { name, version } = createRequire(import.meta.url)("./package.json") as {
-  name: string;
-  version: string;
-};
+import pkg from "./package.json" with { type: "json" };
 
 export default defineConfig({
   plugins: [
     Userscript({
       entry: "src/index.ts",
       header: {
-        name,
-        version,
+        name: pkg.name,
+        version: pkg.version,
         match: "https://example.com/",
       },
     }),

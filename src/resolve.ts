@@ -106,6 +106,13 @@ export function collectAutoMetaUrlsWarnings(config: ResolvedPluginConfig): strin
   }
 
   const warnings: string[] = [];
+
+  if (!config.metaFile) {
+    warnings.push(
+      `[${pluginName}] autoMetaUrls is enabled but metaFile is false — @updateURL points at a .meta.js that will not be emitted`,
+    );
+  }
+
   for (const script of config.scripts) {
     if (!resolveHomePage(script.header)) {
       warnings.push(

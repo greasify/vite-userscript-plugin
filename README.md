@@ -19,8 +19,8 @@
 
 Requires **Vite 8** and Node `>=22`.
 
-```sh
-pnpm add -D vite-userscript-plugin vite@^8
+```bash
+pnpm add vite-userscript-plugin -D
 ```
 
 Put `Userscript()` **last** in `plugins`.
@@ -165,7 +165,7 @@ Serve injects `type="module"`, which is async. Production output is a synchronou
 
 ## Examples
 
-See [examples](./examples): `basic`, `react`, `vue`, `svelte`, `multi`.
+See [examples](./examples): `basic`, `react`, `vue`, `svelte`, `multi`, `sourcemap`.
 
 ## License
 
