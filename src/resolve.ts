@@ -5,8 +5,8 @@ import type {
   UserscriptConfig,
   UserscriptPluginConfig,
 } from './types.js'
-import { resolveHomePage } from './banner.js'
 import { pluginName } from './constants.js'
+import { resolveHomePage } from './header.js'
 import { sanitizeFileName, toIdentifier } from './names.js'
 
 function isEmptyHeaderField(value: unknown): boolean {

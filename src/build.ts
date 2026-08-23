@@ -4,11 +4,11 @@ import type {
   ResolvedPluginConfig,
   ResolvedScript,
 } from './types.js'
-import { generateBanner } from './banner.js'
 import { createCssInject } from './css.js'
 import { defineGrants, removeDuplicates } from './grants.js'
+import { generateHeader } from './header.js'
 import {
-  countBannerLines,
+  countHeaderLines,
   offsetSourceMap,
   stripVendorSourcesContent,
   toInlineSourceMappingUrl,
@@ -236,25 +236,25 @@ export function applyUserscriptBundle(
     const body = `${inlined}${item.code}`
     const wrapped = ensureIife(body)
     const extraGrants = css && script.cssInject === 'auto' ? (['GM_addStyle'] as const) : []
-    const header = resolveBuildHeader(script.header, wrapped, extraGrants)
+    const headerConfig = resolveBuildHeader(script.header, wrapped, extraGrants)
     const code = `${cssPrelude}${wrapped}`
-    const banner = generateBanner(header, {
+    const header = generateHeader(headerConfig, {
       align: script.align,
       autoMetaUrls: script.autoMetaUrls,
       fileName: script.fileName,
       generate: script.generate,
       mode: 'build',
     })
-    const prefix = `${banner}\n\n`
+    const prefix = `${header}\n\n`
     const nextFileName = `${script.fileName}.user.js`
     let nextCode = `${prefix}${code}`
 
     if (item.map) {
       const wrapOffset = isAlreadyIife(stripSourceMappingUrl(body)) ? 0 : 1
-      const lineOffset = countBannerLines(prefix)
-        + countBannerLines(cssPrelude)
+      const lineOffset = countHeaderLines(prefix)
+        + countHeaderLines(cssPrelude)
         + wrapOffset
-        + countBannerLines(inlined)
+        + countHeaderLines(inlined)
       item.map = stripVendorSourcesContent(offsetSourceMap(
         item.map,
         lineOffset,
@@ -270,7 +270,7 @@ export function applyUserscriptBundle(
     if (script.metaFile) {
       emitMeta(
         `${script.fileName}.meta.js`,
-        generateBanner(header, {
+        generateHeader(headerConfig, {
           align: script.align,
           autoMetaUrls: script.autoMetaUrls,
           fileName: script.fileName,

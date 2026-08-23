@@ -1,10 +1,14 @@
 import type { HeaderConfig } from '../src/types.js'
 
 import { expect, it } from 'vitest'
-import { Banner, generateBanner, resolvePublicFileUrl } from '../src/banner.js'
 import { grants } from '../src/constants.js'
+import {
+  generateHeader,
+  Header,
+  resolvePublicFileUrl,
+} from '../src/header.js'
 
-const defaultBanner: HeaderConfig = {
+const defaultHeader: HeaderConfig = {
   'name': 'vitest',
   'version': '1.0.0',
   'author': 'John Doe',
@@ -28,12 +32,12 @@ const defaultBanner: HeaderConfig = {
   'run-at': 'document-start',
 }
 
-it('banner default snapshot', () => {
-  const banner = new Banner(defaultBanner).generate()
-  expect(banner).toMatchSnapshot()
+it('header default snapshot', () => {
+  const header = new Header(defaultHeader).generate()
+  expect(header).toMatchSnapshot()
 })
 
-it('banner does not mutate input header', () => {
+it('header does not mutate input header', () => {
   const header: HeaderConfig = {
     name: 'vitest',
     version: '1.0.0',
@@ -42,13 +46,13 @@ it('banner does not mutate input header', () => {
   }
   const clone = structuredClone(header)
 
-  generateBanner(header, { autoMetaUrls: true, fileName: 'vitest' })
+  generateHeader(header, { autoMetaUrls: true, fileName: 'vitest' })
 
   expect(header).toEqual(clone)
 })
 
-it('banner skips false and undefined fields', () => {
-  const banner = generateBanner({
+it('header skips false and undefined fields', () => {
+  const header = generateHeader({
     name: 'vitest',
     version: '1.0.0',
     match: 'https://example.com',
@@ -56,25 +60,25 @@ it('banner skips false and undefined fields', () => {
     unwrap: undefined,
   })
 
-  expect(banner).not.toContain('@noframes')
-  expect(banner).not.toContain('@unwrap')
+  expect(header).not.toContain('@noframes')
+  expect(header).not.toContain('@unwrap')
 })
 
-it('banner prints grant none as a single field', () => {
-  const banner = generateBanner({
+it('header prints grant none as a single field', () => {
+  const header = generateHeader({
     name: 'vitest',
     version: '1.0.0',
     match: 'https://example.com',
     grant: 'none',
   })
 
-  expect(banner).toContain('@grant')
-  expect(banner).toContain('none')
-  expect(banner).not.toContain('GM_addStyle')
+  expect(header).toContain('@grant')
+  expect(header).toContain('none')
+  expect(header).not.toContain('GM_addStyle')
 })
 
-it('banner autoMetaUrls keeps explicit update and download URLs', () => {
-  const banner = generateBanner(
+it('header autoMetaUrls keeps explicit update and download URLs', () => {
+  const header = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -86,13 +90,13 @@ it('banner autoMetaUrls keeps explicit update and download URLs', () => {
     { autoMetaUrls: true, fileName: 'vitest' },
   )
 
-  expect(banner).toContain('@updateURL')
-  expect(banner).toContain('https://vitest.dev')
-  expect(banner).not.toContain('vitest.meta.js')
+  expect(header).toContain('@updateURL')
+  expect(header).toContain('https://vitest.dev')
+  expect(header).not.toContain('vitest.meta.js')
 })
 
-it('banner autoMetaUrls without homepage does not add update or download URLs', () => {
-  const banner = generateBanner(
+it('header autoMetaUrls without homepage does not add update or download URLs', () => {
+  const header = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -101,12 +105,12 @@ it('banner autoMetaUrls without homepage does not add update or download URLs', 
     { autoMetaUrls: true, fileName: 'vitest' },
   )
 
-  expect(banner).not.toContain('@updateURL')
-  expect(banner).not.toContain('@downloadURL')
+  expect(header).not.toContain('@updateURL')
+  expect(header).not.toContain('@downloadURL')
 })
 
-it('banner autoMetaUrls joins homepage without trailing slash', () => {
-  const banner = generateBanner(
+it('header autoMetaUrls joins homepage without trailing slash', () => {
+  const header = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -116,16 +120,16 @@ it('banner autoMetaUrls joins homepage without trailing slash', () => {
     { autoMetaUrls: true, fileName: 'vitest' },
   )
 
-  expect(banner).toContain(
+  expect(header).toContain(
     'https://crashmax-dev.github.io/jsx/vitest.meta.js',
   )
-  expect(banner).toContain(
+  expect(header).toContain(
     'https://crashmax-dev.github.io/jsx/vitest.user.js',
   )
 })
 
-it('banner generate hook receives userscript text', () => {
-  const banner = generateBanner(
+it('header generate hook receives userscript text', () => {
+  const header = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -137,36 +141,36 @@ it('banner generate hook receives userscript text', () => {
     },
   )
 
-  expect(banner).toContain('==UserScript==')
-  expect(banner).toContain('// mode:meta')
+  expect(header).toContain('==UserScript==')
+  expect(header).toContain('// mode:meta')
 })
 
-it('banner sanitizes newlines in header values', () => {
-  const banner = generateBanner({
+it('header sanitizes newlines in header values', () => {
+  const header = generateHeader({
     name: 'x\n// @grant unsafeWindow',
     version: '1.0.0',
     match: 'https://example.com',
   })
 
-  expect(banner).toContain('// @name')
-  expect(banner.split('\n').filter(line => line.startsWith('// @name'))).toHaveLength(1)
-  expect(banner).not.toMatch(/^\/\/ @grant unsafeWindow$/m)
+  expect(header).toContain('// @name')
+  expect(header.split('\n').filter(line => line.startsWith('// @name'))).toHaveLength(1)
+  expect(header).not.toMatch(/^\/\/ @grant unsafeWindow$/m)
 })
 
-it('banner skips object header values', () => {
-  const banner = generateBanner({
+it('header skips object header values', () => {
+  const header = generateHeader({
     name: 'vitest',
     version: '1.0.0',
     match: 'https://example.com',
     extra: { nested: true },
   })
 
-  expect(banner).not.toContain('[object Object]')
-  expect(banner).not.toContain('@extra')
+  expect(header).not.toContain('[object Object]')
+  expect(header).not.toContain('@extra')
 })
 
-it('banner autoMetaUrls uses website and source aliases', () => {
-  const fromWebsite = generateBanner(
+it('header autoMetaUrls uses website and source aliases', () => {
+  const fromWebsite = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -175,7 +179,7 @@ it('banner autoMetaUrls uses website and source aliases', () => {
     },
     { autoMetaUrls: true, fileName: 'vitest' },
   )
-  const fromSource = generateBanner(
+  const fromSource = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -189,8 +193,8 @@ it('banner autoMetaUrls uses website and source aliases', () => {
   expect(fromSource).toContain('https://example.com/src/vitest.user.js')
 })
 
-it('banner autoMetaUrls ignores an invalid homepage', () => {
-  const banner = generateBanner(
+it('header autoMetaUrls ignores an invalid homepage', () => {
+  const header = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -200,8 +204,8 @@ it('banner autoMetaUrls ignores an invalid homepage', () => {
     { autoMetaUrls: true, fileName: 'vitest' },
   )
 
-  expect(banner).not.toContain('@updateURL')
-  expect(banner).not.toContain('@downloadURL')
+  expect(header).not.toContain('@updateURL')
+  expect(header).not.toContain('@downloadURL')
 })
 
 it('resolvePublicFileUrl joins homepage with and without a trailing slash', () => {
@@ -238,8 +242,8 @@ it('resolvePublicFileUrl returns undefined without a valid homepage', () => {
   }, 'vitest.user.js.map')).toBeUndefined()
 })
 
-it('banner align false uses a single space', () => {
-  const banner = generateBanner(
+it('header align false uses a single space', () => {
+  const header = generateHeader(
     {
       name: 'vitest',
       version: '1.0.0',
@@ -248,5 +252,5 @@ it('banner align false uses a single space', () => {
     { align: false },
   )
 
-  expect(banner).toContain('// @name vitest')
+  expect(header).toContain('// @name vitest')
 })

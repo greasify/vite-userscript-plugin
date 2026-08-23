@@ -6,7 +6,7 @@ import {
   shimModule,
   shouldShimModule,
 } from '../src/gm-shim.js'
-import { countBannerLines } from '../src/sourcemap.js'
+import { countHeaderLines } from '../src/sourcemap.js'
 
 it('shouldShimModule accepts user JS and framework script modules', () => {
   expect(shouldShimModule('/src/main.ts')).toBe(true)
@@ -33,7 +33,7 @@ it('shimModule offsets the sourcemap past the prelude', () => {
 
   expect(shimmed.code.startsWith(createGmShimPrelude())).toBe(true)
   expect(shimmed.code.endsWith(code)).toBe(true)
-  expect(shimmed.map.mappings.startsWith(';'.repeat(countBannerLines(createGmShimPrelude())))).toBe(true)
+  expect(shimmed.map.mappings.startsWith(';'.repeat(countHeaderLines(createGmShimPrelude())))).toBe(true)
   expect(shimmed.map.sources).toEqual(['/src/counter.ts'])
   expect(shimmed.map.mappings.split(';')[throwLine + 1]).toContain(',')
   expect(code.split('\n')[throwLine]?.slice(throwColumn)).toContain('throw')

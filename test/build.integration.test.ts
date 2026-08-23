@@ -11,7 +11,7 @@ import { build } from 'vite'
 
 import { afterEach, expect, it } from 'vitest'
 import Userscript from '../src/index.js'
-import { countBannerLines } from '../src/sourcemap.js'
+import { countHeaderLines } from '../src/sourcemap.js'
 
 const fixtures = fileURLToPath(new URL('./fixtures', import.meta.url))
 const outDirs: string[] = []
@@ -141,7 +141,7 @@ it('sourcemap is inlined into the userscript', async () => {
   expect(map.sources.some(source => source.includes('main'))).toBe(true)
   const iifeAt = userscript.search(/^\((?:async )?function/m)
   expect(iifeAt).toBeGreaterThan(-1)
-  expect(map.mappings.startsWith(';'.repeat(countBannerLines(userscript.slice(0, iifeAt))))).toBe(true)
+  expect(map.mappings.startsWith(';'.repeat(countHeaderLines(userscript.slice(0, iifeAt))))).toBe(true)
   expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1)
   expect(userscript.lastIndexOf('sourceMappingURL=')).toBeGreaterThan(userscript.lastIndexOf('})();'))
   expect((await listOut(outDir)).filter(file => file.endsWith('.map'))).toEqual([])

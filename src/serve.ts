@@ -1,5 +1,5 @@
 import type { Logger } from 'vite'
-import type { BannerOptions } from './banner.js'
+import type { HeaderOptions } from './header.js'
 import type {
   HeaderConfig,
   ResolvedScript,
@@ -7,7 +7,6 @@ import type {
 
 import { posix, relative, resolve, sep } from 'node:path'
 import { styleText } from 'node:util'
-import { generateBanner } from './banner.js'
 import {
   FAQ_URL,
   GM_NAMESPACE,
@@ -18,6 +17,7 @@ import {
   REACT_REFRESH_PLUGIN_NAMES,
   VITE_CLIENT_FLAG,
 } from './constants.js'
+import { generateHeader } from './header.js'
 
 export const DEV_SCRIPT_HEADERS = {
   'Content-Type': 'text/javascript; charset=utf-8',
@@ -200,12 +200,12 @@ export function generateDevUserscript(options: {
   origin: string
   root: string
   prefix: string | false
-  banner: BannerOptions
+  headerOptions: HeaderOptions
   reactPreamble?: boolean
 }): string {
-  const header = applyServeHeader(options.script.header, options.prefix)
-  const banner = generateBanner(header, {
-    ...options.banner,
+  const headerConfig = applyServeHeader(options.script.header, options.prefix)
+  const header = generateHeader(headerConfig, {
+    ...options.headerOptions,
     fileName: options.script.fileName,
     mode: 'serve',
   })
@@ -215,7 +215,7 @@ export function generateDevUserscript(options: {
     reactPreamble: options.reactPreamble,
   })
 
-  return `${banner}\n\n${wrapper}`
+  return `${header}\n\n${wrapper}`
 }
 
 export function findDevScript(
@@ -236,7 +236,7 @@ export function createDevUserscript(options: {
     origin: options.origin,
     root: options.root,
     prefix: options.script.server.prefix,
-    banner: {
+    headerOptions: {
       align: options.script.align,
       autoMetaUrls: options.script.autoMetaUrls,
       generate: options.script.generate,

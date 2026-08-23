@@ -1,6 +1,6 @@
 import { GM_NAMESPACE, gmIdentifiers } from './constants.js'
 import {
-  countBannerLines,
+  countHeaderLines,
   identitySourceMap,
   offsetSourceMap,
 } from './sourcemap.js'
@@ -48,6 +48,6 @@ export function shimModule(code: string, id: string) {
 
   return {
     code: `${prelude}${code}`,
-    map: offsetSourceMap(identitySourceMap(code, id), countBannerLines(prelude)),
+    map: offsetSourceMap(identitySourceMap(code, id), countHeaderLines(prelude)),
   }
 }

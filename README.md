@@ -9,8 +9,8 @@
 ## Features
 
 - 🔥 Vite HMR
-- 🎨 CSS from imports and SFC `<style>`
 - 🔧 Configure Userscript header
+- 🎨 Inject CSS from imports and SFC components (Vue, Svelte)
 - 💨 All `@grant`s in the header in dev mode
 - 📝 Only used `@grant`s in the production build
 - 📦 Built-in types for Tampermonkey, Greasemonkey and Violentmonkey
@@ -280,10 +280,6 @@ Userscripts run on someone else’s origin. Files in `public/` are not copied th
 Serve injects `type="module"`, which is async.
 
 Production is a synchronous IIFE unless you use top-level `await`. Then the wrapper is `async`, and the first `await` yields a turn.
-
-### Header changes do not hot-reload
-
-`@match`, `@grant`, `@name` live in the installed metablock. Re-open the `.dev.user.js` URL after changing them.
 
 ## Migration from v1
 

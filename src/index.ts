@@ -27,12 +27,17 @@ import {
   toInstallUrl,
 } from './serve.js'
 
-export { Banner, generateBanner, resolveHomePage, resolvePublicFileUrl } from './banner.js'
+export {
+  generateHeader,
+  Header,
+  resolveHomePage,
+  resolvePublicFileUrl,
+} from './header.js'
 
 export type {
-  BannerGenerateContext,
   CssInject,
   HeaderConfig,
+  HeaderGenerateContext,
   ResolvedScript,
   ServerConfig,
   UserscriptConfig,

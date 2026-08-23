@@ -196,11 +196,11 @@ export interface ServerConfig {
   prefix?: string | false
 }
 
-export type BannerMode = 'serve' | 'build' | 'meta'
+export type HeaderMode = 'serve' | 'build' | 'meta'
 
-export interface BannerGenerateContext {
+export interface HeaderGenerateContext {
   userscript: string
-  mode: BannerMode
+  mode: HeaderMode
 }
 
 export type CssInject
@@ -251,7 +251,7 @@ export interface UserscriptConfig {
   /**
    * Rewrite the generated metablock.
    */
-  generate?: (ctx: BannerGenerateContext) => string
+  generate?: (ctx: HeaderGenerateContext) => string
 
   /**
    * Derive `updateURL` / `downloadURL` from `homepage`, `homepageURL`,
@@ -285,7 +285,7 @@ export interface ResolvedScript {
   }
   cssInject: CssInject
   align: number | false
-  generate?: (ctx: BannerGenerateContext) => string
+  generate?: (ctx: HeaderGenerateContext) => string
   autoMetaUrls: boolean
   metaFile: boolean
 }

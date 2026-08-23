@@ -10,7 +10,7 @@ export interface OffsetSourceMap {
   [key: string]: unknown
 }
 
-export function countBannerLines(prefix: string): number {
+export function countHeaderLines(prefix: string): number {
   if (!prefix) {
     return 0
   }
@@ -47,7 +47,7 @@ function isTokenBoundary(line: string, index: number): boolean {
 }
 
 export function identitySourceMap(code: string, file?: string): OffsetSourceMap {
-  const lineCount = countBannerLines(code)
+  const lineCount = countHeaderLines(code)
   const sourceLines = code.split('\n')
   let previousOriginalLine = 0
   let previousOriginalColumn = 0

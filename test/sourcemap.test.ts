@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 import { expect, it } from 'vitest'
 
 import {
-  countBannerLines,
+  countHeaderLines,
   identitySourceMap,
   offsetSourceMap,
   stripVendorSourcesContent,
@@ -63,18 +63,18 @@ function originalPositionFor(mappings: string, generatedLine: number, generatedC
   }
 }
 
-it('countBannerLines counts prepended banner lines', () => {
+it('countHeaderLines counts prepended header lines', () => {
   const prefix = '// ==UserScript==\n// @name x\n// ==/UserScript==\n\n'
 
-  expect(countBannerLines(prefix)).toBe(4)
-  expect(countBannerLines('')).toBe(0)
+  expect(countHeaderLines(prefix)).toBe(4)
+  expect(countHeaderLines('')).toBe(0)
 })
 
-it('offsetSourceMap accounts for banner plus CSS prelude', () => {
+it('offsetSourceMap accounts for header and CSS prelude', () => {
   const prelude = '// ==UserScript==\n// ==/UserScript==\n\n(function (css) {\n  GM_addStyle(css)\n})("body{}");\n'
-  const map = offsetSourceMap({ mappings: 'AAAA' }, countBannerLines(prelude))
+  const map = offsetSourceMap({ mappings: 'AAAA' }, countHeaderLines(prelude))
 
-  expect(map.mappings).toBe(`${';'.repeat(countBannerLines(prelude))}AAAA`)
+  expect(map.mappings).toBe(`${';'.repeat(countHeaderLines(prelude))}AAAA`)
 })
 
 it('identitySourceMap plus offset keeps original throw line', () => {
@@ -82,7 +82,7 @@ it('identitySourceMap plus offset keeps original throw line', () => {
   const prelude = 'const { GM } = globalThis.__viteUserscriptGM__ ?? globalThis;\n'
   const map = offsetSourceMap(
     identitySourceMap(code, '/src/counter.ts'),
-    countBannerLines(prelude),
+    countHeaderLines(prelude),
   )
   const throwLine = code.split('\n').findIndex(line => line.includes('throw'))
   const throwColumn = code.split('\n')[throwLine]?.indexOf('throw') ?? 0

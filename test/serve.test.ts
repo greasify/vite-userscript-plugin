@@ -101,7 +101,7 @@ it('react preamble helpers match plugin-react and reject unsafe entries', () => 
   expect(resolveBootstrapEntry(`${REACT_BOOTSTRAP_PATH}?entry=//evil.test`)).toBeUndefined()
 })
 
-it('createDevUserscript writes a banner and wrapper', () => {
+it('createDevUserscript writes a header and wrapper', () => {
   const config = resolvePluginConfig({
     entry: 'src/main.ts',
     header: {

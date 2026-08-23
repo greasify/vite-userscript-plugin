@@ -1,16 +1,16 @@
 import type {
-  BannerGenerateContext,
-  BannerMode,
   HeaderConfig,
+  HeaderGenerateContext,
+  HeaderMode,
 } from './types.js'
 import { sanitizeFileName } from './names.js'
 
-export interface BannerOptions {
+export interface HeaderOptions {
   align?: number | false
   autoMetaUrls?: boolean
   fileName?: string
-  generate?: (ctx: BannerGenerateContext) => string
-  mode?: BannerMode
+  generate?: (ctx: HeaderGenerateContext) => string
+  mode?: HeaderMode
 }
 
 function ensureTrailingSlash(url: string): string {
@@ -77,7 +77,7 @@ function formatValue(value: unknown): string | undefined {
   return sanitizeMetaText(String(value))
 }
 
-export function generateBanner(config: HeaderConfig, options: BannerOptions = {}): string {
+export function generateHeader(config: HeaderConfig, options: HeaderOptions = {}): string {
   const fileName = options.fileName ?? sanitizeFileName(config.name)
   const header = options.autoMetaUrls
     ? applyAutoMetaUrls({ ...config }, fileName)
@@ -143,13 +143,13 @@ export function generateBanner(config: HeaderConfig, options: BannerOptions = {}
   })
 }
 
-export class Banner {
+export class Header {
   constructor(
     private readonly config: HeaderConfig,
-    private readonly options: BannerOptions = {},
+    private readonly options: HeaderOptions = {},
   ) {}
 
   generate() {
-    return generateBanner(this.config, this.options)
+    return generateHeader(this.config, this.options)
   }
 }

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`banner default snapshot 1`] = `
+exports[`header default snapshot 1`] = `
 "// ==UserScript==
 // @name        vitest
 // @version     1.0.0
