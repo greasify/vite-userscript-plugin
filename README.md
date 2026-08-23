@@ -28,25 +28,25 @@ Put `Userscript()` **last** in `plugins`.
 ## Setup
 
 ```ts
-import { defineConfig } from "vite";
-import Userscript from "vite-userscript-plugin";
-import { name, version } from "./package.json";
+import { defineConfig } from 'vite'
+import Userscript from 'vite-userscript-plugin'
+import { name, version } from './package.json'
 
 export default defineConfig({
   plugins: [
     Userscript({
-      entry: "src/index.ts",
+      entry: 'src/index.ts',
       header: {
         name,
         version,
         match: [
-          "https://example.com/",
-          "https://example.org/"
+          'https://example.com/',
+          'https://example.org/'
         ]
       }
     })
   ]
-});
+})
 ```
 
 ```json
@@ -85,30 +85,30 @@ See [examples/multiple-entries](./examples/multiple-entries).
 ```ts
 Userscript([
   {
-    entry: "src/foo.ts",
-    fileName: "foo",
+    entry: 'src/foo.ts',
+    fileName: 'foo',
     header: {
-      name: "Foo",
-      version: "1.0.0",
-      match: "https://a.com/*"
+      name: 'Foo',
+      version: '1.0.0',
+      match: 'https://a.com/*'
     }
   },
   {
-    entry: "src/bar.ts",
-    fileName: "bar",
+    entry: 'src/bar.ts',
+    fileName: 'bar',
     header: {
-      name: "Bar",
-      version: "1.0.0",
-      match: "https://b.com/*"
+      name: 'Bar',
+      version: '1.0.0',
+      match: 'https://b.com/*'
     }
   }
-]);
+])
 ```
 
 ## Styles
 
 ```ts
-import "./style.css";
+import './style.css'
 ```
 
 Vue and Svelte SFC `<style>` work without `?raw`. Use `?raw` + `GM_addStyle` if you want to own the node.
@@ -211,8 +211,8 @@ The host page can block Vite modules from `localhost`. Use a CSP-disable extensi
 Easiest: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) (trusted local CA). Put it before `Userscript()`:
 
 ```ts
-import mkcert from "vite-plugin-mkcert";
-import Userscript from "vite-userscript-plugin";
+import mkcert from 'vite-plugin-mkcert'
+import Userscript from 'vite-userscript-plugin'
 
 export default defineConfig({
   plugins: [
@@ -221,22 +221,22 @@ export default defineConfig({
       // ...
     })
   ]
-});
+})
 ```
 
 Or pass your own cert to `server.https`:
 
 ```ts
-import { readFileSync } from "node:fs";
+import { readFileSync } from 'node:fs'
 
 export default defineConfig({
   server: {
     https: {
-      key: readFileSync("./localhost-key.pem"),
-      cert: readFileSync("./localhost.pem")
+      key: readFileSync('./localhost-key.pem'),
+      cert: readFileSync('./localhost.pem')
     }
   }
-});
+})
 ```
 
 ### Old `file://` proxy scripts

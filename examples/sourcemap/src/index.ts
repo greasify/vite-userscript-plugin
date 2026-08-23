@@ -1,6 +1,6 @@
-import { createCounter } from "./counter.js";
-import "./style.css";
+import { createCounter } from './counter.js'
+import './style.css'
 
 if (document.body) {
-  document.body.append(createCounter());
+  document.body.append(createCounter())
 }

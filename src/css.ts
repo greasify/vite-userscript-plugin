@@ -1,10 +1,10 @@
-import type { CssInject } from "./types.js";
+import type { CssInject } from './types.js'
 
 export function escapeCssForTemplate(css: string): string {
   return css
-    .replace(/\\/g, "\\\\")
-    .replace(/`/g, "\\`")
-    .replace(/\$\{/g, "\\${");
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\$\{/g, '\\${')
 }
 
 const defaultCssInjector = `(function (css) {
@@ -15,21 +15,21 @@ const defaultCssInjector = `(function (css) {
     style.textContent = css
     ;(document.head || document.documentElement).appendChild(style)
   }
-})`;
+})`
 
 export function createCssInject(
   css: string,
-  cssInject: CssInject = "auto",
+  cssInject: CssInject = 'auto',
 ): string {
-  const payload = JSON.stringify(css);
+  const payload = JSON.stringify(css)
 
-  if (cssInject === "auto") {
-    return `${defaultCssInjector}(${payload});\n`;
+  if (cssInject === 'auto') {
+    return `${defaultCssInjector}(${payload});\n`
   }
 
-  if (typeof cssInject === "function") {
-    return `(${cssInject.toString()})(${payload});\n`;
+  if (typeof cssInject === 'function') {
+    return `(${cssInject.toString()})(${payload});\n`
   }
 
-  return `(${cssInject})(${payload});\n`;
+  return `(${cssInject})(${payload});\n`
 }

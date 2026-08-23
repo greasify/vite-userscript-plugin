@@ -3,55 +3,55 @@ import type {
   HeaderConfig,
   ResolvedPluginConfig,
   ResolvedScript,
-} from "./types.js";
-import { generateBanner } from "./banner.js";
-import { createCssInject } from "./css.js";
-import { defineGrants, removeDuplicates } from "./grants.js";
+} from './types.js'
+import { generateBanner } from './banner.js'
+import { createCssInject } from './css.js'
+import { defineGrants, removeDuplicates } from './grants.js'
 import {
   countBannerLines,
   offsetSourceMap,
   stripVendorSourcesContent,
   toInlineSourceMappingUrl,
-} from "./sourcemap.js";
+} from './sourcemap.js'
 
 export interface OutputChunk {
-  type: "chunk";
-  isEntry: boolean;
-  name: string;
-  fileName: string;
-  code: string;
-  imports: string[];
+  type: 'chunk'
+  isEntry: boolean
+  name: string
+  fileName: string
+  code: string
+  imports: string[]
   map?: {
-    mappings: string;
-    file?: string;
-  } | null;
+    mappings: string
+    file?: string
+  } | null
   viteMetadata?: {
-    importedCss?: Set<string>;
-  };
+    importedCss?: Set<string>
+  }
 }
 
 export interface OutputAsset {
-  type: "asset";
-  fileName?: string;
-  source: string | Uint8Array;
+  type: 'asset'
+  fileName?: string
+  source: string | Uint8Array
 }
 
-export type OutputBundle = Record<string, OutputChunk | OutputAsset>;
+export type OutputBundle = Record<string, OutputChunk | OutputAsset>
 
-type ChunkWithMeta = OutputChunk;
+type ChunkWithMeta = OutputChunk
 
 function isChunk(item: OutputBundle[string]): item is OutputChunk {
-  return item.type === "chunk";
+  return item.type === 'chunk'
 }
 
 function isAsset(item: OutputBundle[string]): item is OutputAsset {
-  return item.type === "asset";
+  return item.type === 'asset'
 }
 
-const SOURCE_MAPPING_URL_RE = /\/\/[#@]\s*sourceMappingURL=\S+/g;
+const SOURCE_MAPPING_URL_RE = /\/\/[#@]\s*sourceMappingURL=\S+/g
 
 export function stripSourceMappingUrl(code: string): string {
-  return code.replace(SOURCE_MAPPING_URL_RE, "");
+  return code.replace(SOURCE_MAPPING_URL_RE, '')
 }
 
 function collectImportedCss(
@@ -59,78 +59,78 @@ function collectImportedCss(
   bundle: OutputBundle,
   seen = new Set<string>(),
 ): string[] {
-  const files = [...(chunk.viteMetadata?.importedCss ?? [])];
+  const files = [...(chunk.viteMetadata?.importedCss ?? [])]
 
   for (const imported of chunk.imports) {
     if (seen.has(imported)) {
-      continue;
+      continue
     }
 
-    const dep = bundle[imported];
+    const dep = bundle[imported]
     if (!dep || !isChunk(dep) || dep.isEntry) {
-      continue;
+      continue
     }
 
-    seen.add(imported);
-    files.push(...collectImportedCss(dep, bundle, seen));
+    seen.add(imported)
+    files.push(...collectImportedCss(dep, bundle, seen))
   }
 
-  return files;
+  return files
 }
 
-function collectCss(chunk: ChunkWithMeta, bundle: OutputBundle): { css: string; files: string[] } {
-  const files = [...new Set(collectImportedCss(chunk, bundle))];
+function collectCss(chunk: ChunkWithMeta, bundle: OutputBundle): { css: string, files: string[] } {
+  const files = [...new Set(collectImportedCss(chunk, bundle))]
   if (!files.length) {
-    return { css: "", files };
+    return { css: '', files }
   }
 
   const css = files
     .map((file) => {
-      const asset = bundle[file];
-      return asset && isAsset(asset) ? String(asset.source) : "";
+      const asset = bundle[file]
+      return asset && isAsset(asset) ? String(asset.source) : ''
     })
     .filter(Boolean)
-    .join("\n");
+    .join('\n')
 
-  return { css, files };
+  return { css, files }
 }
 
 export function stripImports(code: string): string {
   return code
-    .replace(/(^|\n)import(?:\s+type)?(?:\s+[\s\S]*?\s+|\s+)from\s*["'][^"']+["']\s*;?/g, "$1")
-    .replace(/(^|\n)import\s*["'][^"']+["']\s*;?/g, "$1");
+    .replace(/(^|\n)import(?:\s+type)?(?:\s+[\s\S]*?\s+|\s+)from\s*["'][^"']+["']\s*;?/g, '$1')
+    .replace(/(^|\n)import\s*["'][^"']+["']\s*;?/g, '$1')
 }
 
 export function stripExports(code: string): string {
   return code
-    .replace(/^export\s+\{[\s\S]*?\}\s+from\s+["'][^"']+["']\s*;?\s*$/gm, "")
-    .replace(/^export\s+\*\s+from\s+["'][^"']+["']\s*;?\s*$/gm, "")
-    .replace(/^export\s+\{[\s\S]*?\};?\s*$/gm, "")
-    .replace(/^export\s+default\s+/gm, "")
-    .replace(/^export\s+async\s+function/gm, "async function")
-    .replace(/^export\s+function/gm, "function")
-    .replace(/^export\s+class/gm, "class")
-    .replace(/^export\s+(const|let|var)/gm, "$1");
+    .replace(/^export\s+\{[\s\S]*?\}\s+from\s+["'][^"']+["']\s*;?\s*$/gm, '')
+    .replace(/^export\s+\*\s+from\s+["'][^"']+["']\s*;?\s*$/gm, '')
+    .replace(/^export\s+\{[\s\S]*?\};?\s*$/gm, '')
+    .replace(/^export\s+default\s+/gm, '')
+    .replace(/^export\s+async\s+function/gm, 'async function')
+    .replace(/^export\s+function/gm, 'function')
+    .replace(/^export\s+class/gm, 'class')
+    .replace(/^export\s+(const|let|var)/gm, '$1')
 }
 
 export function stripModuleSyntax(code: string): string {
-  return stripExports(stripImports(code));
+  return stripExports(stripImports(code))
 }
 
 export function isAlreadyIife(code: string): boolean {
   return !/^\s*(?:import|export)\s/m.test(code)
-    && /\(\s*(?:async\s+)?function\b/.test(code);
+    && /\(\s*(?:async\s+)?function\b/.test(code)
 }
 
 export function ensureIife(code: string): string {
-  const withoutMap = stripSourceMappingUrl(code);
+  const withoutMap = stripSourceMappingUrl(code)
   if (isAlreadyIife(withoutMap)) {
-    return withoutMap.endsWith("\n") ? withoutMap : `${withoutMap}\n`;
+    return withoutMap.endsWith('\n') ? withoutMap : `${withoutMap}\n`
   }
 
-  const stripped = stripModuleSyntax(withoutMap);
-  const keyword = /\bawait\b/.test(stripped) ? "async function" : "function";
-  return `(${keyword} () {\n${stripped}\n})();\n`;
+  const stripped = stripModuleSyntax(withoutMap)
+  const keyword = /\bawait\b/.test(stripped) ? 'async function' : 'function'
+  return `(${keyword} () {\n${stripped}\n})();\n`
 }
 
 function inlineImportedChunks(
@@ -138,24 +138,24 @@ function inlineImportedChunks(
   bundle: OutputBundle,
   seen = new Set<string>(),
 ): string {
-  let prelude = "";
+  let prelude = ''
 
   for (const imported of chunk.imports) {
     if (seen.has(imported)) {
-      continue;
+      continue
     }
 
-    const dep = bundle[imported];
+    const dep = bundle[imported]
     if (!dep || !isChunk(dep) || dep.isEntry) {
-      continue;
+      continue
     }
 
-    seen.add(imported);
-    prelude += inlineImportedChunks(dep, bundle, seen);
-    prelude += dep.code.endsWith("\n") ? dep.code : `${dep.code}\n`;
+    seen.add(imported)
+    prelude += inlineImportedChunks(dep, bundle, seen)
+    prelude += dep.code.endsWith('\n') ? dep.code : `${dep.code}\n`
   }
 
-  return prelude;
+  return prelude
 }
 
 export function resolveBuildHeader(
@@ -163,8 +163,8 @@ export function resolveBuildHeader(
   code: string,
   extraGrants: readonly Grants[] = [],
 ): HeaderConfig {
-  if (header.grant === "none") {
-    return header;
+  if (header.grant === 'none') {
+    return header
   }
 
   return {
@@ -174,7 +174,7 @@ export function resolveBuildHeader(
       ...removeDuplicates(header.grant),
       ...extraGrants,
     ]),
-  };
+  }
 }
 
 export function findScriptForChunk(
@@ -186,23 +186,23 @@ export function findScriptForChunk(
     script => chunk.name === script.fileName
       || fileName === `${script.fileName}.js`
       || fileName === `${script.fileName}.user.js`,
-  );
+  )
 }
 
 function deleteBundleFiles(bundle: OutputBundle, fileNames: Iterable<string>): void {
   for (const fileName of fileNames) {
-    delete bundle[fileName];
+    delete bundle[fileName]
   }
 }
 
 function sweepNonUserscriptAssets(bundle: OutputBundle): void {
   for (const [fileName, item] of Object.entries(bundle)) {
     if (!isAsset(item)) {
-      continue;
+      continue
     }
 
-    if (fileName.endsWith(".css") || fileName.endsWith(".map")) {
-      delete bundle[fileName];
+    if (fileName.endsWith('.css') || fileName.endsWith('.map')) {
+      delete bundle[fileName]
     }
   }
 }
@@ -212,60 +212,60 @@ export function applyUserscriptBundle(
   config: ResolvedPluginConfig,
   emitMeta: (fileName: string, source: string) => void,
 ): void {
-  const leftoverChunks: string[] = [];
-  const leftoverAssets: string[] = [];
+  const leftoverChunks: string[] = []
+  const leftoverAssets: string[] = []
 
   for (const [fileName, item] of Object.entries(bundle)) {
     if (!isChunk(item) || !item.isEntry) {
       if (isChunk(item) && !item.isEntry) {
-        leftoverChunks.push(fileName);
+        leftoverChunks.push(fileName)
       }
-      continue;
+      continue
     }
 
-    const script = findScriptForChunk(item, fileName, config.scripts);
+    const script = findScriptForChunk(item, fileName, config.scripts)
     if (!script) {
-      continue;
+      continue
     }
 
-    const inlined = stripSourceMappingUrl(inlineImportedChunks(item, bundle));
-    const { css, files: cssFiles } = collectCss(item, bundle);
-    leftoverAssets.push(...cssFiles);
+    const inlined = stripSourceMappingUrl(inlineImportedChunks(item, bundle))
+    const { css, files: cssFiles } = collectCss(item, bundle)
+    leftoverAssets.push(...cssFiles)
 
-    const cssPrelude = css ? createCssInject(css, script.cssInject) : "";
-    const body = `${inlined}${item.code}`;
-    const wrapped = ensureIife(body);
-    const extraGrants = css && script.cssInject === "auto" ? (["GM_addStyle"] as const) : [];
-    const header = resolveBuildHeader(script.header, wrapped, extraGrants);
-    const code = `${cssPrelude}${wrapped}`;
+    const cssPrelude = css ? createCssInject(css, script.cssInject) : ''
+    const body = `${inlined}${item.code}`
+    const wrapped = ensureIife(body)
+    const extraGrants = css && script.cssInject === 'auto' ? (['GM_addStyle'] as const) : []
+    const header = resolveBuildHeader(script.header, wrapped, extraGrants)
+    const code = `${cssPrelude}${wrapped}`
     const banner = generateBanner(header, {
       align: script.align,
       autoMetaUrls: script.autoMetaUrls,
       fileName: script.fileName,
       generate: script.generate,
-      mode: "build",
-    });
-    const prefix = `${banner}\n\n`;
-    const nextFileName = `${script.fileName}.user.js`;
-    let nextCode = `${prefix}${code}`;
+      mode: 'build',
+    })
+    const prefix = `${banner}\n\n`
+    const nextFileName = `${script.fileName}.user.js`
+    let nextCode = `${prefix}${code}`
 
     if (item.map) {
-      const wrapOffset = isAlreadyIife(stripSourceMappingUrl(body)) ? 0 : 1;
+      const wrapOffset = isAlreadyIife(stripSourceMappingUrl(body)) ? 0 : 1
       const lineOffset = countBannerLines(prefix)
         + countBannerLines(cssPrelude)
         + wrapOffset
-        + countBannerLines(inlined);
+        + countBannerLines(inlined)
       item.map = stripVendorSourcesContent(offsetSourceMap(
         item.map,
         lineOffset,
         nextFileName,
-      ));
-      nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, "\n")}//# sourceMappingURL=${toInlineSourceMappingUrl(item.map)}\n`;
-      leftoverAssets.push(`${fileName}.map`);
+      ))
+      nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(item.map)}\n`
+      leftoverAssets.push(`${fileName}.map`)
     }
 
-    item.code = nextCode;
-    item.fileName = nextFileName;
+    item.code = nextCode
+    item.fileName = nextFileName
 
     if (script.metaFile) {
       emitMeta(
@@ -275,17 +275,17 @@ export function applyUserscriptBundle(
           autoMetaUrls: script.autoMetaUrls,
           fileName: script.fileName,
           generate: script.generate,
-          mode: "meta",
+          mode: 'meta',
         }),
-      );
+      )
     }
   }
 
   for (const fileName of leftoverChunks) {
-    leftoverAssets.push(`${fileName}.map`);
+    leftoverAssets.push(`${fileName}.map`)
   }
 
-  deleteBundleFiles(bundle, leftoverChunks);
-  deleteBundleFiles(bundle, leftoverAssets);
-  sweepNonUserscriptAssets(bundle);
+  deleteBundleFiles(bundle, leftoverChunks)
+  deleteBundleFiles(bundle, leftoverAssets)
+  sweepNonUserscriptAssets(bundle)
 }

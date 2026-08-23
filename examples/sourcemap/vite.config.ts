@@ -1,6 +1,6 @@
-import { defineConfig } from "vite";
-import Userscript from "vite-userscript-plugin";
-import pkg from "./package.json" with { type: "json" };
+import { defineConfig } from 'vite'
+import Userscript from 'vite-userscript-plugin'
+import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
   build: {
@@ -9,14 +9,14 @@ export default defineConfig({
   },
   plugins: [
     Userscript({
-      entry: "src/index.ts",
+      entry: 'src/index.ts',
       autoMetaUrls: true,
       header: {
         name: pkg.name,
         version: pkg.version,
-        homepage: "https://crashmax-dev.github.io/vite-userscript-plugin/",
-        match: "https://example.com/",
+        homepage: 'https://crashmax-dev.github.io/vite-userscript-plugin/',
+        match: 'https://example.com/',
       },
     }),
   ],
-});
+})

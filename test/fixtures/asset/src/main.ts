@@ -1,3 +1,3 @@
-import img from "./pixel.png";
+import img from './pixel.png'
 
-document.body?.setAttribute("data-img", img);
+document.body?.setAttribute('data-img', img)

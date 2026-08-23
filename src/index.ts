@@ -1,13 +1,13 @@
-import type { Plugin } from "vite";
+import type { Plugin } from 'vite'
 
-import type { UserscriptPluginConfig } from "./types.js";
+import type { UserscriptPluginConfig } from './types.js'
 
-import { resolve } from "node:path";
-import openLink from "open";
-import { applyUserscriptBundle } from "./build.js";
-import { pluginName } from "./constants.js";
-import { createGmShimPrelude, shouldShimModule } from "./gm-shim.js";
-import { collectAutoMetaUrlsWarnings, resolvePluginConfig } from "./resolve.js";
+import { resolve } from 'node:path'
+import openLink from 'open'
+import { applyUserscriptBundle } from './build.js'
+import { pluginName } from './constants.js'
+import { createGmShimPrelude, shouldShimModule } from './gm-shim.js'
+import { collectAutoMetaUrlsWarnings, resolvePluginConfig } from './resolve.js'
 import {
   createAfterLocalLogger,
   createDevUserscript,
@@ -22,9 +22,9 @@ import {
   REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
   toInstallUrl,
-} from "./serve.js";
+} from './serve.js'
 
-export { Banner, generateBanner, resolveHomePage, resolvePublicFileUrl } from "./banner.js";
+export { Banner, generateBanner, resolveHomePage, resolvePublicFileUrl } from './banner.js'
 
 export type {
   BannerGenerateContext,
@@ -34,18 +34,18 @@ export type {
   ServerConfig,
   UserscriptConfig,
   UserscriptPluginConfig,
-} from "./types.js";
+} from './types.js'
 
-function resolveServerOrigin(urls?: { local: string[]; network: string[] } | null): string {
-  const url = urls?.local[0] ?? urls?.network[0];
-  return url ? url.replace(/\/$/, "") : "http://localhost:5173";
+function resolveServerOrigin(urls?: { local: string[], network: string[] } | null): string {
+  const url = urls?.local[0] ?? urls?.network[0]
+  return url ? url.replace(/\/$/, '') : 'http://localhost:5173'
 }
 
 export default function UserscriptPlugin(
   config: UserscriptPluginConfig,
 ): Plugin[] {
-  const resolved = resolvePluginConfig(config);
-  let reactPreamble = false;
+  const resolved = resolvePluginConfig(config)
+  let reactPreamble = false
 
   return [
     {
@@ -53,10 +53,10 @@ export default function UserscriptPlugin(
       config(userConfig) {
         const input = Object.fromEntries(
           resolved.scripts.map(script => [script.fileName, script.entry]),
-        );
+        )
 
         return {
-          appType: userConfig.appType ?? "custom",
+          appType: userConfig.appType ?? 'custom',
           optimizeDeps: {
             entries: resolved.scripts.map(script => script.entry),
           },
@@ -69,125 +69,125 @@ export default function UserscriptPlugin(
             rolldownOptions: {
               input,
               output: {
-                format: "es",
-                entryFileNames: "[name].js",
+                format: 'es',
+                entryFileNames: '[name].js',
               },
             },
           },
-        };
+        }
       },
       configResolved(viteConfig) {
         for (const script of resolved.scripts) {
-          script.entry = resolve(viteConfig.root, script.entry);
+          script.entry = resolve(viteConfig.root, script.entry)
         }
-        reactPreamble = hasReactRefreshPlugin(viteConfig.plugins);
+        reactPreamble = hasReactRefreshPlugin(viteConfig.plugins)
 
         for (const message of collectAutoMetaUrlsWarnings(resolved)) {
-          viteConfig.logger.warn(message);
+          viteConfig.logger.warn(message)
         }
       },
     },
     {
       name: `${pluginName}:serve`,
-      apply: "serve",
+      apply: 'serve',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          const url = req.url ?? "";
+          const url = req.url ?? ''
           if (matchReactPreamble(url)) {
             for (const [key, value] of Object.entries(DEV_SCRIPT_HEADERS)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value)
             }
-            res.end(REACT_PREAMBLE_MODULE);
-            return;
+            res.end(REACT_PREAMBLE_MODULE)
+            return
           }
 
           if (matchReactBootstrap(url)) {
-            const entry = resolveBootstrapEntry(url);
+            const entry = resolveBootstrapEntry(url)
             if (!entry) {
-              res.statusCode = 400;
-              res.end();
-              return;
+              res.statusCode = 400
+              res.end()
+              return
             }
 
             for (const [key, value] of Object.entries(DEV_SCRIPT_HEADERS)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value)
             }
-            res.end(createReactBootstrapModule(entry));
-            return;
+            res.end(createReactBootstrapModule(entry))
+            return
           }
 
-          const script = findDevScript(url, resolved.scripts);
+          const script = findDevScript(url, resolved.scripts)
           if (!script) {
-            next();
-            return;
+            next()
+            return
           }
 
-          const origin = resolveServerOrigin(server.resolvedUrls);
+          const origin = resolveServerOrigin(server.resolvedUrls)
           const body = createDevUserscript({
             origin,
             root: server.config.root,
             script,
             reactPreamble,
-          });
+          })
 
           for (const [key, value] of Object.entries(DEV_SCRIPT_HEADERS)) {
-            res.setHeader(key, value);
+            res.setHeader(key, value)
           }
-          res.end(body);
-        });
+          res.end(body)
+        })
 
-        const printUrls = server.printUrls.bind(server);
+        const printUrls = server.printUrls.bind(server)
         server.printUrls = () => {
-          const urls = server.resolvedUrls;
-          const info = server.config.logger.info.bind(server.config.logger);
-          let origins: string[] = [];
+          const urls = server.resolvedUrls
+          const info = server.config.logger.info.bind(server.config.logger)
+          let origins: string[] = []
           if (urls) {
-            origins = urls.local.length ? urls.local : urls.network;
+            origins = urls.local.length ? urls.local : urls.network
           }
 
           function printInstall() {
             for (const origin of origins) {
               for (const script of resolved.scripts) {
-                info(formatInstallLine(toInstallUrl(origin, script.fileName)));
+                info(formatInstallLine(toInstallUrl(origin, script.fileName)))
               }
             }
-            info(formatFaqHint());
+            info(formatFaqHint())
           };
 
           const logger = createAfterLocalLogger(
             info,
             urls?.local.length ?? 0,
             printInstall,
-          );
-          const previousInfo = server.config.logger.info;
-          server.config.logger.info = logger.info;
+          )
+          const previousInfo = server.config.logger.info
+          server.config.logger.info = logger.info
 
           try {
-            printUrls();
+            printUrls()
           } finally {
-            server.config.logger.info = previousInfo;
-            logger.flush();
+            server.config.logger.info = previousInfo
+            logger.flush()
           }
-        };
+        }
 
-        server.httpServer?.once("listening", () => {
-          const toOpen = resolved.scripts.filter(script => script.server.open);
+        server.httpServer?.once('listening', () => {
+          const toOpen = resolved.scripts.filter(script => script.server.open)
           if (!toOpen.length) {
-            return;
+            return
           }
 
           queueMicrotask(() => {
-            const origin = resolveServerOrigin(server.resolvedUrls);
+            const origin = resolveServerOrigin(server.resolvedUrls)
             for (const script of toOpen) {
-              void openLink(toInstallUrl(origin, script.fileName));
+              void openLink(toInstallUrl(origin, script.fileName))
             }
-          });
-        });
+          })
+        })
       },
     },
     {
       name: `${pluginName}:gm-shim`,
-      apply: "serve",
+      apply: 'serve',
       transform: {
         filter: {
           id: {
@@ -196,29 +196,29 @@ export default function UserscriptPlugin(
         },
         handler(code, id) {
           if (!shouldShimModule(id)) {
-            return null;
+            return null
           }
 
           return {
             code: `${createGmShimPrelude()}${code}`,
             map: null,
-          };
+          }
         },
       },
     },
     {
       name: `${pluginName}:build`,
-      apply: "build",
-      enforce: "post",
+      apply: 'build',
+      enforce: 'post',
       generateBundle(_options, bundle) {
         applyUserscriptBundle(bundle, resolved, (fileName, source) => {
           this.emitFile({
-            type: "asset",
+            type: 'asset',
             fileName,
             source,
-          });
-        });
+          })
+        })
       },
     },
-  ];
+  ]
 }

@@ -1,3 +1,3 @@
 export function label(name: string) {
-  return `shared:${name}`;
+  return `shared:${name}`
 }

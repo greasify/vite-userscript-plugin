@@ -1,38 +1,38 @@
-import type { UserscriptPluginConfig } from "../src/types.js";
-import { Buffer } from "node:buffer";
-import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import type { UserscriptPluginConfig } from '../src/types.js'
+import { Buffer } from 'node:buffer'
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-import { fileURLToPath } from "node:url";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
-import vue from "@vitejs/plugin-vue";
-import { build } from "vite";
+import { fileURLToPath } from 'node:url'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import vue from '@vitejs/plugin-vue'
+import { build } from 'vite'
 
-import { afterEach, expect, it } from "vitest";
-import Userscript from "../src/index.js";
-import { countBannerLines } from "../src/sourcemap.js";
+import { afterEach, expect, it } from 'vitest'
+import Userscript from '../src/index.js'
+import { countBannerLines } from '../src/sourcemap.js'
 
-const fixtures = fileURLToPath(new URL("./fixtures", import.meta.url));
-const outDirs: string[] = [];
+const fixtures = fileURLToPath(new URL('./fixtures', import.meta.url))
+const outDirs: string[] = []
 
 afterEach(async () => {
-  await Promise.all(outDirs.splice(0).map(dir => rm(dir, { recursive: true, force: true })));
-});
+  await Promise.all(outDirs.splice(0).map(dir => rm(dir, { recursive: true, force: true })))
+})
 
 async function buildFixture(name: string, plugin: UserscriptPluginConfig, options: {
-  plugins?: import("vite").PluginOption[];
-  minify?: boolean | "oxc" | "terser";
-  sourcemap?: boolean;
+  plugins?: import('vite').PluginOption[]
+  minify?: boolean | 'oxc' | 'terser'
+  sourcemap?: boolean
 } = {}) {
-  const root = join(fixtures, name);
-  const outDir = await mkdtemp(join(tmpdir(), `userscript-${name}-`));
-  outDirs.push(outDir);
+  const root = join(fixtures, name)
+  const outDir = await mkdtemp(join(tmpdir(), `userscript-${name}-`))
+  outDirs.push(outDir)
 
   await build({
     root,
     configFile: false,
-    logLevel: "silent",
+    logLevel: 'silent',
     plugins: [...(options.plugins ?? []), Userscript(plugin)],
     build: {
       outDir,
@@ -41,328 +41,328 @@ async function buildFixture(name: string, plugin: UserscriptPluginConfig, option
       sourcemap: options.sourcemap,
       minify: options.minify,
     },
-  });
+  })
 
-  return outDir;
+  return outDir
 }
 
 function readOut(outDir: string, fileName: string) {
-  return readFile(join(outDir, fileName), "utf8");
+  return readFile(join(outDir, fileName), 'utf8')
 }
 
 async function listOut(outDir: string) {
-  return (await readdir(outDir, { recursive: true })).map(String);
+  return (await readdir(outDir, { recursive: true })).map(String)
 }
 
 function leftoverScripts(files: string[]) {
   return files.filter((file) => {
-    return file.endsWith(".js")
-      && !file.endsWith(".user.js")
-      && !file.endsWith(".meta.js");
-  });
+    return file.endsWith('.js')
+      && !file.endsWith('.user.js')
+      && !file.endsWith('.meta.js')
+  })
 }
 
-it("vanilla CSS is inlined into an unminified userscript", async () => {
-  const outDir = await buildFixture("vanilla", {
-    entry: "src/main.ts",
-    fileName: "vanilla",
+it('vanilla CSS is inlined into an unminified userscript', async () => {
+  const outDir = await buildFixture('vanilla', {
+    entry: 'src/main.ts',
+    fileName: 'vanilla',
     header: {
-      name: "Vanilla",
-      version: "1.0.0",
-      match: "https://example.com/*",
+      name: 'Vanilla',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-  });
+  })
 
-  const userscript = await readOut(outDir, "vanilla.user.js");
-  const meta = await readOut(outDir, "vanilla.meta.js");
+  const userscript = await readOut(outDir, 'vanilla.user.js')
+  const meta = await readOut(outDir, 'vanilla.meta.js')
 
-  expect(userscript).toContain("==UserScript==");
-  expect(userscript).toContain("@name");
-  expect(userscript).toContain("userscript-fixture");
-  expect(userscript).toMatch(/GM_addStyle|__vite_style__/);
-  expect(userscript).toContain("data-userscript");
-  expect(meta).toContain("==UserScript==");
-  expect(meta).not.toContain("userscript-fixture");
-  expect((await listOut(outDir)).filter(file => file.endsWith(".css"))).toEqual([]);
-});
+  expect(userscript).toContain('==UserScript==')
+  expect(userscript).toContain('@name')
+  expect(userscript).toContain('userscript-fixture')
+  expect(userscript).toMatch(/GM_addStyle|__vite_style__/)
+  expect(userscript).toContain('data-userscript')
+  expect(meta).toContain('==UserScript==')
+  expect(meta).not.toContain('userscript-fixture')
+  expect((await listOut(outDir)).filter(file => file.endsWith('.css'))).toEqual([])
+})
 
-it("explicit minify still keeps the metablock", async () => {
+it('explicit minify still keeps the metablock', async () => {
   const outDir = await buildFixture(
-    "vanilla",
+    'vanilla',
     {
-      entry: "src/main.ts",
-      fileName: "vanilla",
+      entry: 'src/main.ts',
+      fileName: 'vanilla',
       header: {
-        name: "Vanilla",
-        version: "1.0.0",
-        match: "https://example.com/*",
+        name: 'Vanilla',
+        version: '1.0.0',
+        match: 'https://example.com/*',
       },
     },
     { minify: true },
-  );
+  )
 
-  const userscript = await readOut(outDir, "vanilla.user.js");
-  expect(userscript.startsWith("// ==UserScript==")).toBe(true);
-  expect(userscript).toContain("userscript-fixture");
-  expect(userscript).not.toContain("export const hello");
-});
+  const userscript = await readOut(outDir, 'vanilla.user.js')
+  expect(userscript.startsWith('// ==UserScript==')).toBe(true)
+  expect(userscript).toContain('userscript-fixture')
+  expect(userscript).not.toContain('export const hello')
+})
 
 function parseInlineSourceMap(userscript: string) {
-  const match = userscript.match(/\/\/[#@]\s*sourceMappingURL=data:application\/json;charset=utf-8;base64,(\S+)/);
-  expect(match?.[1]).toBeTruthy();
-  return JSON.parse(Buffer.from(match![1]!, "base64").toString("utf8")) as {
-    file?: string;
-    mappings: string;
-    sources: string[];
-    sourcesContent?: (string | null)[];
-  };
+  const match = userscript.match(/\/\/[#@]\s*sourceMappingURL=data:application\/json;charset=utf-8;base64,(\S+)/)
+  expect(match?.[1]).toBeTruthy()
+  return JSON.parse(Buffer.from(match![1]!, 'base64').toString('utf8')) as {
+    file?: string
+    mappings: string
+    sources: string[]
+    sourcesContent?: (string | null)[]
+  }
 }
 
-it("sourcemap is inlined into the userscript", async () => {
+it('sourcemap is inlined into the userscript', async () => {
   const outDir = await buildFixture(
-    "vanilla",
+    'vanilla',
     {
-      entry: "src/main.ts",
-      fileName: "vanilla",
+      entry: 'src/main.ts',
+      fileName: 'vanilla',
       header: {
-        name: "Vanilla",
-        version: "1.0.0",
-        match: "https://example.com/*",
+        name: 'Vanilla',
+        version: '1.0.0',
+        match: 'https://example.com/*',
       },
     },
     { sourcemap: true },
-  );
+  )
 
-  const userscript = await readOut(outDir, "vanilla.user.js");
-  const map = parseInlineSourceMap(userscript);
+  const userscript = await readOut(outDir, 'vanilla.user.js')
+  const map = parseInlineSourceMap(userscript)
 
-  expect(userscript).toContain("//# sourceMappingURL=data:application/json");
-  expect(map.file).toBe("vanilla.user.js");
-  expect(map.sources.some(source => source.includes("main"))).toBe(true);
-  const iifeAt = userscript.search(/^\((?:async )?function/m);
-  expect(iifeAt).toBeGreaterThan(-1);
-  expect(map.mappings.startsWith(";".repeat(countBannerLines(userscript.slice(0, iifeAt))))).toBe(true);
-  expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1);
-  expect(userscript.lastIndexOf("sourceMappingURL=")).toBeGreaterThan(userscript.lastIndexOf("})();"));
-  expect((await listOut(outDir)).filter(file => file.endsWith(".map"))).toEqual([]);
-});
+  expect(userscript).toContain('//# sourceMappingURL=data:application/json')
+  expect(map.file).toBe('vanilla.user.js')
+  expect(map.sources.some(source => source.includes('main'))).toBe(true)
+  const iifeAt = userscript.search(/^\((?:async )?function/m)
+  expect(iifeAt).toBeGreaterThan(-1)
+  expect(map.mappings.startsWith(';'.repeat(countBannerLines(userscript.slice(0, iifeAt))))).toBe(true)
+  expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1)
+  expect(userscript.lastIndexOf('sourceMappingURL=')).toBeGreaterThan(userscript.lastIndexOf('})();'))
+  expect((await listOut(outDir)).filter(file => file.endsWith('.map'))).toEqual([])
+})
 
-it("top-level await wraps in an async IIFE", async () => {
-  const outDir = await buildFixture("tla", {
-    entry: "src/main.ts",
-    fileName: "tla",
+it('top-level await wraps in an async IIFE', async () => {
+  const outDir = await buildFixture('tla', {
+    entry: 'src/main.ts',
+    fileName: 'tla',
     header: {
-      name: "TLA",
-      version: "1.0.0",
-      match: "https://example.com/*",
+      name: 'TLA',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-  });
+  })
 
-  const userscript = await readOut(outDir, "tla.user.js");
-  expect(userscript).toContain("(async function");
-  expect(userscript).toContain("await");
-  expect(userscript).toContain("tla-ok");
-  expect(userscript).not.toMatch(/\bimport\s/);
-});
+  const userscript = await readOut(outDir, 'tla.user.js')
+  expect(userscript).toContain('(async function')
+  expect(userscript).toContain('await')
+  expect(userscript).toContain('tla-ok')
+  expect(userscript).not.toMatch(/\bimport\s/)
+})
 
-it("multiple entries emit two userscripts", async () => {
-  const outDir = await buildFixture("multi", [
+it('multiple entries emit two userscripts', async () => {
+  const outDir = await buildFixture('multi', [
     {
-      entry: "src/foo.ts",
-      fileName: "foo",
+      entry: 'src/foo.ts',
+      fileName: 'foo',
       header: {
-        name: "Foo",
-        version: "1.0.0",
-        match: "https://foo.example/*",
+        name: 'Foo',
+        version: '1.0.0',
+        match: 'https://foo.example/*',
       },
     },
     {
-      entry: "src/bar.ts",
-      fileName: "bar",
+      entry: 'src/bar.ts',
+      fileName: 'bar',
       header: {
-        name: "Bar",
-        version: "1.0.0",
-        match: "https://bar.example/*",
+        name: 'Bar',
+        version: '1.0.0',
+        match: 'https://bar.example/*',
       },
     },
-  ]);
+  ])
 
-  const foo = await readOut(outDir, "foo.user.js");
-  const bar = await readOut(outDir, "bar.user.js");
+  const foo = await readOut(outDir, 'foo.user.js')
+  const bar = await readOut(outDir, 'bar.user.js')
 
-  expect(foo).toMatch(/@name\s+Foo/);
-  expect(foo).toContain("https://foo.example/*");
-  expect(foo).toContain("shared-helper");
-  expect(foo).toContain("shared-css-fixture");
-  expect(foo).toContain("teal");
-  expect(foo).not.toMatch(/\bimport\s/);
-  expect(bar).toMatch(/@name\s+Bar/);
-  expect(bar).toContain("https://bar.example/*");
-  expect(bar).toContain("shared-helper");
-  expect(bar).toContain("shared-css-fixture");
-  expect(bar).not.toMatch(/\bimport\s/);
-  expect(await readOut(outDir, "foo.meta.js")).toMatch(/@name\s+Foo/);
-  expect(await readOut(outDir, "bar.meta.js")).toMatch(/@name\s+Bar/);
-  expect((await listOut(outDir)).filter(file => file.endsWith(".css"))).toEqual([]);
-  expect(leftoverScripts(await listOut(outDir))).toEqual([]);
-});
+  expect(foo).toMatch(/@name\s+Foo/)
+  expect(foo).toContain('https://foo.example/*')
+  expect(foo).toContain('shared-helper')
+  expect(foo).toContain('shared-css-fixture')
+  expect(foo).toContain('teal')
+  expect(foo).not.toMatch(/\bimport\s/)
+  expect(bar).toMatch(/@name\s+Bar/)
+  expect(bar).toContain('https://bar.example/*')
+  expect(bar).toContain('shared-helper')
+  expect(bar).toContain('shared-css-fixture')
+  expect(bar).not.toMatch(/\bimport\s/)
+  expect(await readOut(outDir, 'foo.meta.js')).toMatch(/@name\s+Foo/)
+  expect(await readOut(outDir, 'bar.meta.js')).toMatch(/@name\s+Bar/)
+  expect((await listOut(outDir)).filter(file => file.endsWith('.css'))).toEqual([])
+  expect(leftoverScripts(await listOut(outDir))).toEqual([])
+})
 
-it("multiple entries keep a single sourceMappingURL after the IIFE", async () => {
+it('multiple entries keep a single sourceMappingURL after the IIFE', async () => {
   const outDir = await buildFixture(
-    "multi",
+    'multi',
     [
       {
-        entry: "src/foo.ts",
-        fileName: "foo",
+        entry: 'src/foo.ts',
+        fileName: 'foo',
         header: {
-          name: "Foo",
-          version: "1.0.0",
-          match: "https://foo.example/*",
+          name: 'Foo',
+          version: '1.0.0',
+          match: 'https://foo.example/*',
         },
       },
       {
-        entry: "src/bar.ts",
-        fileName: "bar",
+        entry: 'src/bar.ts',
+        fileName: 'bar',
         header: {
-          name: "Bar",
-          version: "1.0.0",
-          match: "https://bar.example/*",
+          name: 'Bar',
+          version: '1.0.0',
+          match: 'https://bar.example/*',
         },
       },
     ],
     { sourcemap: true },
-  );
+  )
 
-  const userscript = await readOut(outDir, "foo.user.js");
-  expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1);
-  expect(userscript.lastIndexOf("sourceMappingURL=")).toBeGreaterThan(userscript.lastIndexOf("})();"));
-  expect((await listOut(outDir)).filter(file => file.endsWith(".map"))).toEqual([]);
-});
+  const userscript = await readOut(outDir, 'foo.user.js')
+  expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1)
+  expect(userscript.lastIndexOf('sourceMappingURL=')).toBeGreaterThan(userscript.lastIndexOf('})();'))
+  expect((await listOut(outDir)).filter(file => file.endsWith('.map'))).toEqual([])
+})
 
-it("grant none is preserved and CSS grant is not added", async () => {
-  const outDir = await buildFixture("grant-none", {
-    entry: "src/main.ts",
-    fileName: "none",
+it('grant none is preserved and CSS grant is not added', async () => {
+  const outDir = await buildFixture('grant-none', {
+    entry: 'src/main.ts',
+    fileName: 'none',
     header: {
-      name: "None",
-      version: "1.0.0",
-      match: "https://example.com/*",
-      grant: "none",
+      name: 'None',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      grant: 'none',
     },
-  });
+  })
 
-  const userscript = await readOut(outDir, "none.user.js");
-  expect(userscript).toMatch(/@grant\s+none/);
-  expect(userscript).not.toContain("GM_addStyle");
-});
+  const userscript = await readOut(outDir, 'none.user.js')
+  expect(userscript).toMatch(/@grant\s+none/)
+  expect(userscript).not.toContain('GM_addStyle')
+})
 
-it("grant none with CSS keeps the none grant and still inlines styles", async () => {
-  const outDir = await buildFixture("vanilla", {
-    entry: "src/main.ts",
-    fileName: "none-css",
+it('grant none with CSS keeps the none grant and still inlines styles', async () => {
+  const outDir = await buildFixture('vanilla', {
+    entry: 'src/main.ts',
+    fileName: 'none-css',
     header: {
-      name: "None CSS",
-      version: "1.0.0",
-      match: "https://example.com/*",
-      grant: "none",
+      name: 'None CSS',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      grant: 'none',
     },
-  });
+  })
 
-  const userscript = await readOut(outDir, "none-css.user.js");
-  expect(userscript).toMatch(/@grant\s+none/);
-  expect(userscript).not.toMatch(/@grant\s+GM_addStyle/);
-  expect(userscript).toContain("userscript-fixture");
-});
+  const userscript = await readOut(outDir, 'none-css.user.js')
+  expect(userscript).toMatch(/@grant\s+none/)
+  expect(userscript).not.toMatch(/@grant\s+GM_addStyle/)
+  expect(userscript).toContain('userscript-fixture')
+})
 
-it("imported images are inlined as data URLs", async () => {
-  const outDir = await buildFixture("asset", {
-    entry: "src/main.ts",
-    fileName: "asset",
+it('imported images are inlined as data URLs', async () => {
+  const outDir = await buildFixture('asset', {
+    entry: 'src/main.ts',
+    fileName: 'asset',
     header: {
-      name: "Asset",
-      version: "1.0.0",
-      match: "https://example.com/*",
+      name: 'Asset',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-  });
+  })
 
-  const userscript = await readOut(outDir, "asset.user.js");
-  expect(userscript).toContain("data:image/png");
-  expect(userscript).not.toMatch(/\/assets\/.+\.png/);
-});
+  const userscript = await readOut(outDir, 'asset.user.js')
+  expect(userscript).toContain('data:image/png')
+  expect(userscript).not.toMatch(/\/assets\/.+\.png/)
+})
 
-it("vue sourcemap keeps app sourcesContent and drops node_modules", async () => {
+it('vue sourcemap keeps app sourcesContent and drops node_modules', async () => {
   const outDir = await buildFixture(
-    "vue",
+    'vue',
     {
-      entry: "src/main.ts",
-      fileName: "vue",
+      entry: 'src/main.ts',
+      fileName: 'vue',
       header: {
-        name: "Vue",
-        version: "1.0.0",
-        match: "https://example.com/*",
+        name: 'Vue',
+        version: '1.0.0',
+        match: 'https://example.com/*',
       },
     },
     { plugins: [vue()], sourcemap: true },
-  );
+  )
 
-  const map = parseInlineSourceMap(await readOut(outDir, "vue.user.js"));
-  const contents = map.sourcesContent ?? [];
+  const map = parseInlineSourceMap(await readOut(outDir, 'vue.user.js'))
+  const contents = map.sourcesContent ?? []
 
-  expect(map.sources.some(source => source.includes("node_modules"))).toBe(true);
-  expect(contents).toHaveLength(map.sources.length);
+  expect(map.sources.some(source => source.includes('node_modules'))).toBe(true)
+  expect(contents).toHaveLength(map.sources.length)
 
   for (const [index, source] of map.sources.entries()) {
-    if (source.includes("node_modules") || source.includes("\0") || source.startsWith("virtual:")) {
-      expect(contents[index]).toBeNull();
+    if (source.includes('node_modules') || source.includes('\0') || source.startsWith('virtual:')) {
+      expect(contents[index]).toBeNull()
     }
   }
 
   const appSources = map.sources.flatMap((source, index) => (
-    source.includes("main") || source.includes(".vue")
+    source.includes('main') || source.includes('.vue')
       ? [{ source, content: contents[index] }]
       : []
-  ));
+  ))
 
-  expect(appSources.length).toBeGreaterThan(0);
-  expect(appSources.every(({ content }) => typeof content === "string" && content.length > 0)).toBe(true);
-});
+  expect(appSources.length).toBeGreaterThan(0)
+  expect(appSources.every(({ content }) => typeof content === 'string' && content.length > 0)).toBe(true)
+})
 
-it("vue SFC styles are inlined", async () => {
+it('vue SFC styles are inlined', async () => {
   const outDir = await buildFixture(
-    "vue",
+    'vue',
     {
-      entry: "src/main.ts",
-      fileName: "vue",
+      entry: 'src/main.ts',
+      fileName: 'vue',
       header: {
-        name: "Vue",
-        version: "1.0.0",
-        match: "https://example.com/*",
+        name: 'Vue',
+        version: '1.0.0',
+        match: 'https://example.com/*',
       },
     },
     { plugins: [vue()] },
-  );
+  )
 
-  const userscript = await readOut(outDir, "vue.user.js");
-  expect(userscript).toContain("vue-fixture");
-  expect(userscript).toContain("rebeccapurple");
-});
+  const userscript = await readOut(outDir, 'vue.user.js')
+  expect(userscript).toContain('vue-fixture')
+  expect(userscript).toContain('rebeccapurple')
+})
 
-it("svelte SFC styles are inlined", async () => {
+it('svelte SFC styles are inlined', async () => {
   const outDir = await buildFixture(
-    "svelte",
+    'svelte',
     {
-      entry: "src/main.ts",
-      fileName: "svelte",
+      entry: 'src/main.ts',
+      fileName: 'svelte',
       header: {
-        name: "Svelte",
-        version: "1.0.0",
-        match: "https://example.com/*",
+        name: 'Svelte',
+        version: '1.0.0',
+        match: 'https://example.com/*',
       },
     },
     { plugins: [svelte()] },
-  );
+  )
 
-  const userscript = await readOut(outDir, "svelte.user.js");
-  expect(userscript).toContain("svelte-fixture");
-  expect(userscript).toContain("darkorange");
-});
+  const userscript = await readOut(outDir, 'svelte.user.js')
+  expect(userscript).toContain('svelte-fixture')
+  expect(userscript).toContain('darkorange')
+})

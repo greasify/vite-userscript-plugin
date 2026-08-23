@@ -1,1 +1,1 @@
-document.body?.setAttribute("data-grant", "none");
+document.body?.setAttribute('data-grant', 'none')

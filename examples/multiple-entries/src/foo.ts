@@ -1,3 +1,3 @@
-import { label } from "./shared.js";
+import { label } from './shared.js'
 
-console.log(label("foo"));
+console.log(label('foo'))

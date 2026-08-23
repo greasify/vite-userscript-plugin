@@ -1,4 +1,4 @@
-import { SHARED } from "./shared.js";
+import { SHARED } from './shared.js'
 
-document.body?.setAttribute("data-bar", SHARED);
-export const name = "bar";
+document.body?.setAttribute('data-bar', SHARED)
+export const name = 'bar'

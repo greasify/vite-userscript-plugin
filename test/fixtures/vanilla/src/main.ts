@@ -1,5 +1,5 @@
-import "./style.css";
+import './style.css'
 
-export const hello = "userscript";
+export const hello = 'userscript'
 
-document.body?.setAttribute("data-userscript", hello);
+document.body?.setAttribute('data-userscript', hello)

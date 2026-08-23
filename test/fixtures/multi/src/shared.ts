@@ -1,3 +1,3 @@
-import "./shared.css";
+import './shared.css'
 
-export const SHARED = "shared-helper";
+export const SHARED = 'shared-helper'

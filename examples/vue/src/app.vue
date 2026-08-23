@@ -26,20 +26,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 
-const count = ref(0);
+const count = ref(0)
 
 function increment() {
-  count.value += 1;
+  count.value += 1
 }
 
 function decrement() {
-  count.value -= 1;
+  count.value -= 1
 }
 
 function reset() {
-  count.value = 0;
+  count.value = 0
 }
 </script>
 

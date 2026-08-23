@@ -1,24 +1,27 @@
-import { useState } from "react";
+import { useState } from 'react'
 
 export function App() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(0)
 
   function increment() {
-    setCount(current => current + 1);
+    setCount(current => current + 1)
   }
 
   function decrement() {
-    setCount(current => current - 1);
+    setCount(current => current - 1)
   }
 
   function reset() {
-    setCount(0);
+    setCount(0)
   }
 
   return (
     <div className="react-userscript">
       <h1>React userscript</h1>
-      <p>Count: {count}</p>
+      <p>
+        Count:
+        {count}
+      </p>
       <div className="actions">
         <button
           type="button"
@@ -40,5 +43,5 @@ export function App() {
         </button>
       </div>
     </div>
-  );
+  )
 }

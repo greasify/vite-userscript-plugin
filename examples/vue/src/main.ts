@@ -1,9 +1,9 @@
-import { createApp } from "vue";
+import { createApp } from 'vue'
 
-import App from "./app.vue";
+import App from './app.vue'
 
 if (document.body) {
-  const root = document.createElement("div");
-  document.body.append(root);
-  createApp(App).mount(root);
+  const root = document.createElement('div')
+  document.body.append(root)
+  createApp(App).mount(root)
 }
