@@ -1,16 +1,16 @@
 <script lang="ts">
-  let count = $state(0);
+  let count = $state(0)
 
-  const increment = () => {
-    count += 1;
-  };
+  function increment() {
+    count += 1
+  }
 
-  const decrement = () => {
-    count -= 1;
-  };
+  function decrement() {
+    count -= 1
+  }
 
-  const reset = () => {
-    count = 0;
+  function reset() {
+    count = 0
   };
 </script>
 

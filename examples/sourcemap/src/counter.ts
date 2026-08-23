@@ -20,27 +20,31 @@ export function createCounter() {
   const actions = document.createElement('div')
   actions.className = 'actions'
 
-  const render = () => {
+  function render() {
     label.textContent = `Count: ${count}`
   }
 
-  const increment = () => {
+  function increment() {
     count += 1
     render()
   }
 
-  const decrement = () => {
+  function decrement() {
     count -= 1
     render()
   }
 
-  const reset = () => {
+  function reset() {
     count = 0
     render()
   }
 
-  const boom = () => {
+  function boom() {
+    console.log(2)
+
     throw new Error('sourcemap')
+
+    console.log(1)
   }
 
   actions.append(

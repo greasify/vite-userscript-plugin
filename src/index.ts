@@ -6,8 +6,11 @@ import { resolve } from 'node:path'
 import openLink from 'open'
 import { applyUserscriptBundle } from './build.js'
 import { pluginName } from './constants.js'
-import { createGmShimPrelude, shouldShimModule } from './gm-shim.js'
-import { collectAutoMetaUrlsWarnings, resolvePluginConfig } from './resolve.js'
+import { shimModule, shouldShimModule } from './gm-shim.js'
+import {
+  collectAutoMetaUrlsWarnings,
+  resolvePluginConfig,
+} from './resolve.js'
 import {
   createAfterLocalLogger,
   createDevUserscript,
@@ -199,10 +202,7 @@ export default function UserscriptPlugin(
             return null
           }
 
-          return {
-            code: `${createGmShimPrelude()}${code}`,
-            map: null,
-          }
+          return shimModule(code, id)
         },
       },
     },

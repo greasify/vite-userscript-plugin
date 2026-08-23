@@ -1,4 +1,9 @@
 import { GM_NAMESPACE, gmIdentifiers } from './constants.js'
+import {
+  countBannerLines,
+  identitySourceMap,
+  offsetSourceMap,
+} from './sourcemap.js'
 
 export function shouldShimModule(id: string): boolean {
   const cleanId = id.split('\0').pop() ?? id
@@ -36,4 +41,13 @@ export function shouldShimModule(id: string): boolean {
 
 export function createGmShimPrelude(): string {
   return `const { ${gmIdentifiers.join(', ')} } = globalThis.${GM_NAMESPACE} ?? globalThis;\n`
+}
+
+export function shimModule(code: string, id: string) {
+  const prelude = createGmShimPrelude()
+
+  return {
+    code: `${prelude}${code}`,
+    map: offsetSourceMap(identitySourceMap(code, id), countBannerLines(prelude)),
+  }
 }

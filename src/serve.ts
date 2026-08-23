@@ -69,7 +69,7 @@ export function createAfterLocalLogger(
   let remaining = localCount
   let printed = false
 
-  const flush = (): void => {
+  function flush() {
     if (printed) {
       return
     }
@@ -79,7 +79,7 @@ export function createAfterLocalLogger(
   }
 
   return {
-    info: (msg, options) => {
+    info(msg, options) {
       info(msg, options)
 
       if (remaining > 0 && isViteLocalUrlLine(String(msg))) {

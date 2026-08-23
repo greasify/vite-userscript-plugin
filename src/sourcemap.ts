@@ -20,6 +20,74 @@ export function countBannerLines(prefix: string): number {
     : prefix.split('\n').length
 }
 
+const VLQ_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+function encodeVlq(value: number): string {
+  let vlq = value < 0 ? ((-value) << 1) | 1 : value << 1
+  let encoded = ''
+
+  do {
+    let digit = vlq & 31
+    vlq >>>= 5
+    if (vlq > 0) {
+      digit |= 32
+    }
+    encoded += VLQ_ALPHABET[digit]
+  } while (vlq > 0)
+
+  return encoded
+}
+
+function isTokenBoundary(line: string, index: number): boolean {
+  if (index === 0) {
+    return true
+  }
+
+  return /\w/.test(line[index] ?? '') !== /\w/.test(line[index - 1] ?? '')
+}
+
+export function identitySourceMap(code: string, file?: string): OffsetSourceMap {
+  const lineCount = countBannerLines(code)
+  const sourceLines = code.split('\n')
+  let previousOriginalLine = 0
+  let previousOriginalColumn = 0
+
+  const mappings = Array.from({ length: lineCount }, (_, originalLine) => {
+    const line = sourceLines[originalLine] ?? ''
+    let previousGeneratedColumn = 0
+    const segments: string[] = []
+
+    const emit = (column: number) => {
+      segments.push(
+        encodeVlq(column - previousGeneratedColumn)
+        + encodeVlq(0)
+        + encodeVlq(originalLine - previousOriginalLine)
+        + encodeVlq(column - previousOriginalColumn),
+      )
+      previousGeneratedColumn = column
+      previousOriginalLine = originalLine
+      previousOriginalColumn = column
+    }
+
+    emit(0)
+    for (let column = 1; column < line.length; column++) {
+      if (isTokenBoundary(line, column)) {
+        emit(column)
+      }
+    }
+
+    return segments.join(',')
+  }).join(';')
+
+  return {
+    version: 3,
+    file,
+    mappings,
+    names: [],
+    sources: file ? [file] : [],
+  }
+}
+
 export function offsetSourceMap<T extends { mappings: string, file?: string }>(
   map: T,
   lineOffset: number,
