@@ -14,6 +14,7 @@ jobs:
 
       - uses: pnpm/setup@v2
         with:
+          runtime: node@22
           cache: true
 
       - run: pnpm type-check
