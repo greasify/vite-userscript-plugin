@@ -14,7 +14,7 @@ export default defineConfig({
       header: {
         name: pkg.name,
         version: pkg.version,
-        homepage: "https://example.com/",
+        homepage: "https://crashmax-dev.github.io/vite-userscript-plugin/",
         match: "https://example.com/",
       },
     }),

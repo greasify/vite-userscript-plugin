@@ -110,7 +110,7 @@ Imported images and `url()` in CSS are inlined. Do not use `public/` — those U
 
 ### Production
 
-`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. Sourcemaps follow `build.sourcemap`.
+`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. If `build.sourcemap` is on, the map is inlined into `.user.js` as a `data:` `sourceMappingURL` so DevTools can decode it after the manager injects the script. A sibling `.map` file is not emitted.
 
 ## Options
 

@@ -1,16 +1,14 @@
 # Sourcemap example
 
-Vanilla userscript with `build.minify` and `build.sourcemap`. The metablock stays readable; the body is minified and the map points back at `src/`.
+Vanilla userscript with `build.minify` and `build.sourcemap`. The metablock stays readable; the body is minified. The map is inlined into `.user.js` as a `data:` `sourceMappingURL`, so DevTools can open `src/` without a sibling `.map` file or a static host.
+
+`homepage` + `autoMetaUrls` still fill `@updateURL` / `@downloadURL`. They do not host the map.
 
 ```bash
 pnpm build
 ```
 
-Writes `{fileName}.user.js`, `{fileName}.user.js.map`, and `{fileName}.meta.js`. The map is offset past the metablock and `file` is the `.user.js` name.
-
-Install the built userscript, click **Throw**, and open the stack in DevTools — it should land on `src/counter.ts`, not the IIFE.
-
-Tampermonkey often does not fetch a sibling `.map`. Serve both files from the same origin (static host / GitHub Pages) so the browser can load the map.
+Writes `{fileName}.user.js` and `{fileName}.meta.js`. Install the userscript, click **Throw**, and open the stack in DevTools — it should land on `src/counter.ts`, not the IIFE. The inline map is offset past the metablock.
 
 ```bash
 pnpm dev

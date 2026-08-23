@@ -20,30 +20,42 @@ function ensureTrailingSlash(url: string): string {
 export function resolveHomePage(header: HeaderConfig): string | undefined {
   const homePage = header.homepage ?? header.homepageURL ?? header.website ?? header.source;
   if (typeof homePage !== "string") {
-    return undefined;
+    return;
   }
 
   const trimmed = homePage.trim();
   return trimmed === "" ? undefined : trimmed;
 }
 
-function applyAutoMetaUrls(header: HeaderConfig, fileName: string): HeaderConfig {
+export function resolvePublicFileUrl(
+  header: HeaderConfig,
+  fileName: string,
+): string | undefined {
   const homePage = resolveHomePage(header);
-  if (!homePage) {
+  if (!homePage) return;
+
+  try {
+    return new URL(fileName, ensureTrailingSlash(homePage)).href;
+  } catch { }
+}
+
+function applyAutoMetaUrls(
+  header: HeaderConfig,
+  fileName: string,
+): HeaderConfig {
+  const updateURL = header.updateURL ?? resolvePublicFileUrl(header, `${fileName}.meta.js`);
+  const downloadURL = header.downloadURL ?? resolvePublicFileUrl(header, `${fileName}.user.js`);
+
+  if (!updateURL && !downloadURL) {
     return header;
   }
 
-  try {
-    const base = ensureTrailingSlash(homePage);
-    return {
-      ...header,
-      updateURL: header.updateURL ?? new URL(`${fileName}.meta.js`, base).href,
-      downloadURL: header.downloadURL ?? new URL(`${fileName}.user.js`, base).href,
-    };
-  } catch {
-    return header;
-  }
-};
+  return {
+    ...header,
+    ...(updateURL ? { updateURL } : {}),
+    ...(downloadURL ? { downloadURL } : {}),
+  };
+}
 
 function sanitizeMetaText(text: string): string {
   return text.replace(/[\r\n\u2028\u2029]+/g, " ");
@@ -59,11 +71,11 @@ function formatValue(value: unknown): string | undefined {
   }
 
   if (typeof value === "object") {
-    return undefined;
+    return;
   }
 
   return sanitizeMetaText(String(value));
-};
+}
 
 export function generateBanner(config: HeaderConfig, options: BannerOptions = {}): string {
   const fileName = options.fileName ?? sanitizeFileName(config.name);

@@ -1,3 +1,5 @@
+import { Buffer } from "node:buffer";
+
 export interface OffsetSourceMap {
   file?: string;
   mappings: string;
@@ -28,4 +30,9 @@ export function offsetSourceMap<T extends { mappings: string; file?: string }>(
     file: fileName ?? map.file,
     mappings: `${";".repeat(lineOffset)}${map.mappings}`,
   };
+}
+
+export function toInlineSourceMappingUrl(map: unknown): string {
+  const encoded = Buffer.from(JSON.stringify(map)).toString("base64");
+  return `data:application/json;charset=utf-8;base64,${encoded}`;
 }

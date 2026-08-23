@@ -1,7 +1,7 @@
 import type { HeaderConfig } from "../src/types.js";
 
 import { expect, it } from "vitest";
-import { Banner, generateBanner } from "../src/banner.js";
+import { Banner, generateBanner, resolvePublicFileUrl } from "../src/banner.js";
 import { grants } from "../src/constants.js";
 
 const defaultBanner: HeaderConfig = {
@@ -202,6 +202,40 @@ it("banner autoMetaUrls ignores an invalid homepage", () => {
 
   expect(banner).not.toContain("@updateURL");
   expect(banner).not.toContain("@downloadURL");
+});
+
+it("resolvePublicFileUrl joins homepage with and without a trailing slash", () => {
+  const withoutSlash = {
+    name: "vitest",
+    version: "1.0.0",
+    match: "https://example.com",
+    homepage: "https://crashmax-dev.github.io/vite-userscript-plugin",
+  };
+  const withSlash = {
+    ...withoutSlash,
+    homepage: "https://crashmax-dev.github.io/vite-userscript-plugin/",
+  };
+
+  expect(resolvePublicFileUrl(withoutSlash, "vitest.user.js.map")).toBe(
+    "https://crashmax-dev.github.io/vite-userscript-plugin/vitest.user.js.map",
+  );
+  expect(resolvePublicFileUrl(withSlash, "vitest.user.js.map")).toBe(
+    "https://crashmax-dev.github.io/vite-userscript-plugin/vitest.user.js.map",
+  );
+});
+
+it("resolvePublicFileUrl returns undefined without a valid homepage", () => {
+  expect(resolvePublicFileUrl({
+    name: "vitest",
+    version: "1.0.0",
+    match: "https://example.com",
+  }, "vitest.user.js.map")).toBeUndefined();
+  expect(resolvePublicFileUrl({
+    name: "vitest",
+    version: "1.0.0",
+    match: "https://example.com",
+    homepage: "not a url",
+  }, "vitest.user.js.map")).toBeUndefined();
 });
 
 it("banner align false uses a single space", () => {

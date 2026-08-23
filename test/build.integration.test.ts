@@ -1,4 +1,5 @@
 import type { UserscriptPluginConfig } from "../src/types.js";
+import { Buffer } from "node:buffer";
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -105,7 +106,17 @@ it("explicit minify still keeps the metablock", async () => {
   expect(userscript).not.toContain("export const hello");
 });
 
-it("sourcemap is emitted next to the userscript", async () => {
+function parseInlineSourceMap(userscript: string) {
+  const match = userscript.match(/\/\/[#@]\s*sourceMappingURL=data:application\/json;charset=utf-8;base64,(\S+)/);
+  expect(match?.[1]).toBeTruthy();
+  return JSON.parse(Buffer.from(match![1]!, "base64").toString("utf8")) as {
+    file?: string;
+    mappings: string;
+    sources: string[];
+  };
+}
+
+it("sourcemap is inlined into the userscript", async () => {
   const outDir = await buildFixture(
     "vanilla",
     {
@@ -120,18 +131,14 @@ it("sourcemap is emitted next to the userscript", async () => {
     { sourcemap: true },
   );
 
-  const map = JSON.parse(await readOut(outDir, "vanilla.user.js.map")) as {
-    file?: string;
-    mappings: string;
-    sources: string[];
-  };
+  const userscript = await readOut(outDir, "vanilla.user.js");
+  const map = parseInlineSourceMap(userscript);
 
+  expect(userscript).toContain("//# sourceMappingURL=data:application/json");
   expect(map.file).toBe("vanilla.user.js");
   expect(map.sources.some(source => source.includes("main"))).toBe(true);
   expect(map.mappings.startsWith(";")).toBe(true);
-  expect((await listOut(outDir)).filter(file => file.endsWith(".map"))).toEqual([
-    "vanilla.user.js.map",
-  ]);
+  expect((await listOut(outDir)).filter(file => file.endsWith(".map"))).toEqual([]);
 });
 
 it("multiple entries emit two userscripts", async () => {

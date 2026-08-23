@@ -24,7 +24,7 @@ import {
   toInstallUrl,
 } from "./serve.js";
 
-export { Banner, generateBanner } from "./banner.js";
+export { Banner, generateBanner, resolveHomePage, resolvePublicFileUrl } from "./banner.js";
 
 export type {
   BannerGenerateContext,

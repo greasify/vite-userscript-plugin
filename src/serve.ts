@@ -136,7 +136,7 @@ export function resolveBootstrapEntry(url: string): string | undefined {
   const query = url.includes("?") ? url.slice(url.indexOf("?") + 1) : "";
   const entry = new URLSearchParams(query).get("entry");
   if (!entry?.startsWith("/") || entry.startsWith("//")) {
-    return undefined;
+    return;
   }
 
   return entry;

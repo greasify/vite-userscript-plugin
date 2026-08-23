@@ -7,7 +7,11 @@ import type {
 import { generateBanner } from "./banner.js";
 import { createCssInject } from "./css.js";
 import { defineGrants, removeDuplicates } from "./grants.js";
-import { countBannerLines, offsetSourceMap } from "./sourcemap.js";
+import {
+  countBannerLines,
+  offsetSourceMap,
+  toInlineSourceMappingUrl,
+} from "./sourcemap.js";
 
 export interface OutputChunk {
   type: "chunk";
@@ -159,7 +163,7 @@ function sweepNonUserscriptAssets(bundle: OutputBundle): void {
       continue;
     }
 
-    if (fileName.endsWith(".css") || (fileName.endsWith(".map") && !fileName.endsWith(".user.js.map"))) {
+    if (fileName.endsWith(".css") || fileName.endsWith(".map")) {
       delete bundle[fileName];
     }
   }
@@ -206,7 +210,6 @@ export function applyUserscriptBundle(
     });
     const prefix = `${banner}\n\n`;
     const nextFileName = `${script.fileName}.user.js`;
-    const mapFileName = `${nextFileName}.map`;
     let nextCode = `${prefix}${code}`;
 
     if (item.map) {
@@ -215,14 +218,14 @@ export function applyUserscriptBundle(
         countBannerLines(prefix),
         nextFileName,
       );
+      const mapUrl = toInlineSourceMappingUrl(item.map);
       nextCode = nextCode.replace(
         /\/\/[#@]\s*sourceMappingURL=\S+/g,
-        `//# sourceMappingURL=${mapFileName}`,
+        `//# sourceMappingURL=${mapUrl}`,
       );
       if (!nextCode.includes("sourceMappingURL=")) {
-        nextCode += `\n//# sourceMappingURL=${mapFileName}\n`;
+        nextCode += `\n//# sourceMappingURL=${mapUrl}\n`;
       }
-      emitMeta(mapFileName, JSON.stringify(item.map));
       leftoverAssets.push(`${fileName}.map`);
     }
 
