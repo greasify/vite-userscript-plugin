@@ -11,6 +11,10 @@ export interface OffsetSourceMap {
 }
 
 export function countBannerLines(prefix: string): number {
+  if (!prefix) {
+    return 0;
+  }
+
   return prefix.endsWith("\n")
     ? prefix.slice(0, -1).split("\n").length
     : prefix.split("\n").length;

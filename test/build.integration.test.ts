@@ -11,6 +11,7 @@ import { build } from "vite";
 
 import { afterEach, expect, it } from "vitest";
 import Userscript from "../src/index.js";
+import { countBannerLines } from "../src/sourcemap.js";
 
 const fixtures = fileURLToPath(new URL("./fixtures", import.meta.url));
 const outDirs: string[] = [];
@@ -138,8 +139,30 @@ it("sourcemap is inlined into the userscript", async () => {
   expect(userscript).toContain("//# sourceMappingURL=data:application/json");
   expect(map.file).toBe("vanilla.user.js");
   expect(map.sources.some(source => source.includes("main"))).toBe(true);
-  expect(map.mappings.startsWith(";")).toBe(true);
+  const iifeAt = userscript.search(/^\((?:async )?function/m);
+  expect(iifeAt).toBeGreaterThan(-1);
+  expect(map.mappings.startsWith(";".repeat(countBannerLines(userscript.slice(0, iifeAt))))).toBe(true);
+  expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1);
+  expect(userscript.lastIndexOf("sourceMappingURL=")).toBeGreaterThan(userscript.lastIndexOf("})();"));
   expect((await listOut(outDir)).filter(file => file.endsWith(".map"))).toEqual([]);
+});
+
+it("top-level await wraps in an async IIFE", async () => {
+  const outDir = await buildFixture("tla", {
+    entry: "src/main.ts",
+    fileName: "tla",
+    header: {
+      name: "TLA",
+      version: "1.0.0",
+      match: "https://example.com/*",
+    },
+  });
+
+  const userscript = await readOut(outDir, "tla.user.js");
+  expect(userscript).toContain("(async function");
+  expect(userscript).toContain("await");
+  expect(userscript).toContain("tla-ok");
+  expect(userscript).not.toMatch(/\bimport\s/);
 });
 
 it("multiple entries emit two userscripts", async () => {
@@ -170,14 +193,50 @@ it("multiple entries emit two userscripts", async () => {
   expect(foo).toMatch(/@name\s+Foo/);
   expect(foo).toContain("https://foo.example/*");
   expect(foo).toContain("shared-helper");
+  expect(foo).toContain("shared-css-fixture");
+  expect(foo).toContain("teal");
   expect(foo).not.toMatch(/\bimport\s/);
   expect(bar).toMatch(/@name\s+Bar/);
   expect(bar).toContain("https://bar.example/*");
   expect(bar).toContain("shared-helper");
+  expect(bar).toContain("shared-css-fixture");
   expect(bar).not.toMatch(/\bimport\s/);
   expect(await readOut(outDir, "foo.meta.js")).toMatch(/@name\s+Foo/);
   expect(await readOut(outDir, "bar.meta.js")).toMatch(/@name\s+Bar/);
+  expect((await listOut(outDir)).filter(file => file.endsWith(".css"))).toEqual([]);
   expect(leftoverScripts(await listOut(outDir))).toEqual([]);
+});
+
+it("multiple entries keep a single sourceMappingURL after the IIFE", async () => {
+  const outDir = await buildFixture(
+    "multi",
+    [
+      {
+        entry: "src/foo.ts",
+        fileName: "foo",
+        header: {
+          name: "Foo",
+          version: "1.0.0",
+          match: "https://foo.example/*",
+        },
+      },
+      {
+        entry: "src/bar.ts",
+        fileName: "bar",
+        header: {
+          name: "Bar",
+          version: "1.0.0",
+          match: "https://bar.example/*",
+        },
+      },
+    ],
+    { sourcemap: true },
+  );
+
+  const userscript = await readOut(outDir, "foo.user.js");
+  expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1);
+  expect(userscript.lastIndexOf("sourceMappingURL=")).toBeGreaterThan(userscript.lastIndexOf("})();"));
+  expect((await listOut(outDir)).filter(file => file.endsWith(".map"))).toEqual([]);
 });
 
 it("grant none is preserved and CSS grant is not added", async () => {

@@ -7,6 +7,14 @@ it("countBannerLines counts prepended banner lines", () => {
   const prefix = "// ==UserScript==\n// @name x\n// ==/UserScript==\n\n";
 
   expect(countBannerLines(prefix)).toBe(4);
+  expect(countBannerLines("")).toBe(0);
+});
+
+it("offsetSourceMap accounts for banner plus CSS prelude", () => {
+  const prelude = "// ==UserScript==\n// ==/UserScript==\n\n(function (css) {\n  GM_addStyle(css)\n})(\"body{}\");\n";
+  const map = offsetSourceMap({ mappings: "AAAA" }, countBannerLines(prelude));
+
+  expect(map.mappings).toBe(`${";".repeat(countBannerLines(prelude))}AAAA`);
 });
 
 it("offsetSourceMap prepends empty generated lines", () => {

@@ -48,8 +48,38 @@ function isAsset(item: OutputBundle[string]): item is OutputAsset {
   return item.type === "asset";
 }
 
-function collectCss(chunk: ChunkWithMeta, bundle: OutputBundle): { css: string; files: string[] } {
+const SOURCE_MAPPING_URL_RE = /\/\/[#@]\s*sourceMappingURL=\S+/g;
+
+export function stripSourceMappingUrl(code: string): string {
+  return code.replace(SOURCE_MAPPING_URL_RE, "");
+}
+
+function collectImportedCss(
+  chunk: ChunkWithMeta,
+  bundle: OutputBundle,
+  seen = new Set<string>(),
+): string[] {
   const files = [...(chunk.viteMetadata?.importedCss ?? [])];
+
+  for (const imported of chunk.imports) {
+    if (seen.has(imported)) {
+      continue;
+    }
+
+    const dep = bundle[imported];
+    if (!dep || !isChunk(dep) || dep.isEntry) {
+      continue;
+    }
+
+    seen.add(imported);
+    files.push(...collectImportedCss(dep, bundle, seen));
+  }
+
+  return files;
+}
+
+function collectCss(chunk: ChunkWithMeta, bundle: OutputBundle): { css: string; files: string[] } {
+  const files = [...new Set(collectImportedCss(chunk, bundle))];
   if (!files.length) {
     return { css: "", files };
   }
@@ -87,13 +117,20 @@ export function stripModuleSyntax(code: string): string {
   return stripExports(stripImports(code));
 }
 
+export function isAlreadyIife(code: string): boolean {
+  return !/^\s*(?:import|export)\s/m.test(code)
+    && /\(\s*(?:async\s+)?function\b/.test(code);
+}
+
 export function ensureIife(code: string): string {
-  const alreadyIife = !/^\s*(?:import|export)\s/m.test(code) && /\(function\b/.test(code);
-  if (alreadyIife) {
-    return code;
+  const withoutMap = stripSourceMappingUrl(code);
+  if (isAlreadyIife(withoutMap)) {
+    return withoutMap.endsWith("\n") ? withoutMap : `${withoutMap}\n`;
   }
 
-  return `(function () {\n${stripModuleSyntax(code)}\n})();\n`;
+  const stripped = stripModuleSyntax(withoutMap);
+  const keyword = /\bawait\b/.test(stripped) ? "async function" : "function";
+  return `(${keyword} () {\n${stripped}\n})();\n`;
 }
 
 function inlineImportedChunks(
@@ -191,17 +228,16 @@ export function applyUserscriptBundle(
       continue;
     }
 
-    const inlined = inlineImportedChunks(item, bundle);
+    const inlined = stripSourceMappingUrl(inlineImportedChunks(item, bundle));
     const { css, files: cssFiles } = collectCss(item, bundle);
     leftoverAssets.push(...cssFiles);
 
-    let code = ensureIife(`${inlined}${item.code}`);
+    const cssPrelude = css ? createCssInject(css, script.cssInject) : "";
+    const body = `${inlined}${item.code}`;
+    const wrapped = ensureIife(body);
     const extraGrants = css && script.cssInject === "auto" ? (["GM_addStyle"] as const) : [];
-    const header = resolveBuildHeader(script.header, code, extraGrants);
-
-    if (css) {
-      code = `${createCssInject(css, script.cssInject)}${code}`;
-    }
+    const header = resolveBuildHeader(script.header, wrapped, extraGrants);
+    const code = `${cssPrelude}${wrapped}`;
     const banner = generateBanner(header, {
       align: script.align,
       autoMetaUrls: script.autoMetaUrls,
@@ -214,19 +250,17 @@ export function applyUserscriptBundle(
     let nextCode = `${prefix}${code}`;
 
     if (item.map) {
+      const wrapOffset = isAlreadyIife(stripSourceMappingUrl(body)) ? 0 : 1;
+      const lineOffset = countBannerLines(prefix)
+        + countBannerLines(cssPrelude)
+        + wrapOffset
+        + countBannerLines(inlined);
       item.map = stripVendorSourcesContent(offsetSourceMap(
         item.map,
-        countBannerLines(prefix),
+        lineOffset,
         nextFileName,
       ));
-      const mapUrl = toInlineSourceMappingUrl(item.map);
-      nextCode = nextCode.replace(
-        /\/\/[#@]\s*sourceMappingURL=\S+/g,
-        `//# sourceMappingURL=${mapUrl}`,
-      );
-      if (!nextCode.includes("sourceMappingURL=")) {
-        nextCode += `\n//# sourceMappingURL=${mapUrl}\n`;
-      }
+      nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, "\n")}//# sourceMappingURL=${toInlineSourceMappingUrl(item.map)}\n`;
       leftoverAssets.push(`${fileName}.map`);
     }
 

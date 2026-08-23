@@ -69,10 +69,8 @@ export default function UserscriptPlugin(
             rolldownOptions: {
               input,
               output: {
-                format: resolved.scripts.length > 1 ? "es" : "iife",
-                extend: true,
+                format: "es",
                 entryFileNames: "[name].js",
-                name: "userscript",
               },
             },
           },

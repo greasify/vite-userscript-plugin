@@ -109,7 +109,7 @@ Imported images and `url()` in CSS are inlined. Do not use `public/` — those U
 
 ### Production
 
-`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. If `build.sourcemap` is on, the map is inlined into `.user.js` as a `data:` `sourceMappingURL` so DevTools can decode it after the manager injects the script. A sibling `.map` file is not emitted. The inline map keeps `sourcesContent` for app sources only — `node_modules` and virtual modules are omitted.
+`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. The bundle is an IIFE so the manager can inject it as a classic script; top-level `await` becomes `(async function () { … })()`. If `build.sourcemap` is on, the map is inlined into `.user.js` as a `data:` `sourceMappingURL` so DevTools can decode it after the manager injects the script. A sibling `.map` file is not emitted. The inline map keeps `sourcesContent` for app sources only — `node_modules` and virtual modules are omitted — and its line offset includes the metablock and the CSS prelude.
 
 ## Options
 

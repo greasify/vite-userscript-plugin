@@ -116,6 +116,21 @@ it("ensureIife strips leftover imports before wrapping", () => {
   expect(wrapped).toContain("const value = name");
 });
 
+it("ensureIife uses an async IIFE when await is present", () => {
+  const wrapped = ensureIife("const value = await Promise.resolve(\"ok\");\n");
+
+  expect(wrapped.startsWith("(async function () {")).toBe(true);
+  expect(wrapped).toContain("await Promise.resolve");
+  expect(ensureIife(wrapped)).toBe(wrapped);
+});
+
+it("ensureIife strips sourceMappingURL before wrapping", () => {
+  const wrapped = ensureIife("const value = 1;\n//# sourceMappingURL=chunk.js.map\n");
+
+  expect(wrapped).toContain("const value = 1");
+  expect(wrapped).not.toContain("sourceMappingURL");
+});
+
 it("resolveBuildHeader adds GM_addStyle when CSS is inlined", () => {
   const header = resolveBuildHeader(
     {
