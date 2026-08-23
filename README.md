@@ -72,30 +72,29 @@ export default defineConfig({
 
 ### Multiple scripts
 
+Pass an array of the same config shape. There is no shared `header` and no `scripts` key.
+
 ```ts
-Userscript({
-  header: { author: "you" },
-  scripts: [
-    {
-      entry: "src/foo.ts",
-      fileName: "foo",
-      header: {
-        name: "Foo",
-        version: "1.0.0",
-        match: "https://a.com/*"
-      }
-    },
-    {
-      entry: "src/bar.ts",
-      fileName: "bar",
-      header: {
-        name: "Bar",
-        version: "1.0.0",
-        match: "https://b.com/*"
-      }
+Userscript([
+  {
+    entry: "src/foo.ts",
+    fileName: "foo",
+    header: {
+      name: "Foo",
+      version: "1.0.0",
+      match: "https://a.com/*"
     }
-  ]
-});
+  },
+  {
+    entry: "src/bar.ts",
+    fileName: "bar",
+    header: {
+      name: "Bar",
+      version: "1.0.0",
+      match: "https://b.com/*"
+    }
+  }
+]);
 ```
 
 ### Styles
@@ -110,15 +109,16 @@ Imported images and `url()` in CSS are inlined. Do not use `public/` — those U
 
 ### Production
 
-`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. If `build.sourcemap` is on, the map is inlined into `.user.js` as a `data:` `sourceMappingURL` so DevTools can decode it after the manager injects the script. A sibling `.map` file is not emitted.
+`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. Minify stays off unless you set `build.minify`. If `build.sourcemap` is on, the map is inlined into `.user.js` as a `data:` `sourceMappingURL` so DevTools can decode it after the manager injects the script. A sibling `.map` file is not emitted. The inline map keeps `sourcesContent` for app sources only — `node_modules` and virtual modules are omitted.
 
 ## Options
 
+`Userscript(config)` or `Userscript([config, config, …])`. Each object is a full script — options are not shared across the array.
+
 | Option | Default | Description |
 | --- | --- | --- |
-| `entry` | — | Single-script entry. Mutually exclusive with `scripts`. |
-| `scripts` | — | Multiple userscripts from one Vite config. Mutually exclusive with `entry`. |
-| `header` | — | Metablock fields. Required `name`, `version`, `match` on each script. With `scripts`, this object is the default merge source. |
+| `entry` | — | Userscript entry. Required on every config. |
+| `header` | — | Metablock fields. Required `name`, `version`, `match`. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the `.dev.user.js` install URL when Vite starts. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. Set `false` to disable. |
@@ -200,7 +200,7 @@ Serve injects `type="module"`, which is async. Production output is a synchronou
 | `*.proxy.user.js` + `file://` | `*.dev.user.js` from the Vite server |
 | Vite 3–7 | Vite 8 |
 
-`entry` + `header` still works as sugar for a single script.
+`entry` + `header` is one script. Pass an array of that shape for multiple scripts. The `scripts` key and a shared default `header` are gone.
 
 ## Examples
 

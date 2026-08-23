@@ -179,25 +179,6 @@ export type HeaderConfig = {
   "unwrap"?: boolean;
 };
 
-export interface ScriptOptions {
-  /**
-   * Path of userscript entry.
-   */
-  entry: string;
-
-  /**
-   * Output base name (`{fileName}.user.js`).
-   *
-   * @default sanitized `header.name`
-   */
-  fileName?: string;
-
-  /**
-   * Userscript header for this entry.
-   */
-  header: HeaderConfig;
-}
-
 export interface ServerConfig {
   /**
    * Open the `.dev.user.js` install URL when the Vite server starts.
@@ -227,7 +208,27 @@ export type CssInject
     | string
     | ((css: string) => void);
 
-type UserscriptSharedConfig = {
+/**
+ * One userscript. Pass an object, or an array of these, to {@link UserscriptPluginConfig}.
+ */
+export interface UserscriptConfig {
+  /**
+   * Path of the userscript entry.
+   */
+  entry: string;
+
+  /**
+   * Output base name (`{fileName}.user.js`).
+   *
+   * @default sanitized `header.name`
+   */
+  fileName?: string;
+
+  /**
+   * Userscript header (`name`, `version`, `match` required).
+   */
+  header: HeaderConfig;
+
   /**
    * Serve-mode options.
    */
@@ -269,61 +270,15 @@ type UserscriptSharedConfig = {
    * @default true
    */
   metaFile?: boolean;
-};
+}
 
-/**
- * Single-script sugar. Mutually exclusive with {@link UserscriptScriptsConfig}.
- */
-export type UserscriptEntryConfig = UserscriptSharedConfig & {
-  /**
-   * Path of the userscript entry.
-   */
-  entry: string;
-
-  /**
-   * Output base name (`{fileName}.user.js`).
-   *
-   * @default sanitized `header.name`
-   */
-  fileName?: string;
-
-  /**
-   * Userscript header (`name`, `version`, `match` required).
-   */
-  header: HeaderConfig;
-
-  scripts?: never;
-};
-
-/**
- * Multiple userscripts from one Vite config. Mutually exclusive with {@link UserscriptEntryConfig}.
- */
-export type UserscriptScriptsConfig = UserscriptSharedConfig & {
-  /**
-   * Userscripts to serve and build. At least one entry is required.
-   */
-  scripts: [ScriptOptions, ...ScriptOptions[]];
-
-  /**
-   * Default header fields merged into every script.
-   */
-  header?: Partial<HeaderConfig>;
-
-  entry?: never;
-  fileName?: never;
-};
-
-export type UserscriptPluginConfig = UserscriptEntryConfig | UserscriptScriptsConfig;
+export type UserscriptPluginConfig = UserscriptConfig | UserscriptConfig[];
 
 export interface ResolvedScript {
   entry: string;
   fileName: string;
   iifeName: string;
   header: HeaderConfig;
-}
-
-export interface ResolvedPluginConfig {
-  scripts: ResolvedScript[];
   server: {
     open: boolean;
     prefix: string | false;
@@ -333,4 +288,8 @@ export interface ResolvedPluginConfig {
   generate?: (ctx: BannerGenerateContext) => string;
   autoMetaUrls: boolean;
   metaFile: boolean;
+}
+
+export interface ResolvedPluginConfig {
+  scripts: ResolvedScript[];
 }

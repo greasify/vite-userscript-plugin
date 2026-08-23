@@ -10,6 +10,7 @@ import { defineGrants, removeDuplicates } from "./grants.js";
 import {
   countBannerLines,
   offsetSourceMap,
+  stripVendorSourcesContent,
   toInlineSourceMappingUrl,
 } from "./sourcemap.js";
 
@@ -195,17 +196,17 @@ export function applyUserscriptBundle(
     leftoverAssets.push(...cssFiles);
 
     let code = ensureIife(`${inlined}${item.code}`);
-    const extraGrants = css && config.cssInject === "auto" ? (["GM_addStyle"] as const) : [];
+    const extraGrants = css && script.cssInject === "auto" ? (["GM_addStyle"] as const) : [];
     const header = resolveBuildHeader(script.header, code, extraGrants);
 
     if (css) {
-      code = `${createCssInject(css, config.cssInject)}${code}`;
+      code = `${createCssInject(css, script.cssInject)}${code}`;
     }
     const banner = generateBanner(header, {
-      align: config.align,
-      autoMetaUrls: config.autoMetaUrls,
+      align: script.align,
+      autoMetaUrls: script.autoMetaUrls,
       fileName: script.fileName,
-      generate: config.generate,
+      generate: script.generate,
       mode: "build",
     });
     const prefix = `${banner}\n\n`;
@@ -213,11 +214,11 @@ export function applyUserscriptBundle(
     let nextCode = `${prefix}${code}`;
 
     if (item.map) {
-      item.map = offsetSourceMap(
+      item.map = stripVendorSourcesContent(offsetSourceMap(
         item.map,
         countBannerLines(prefix),
         nextFileName,
-      );
+      ));
       const mapUrl = toInlineSourceMappingUrl(item.map);
       nextCode = nextCode.replace(
         /\/\/[#@]\s*sourceMappingURL=\S+/g,
@@ -232,14 +233,14 @@ export function applyUserscriptBundle(
     item.code = nextCode;
     item.fileName = nextFileName;
 
-    if (config.metaFile) {
+    if (script.metaFile) {
       emitMeta(
         `${script.fileName}.meta.js`,
         generateBanner(header, {
-          align: config.align,
-          autoMetaUrls: config.autoMetaUrls,
+          align: script.align,
+          autoMetaUrls: script.autoMetaUrls,
           fileName: script.fileName,
-          generate: config.generate,
+          generate: script.generate,
           mode: "meta",
         }),
       );

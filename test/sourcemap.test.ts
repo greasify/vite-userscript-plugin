@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { expect, it } from "vitest";
 
-import { countBannerLines, offsetSourceMap, toInlineSourceMappingUrl } from "../src/sourcemap.js";
+import { countBannerLines, offsetSourceMap, stripVendorSourcesContent, toInlineSourceMappingUrl } from "../src/sourcemap.js";
 
 it("countBannerLines counts prepended banner lines", () => {
   const prefix = "// ==UserScript==\n// @name x\n// ==/UserScript==\n\n";
@@ -24,6 +24,32 @@ it("offsetSourceMap prepends empty generated lines", () => {
 
   expect(map.file).toBe("app.user.js");
   expect(map.mappings).toBe(";;;;AAAA");
+});
+
+it("stripVendorSourcesContent keeps app sources and drops vendor text", () => {
+  const map = stripVendorSourcesContent({
+    version: 3,
+    mappings: "AAAA",
+    sources: [
+      "../src/main.ts",
+      "../node_modules/vue/dist/vue.runtime.esm-bundler.js",
+      "\0plugin-vue:export-helper",
+      "virtual:userscript",
+    ],
+    sourcesContent: [
+      "createApp(App)",
+      "export function createApp() {}",
+      "export default {}",
+      "virtual module",
+    ],
+  });
+
+  expect(map.sourcesContent).toEqual([
+    "createApp(App)",
+    null,
+    null,
+    null,
+  ]);
 });
 
 it("toInlineSourceMappingUrl encodes the map as a data URL", () => {

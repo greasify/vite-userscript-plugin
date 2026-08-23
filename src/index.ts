@@ -31,11 +31,9 @@ export type {
   CssInject,
   HeaderConfig,
   ResolvedScript,
-  ScriptOptions,
   ServerConfig,
-  UserscriptEntryConfig,
+  UserscriptConfig,
   UserscriptPluginConfig,
-  UserscriptScriptsConfig,
 } from "./types.js";
 
 function resolveServerOrigin(urls?: { local: string[]; network: string[] } | null): string {
@@ -127,7 +125,7 @@ export default function UserscriptPlugin(
           }
 
           const origin = resolveServerOrigin(server.resolvedUrls);
-          const body = createDevUserscript(resolved, {
+          const body = createDevUserscript({
             origin,
             root: server.config.root,
             script,
@@ -175,13 +173,14 @@ export default function UserscriptPlugin(
         };
 
         server.httpServer?.once("listening", () => {
-          if (!resolved.server.open) {
+          const toOpen = resolved.scripts.filter(script => script.server.open);
+          if (!toOpen.length) {
             return;
           }
 
           queueMicrotask(() => {
             const origin = resolveServerOrigin(server.resolvedUrls);
-            for (const script of resolved.scripts) {
+            for (const script of toOpen) {
               void openLink(toInstallUrl(origin, script.fileName));
             }
           });

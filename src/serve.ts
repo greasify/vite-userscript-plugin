@@ -2,7 +2,6 @@ import type { Logger } from "vite";
 import type { BannerOptions } from "./banner.js";
 import type {
   HeaderConfig,
-  ResolvedPluginConfig,
   ResolvedScript,
 } from "./types.js";
 
@@ -226,24 +225,21 @@ export function findDevScript(
   return scripts.find(script => matchDevUserscript(url, script.fileName));
 }
 
-export function createDevUserscript(
-  config: ResolvedPluginConfig,
-  options: {
-    origin: string;
-    root: string;
-    script: ResolvedScript;
-    reactPreamble?: boolean;
-  },
-): string {
+export function createDevUserscript(options: {
+  origin: string;
+  root: string;
+  script: ResolvedScript;
+  reactPreamble?: boolean;
+}): string {
   return generateDevUserscript({
     script: options.script,
     origin: options.origin,
     root: options.root,
-    prefix: config.server.prefix,
+    prefix: options.script.server.prefix,
     banner: {
-      align: config.align,
-      autoMetaUrls: config.autoMetaUrls,
-      generate: config.generate,
+      align: options.script.align,
+      autoMetaUrls: options.script.autoMetaUrls,
+      generate: options.script.generate,
     },
     reactPreamble: options.reactPreamble,
   });

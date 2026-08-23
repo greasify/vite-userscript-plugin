@@ -1,1 +1,3 @@
-export const label = (name: string) => `shared:${name}`;
+export function label(name: string) {
+  return `shared:${name}`;
+}

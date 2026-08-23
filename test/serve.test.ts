@@ -111,7 +111,7 @@ it("createDevUserscript writes a banner and wrapper", () => {
     },
   });
 
-  const userscript = createDevUserscript(config, {
+  const userscript = createDevUserscript({
     origin: "http://localhost:5173",
     root: "/proj",
     script: {

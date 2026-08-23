@@ -4,6 +4,10 @@ import Userscript from "vite-userscript-plugin";
 import pkg from "./package.json" with { type: "json" };
 
 export default defineConfig({
+  build: {
+    minify: true,
+    sourcemap: true,
+  },
   plugins: [
     vue(),
     Userscript({

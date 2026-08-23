@@ -32,6 +32,27 @@ export function offsetSourceMap<T extends { mappings: string; file?: string }>(
   };
 }
 
+export function isAppSource(source: string): boolean {
+  return !source.includes("node_modules")
+    && !source.includes("\0")
+    && !source.startsWith("virtual:");
+}
+
+export function stripVendorSourcesContent<T extends {
+  mappings: string;
+  sources?: (string | null)[];
+  sourcesContent?: (string | null)[];
+}>(map: T): T {
+  const sources = map.sources ?? [];
+
+  return {
+    ...map,
+    sourcesContent: sources.map((source, index) => (
+      isAppSource(source ?? "") ? map.sourcesContent?.[index] ?? null : null
+    )),
+  };
+}
+
 export function toInlineSourceMappingUrl(map: unknown): string {
   const encoded = Buffer.from(JSON.stringify(map)).toString("base64");
   return `data:application/json;charset=utf-8;base64,${encoded}`;

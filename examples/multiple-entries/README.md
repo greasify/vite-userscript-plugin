@@ -1,6 +1,6 @@
 # Multiple entries example
 
-Two userscripts from one Vite config (`scripts[]`), each with its own header.
+Two userscripts from one Vite config: pass an array of configs, each with its own `entry` and `header`.
 
 ```bash
 pnpm dev

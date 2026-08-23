@@ -113,6 +113,7 @@ function parseInlineSourceMap(userscript: string) {
     file?: string;
     mappings: string;
     sources: string[];
+    sourcesContent?: (string | null)[];
   };
 }
 
@@ -142,28 +143,26 @@ it("sourcemap is inlined into the userscript", async () => {
 });
 
 it("multiple entries emit two userscripts", async () => {
-  const outDir = await buildFixture("multi", {
-    scripts: [
-      {
-        entry: "src/foo.ts",
-        fileName: "foo",
-        header: {
-          name: "Foo",
-          version: "1.0.0",
-          match: "https://foo.example/*",
-        },
+  const outDir = await buildFixture("multi", [
+    {
+      entry: "src/foo.ts",
+      fileName: "foo",
+      header: {
+        name: "Foo",
+        version: "1.0.0",
+        match: "https://foo.example/*",
       },
-      {
-        entry: "src/bar.ts",
-        fileName: "bar",
-        header: {
-          name: "Bar",
-          version: "1.0.0",
-          match: "https://bar.example/*",
-        },
+    },
+    {
+      entry: "src/bar.ts",
+      fileName: "bar",
+      header: {
+        name: "Bar",
+        version: "1.0.0",
+        match: "https://bar.example/*",
       },
-    ],
-  });
+    },
+  ]);
 
   const foo = await readOut(outDir, "foo.user.js");
   const bar = await readOut(outDir, "bar.user.js");
@@ -230,6 +229,43 @@ it("imported images are inlined as data URLs", async () => {
   const userscript = await readOut(outDir, "asset.user.js");
   expect(userscript).toContain("data:image/png");
   expect(userscript).not.toMatch(/\/assets\/.+\.png/);
+});
+
+it("vue sourcemap keeps app sourcesContent and drops node_modules", async () => {
+  const outDir = await buildFixture(
+    "vue",
+    {
+      entry: "src/main.ts",
+      fileName: "vue",
+      header: {
+        name: "Vue",
+        version: "1.0.0",
+        match: "https://example.com/*",
+      },
+    },
+    { plugins: [vue()], sourcemap: true },
+  );
+
+  const map = parseInlineSourceMap(await readOut(outDir, "vue.user.js"));
+  const contents = map.sourcesContent ?? [];
+
+  expect(map.sources.some(source => source.includes("node_modules"))).toBe(true);
+  expect(contents).toHaveLength(map.sources.length);
+
+  for (const [index, source] of map.sources.entries()) {
+    if (source.includes("node_modules") || source.includes("\0") || source.startsWith("virtual:")) {
+      expect(contents[index]).toBeNull();
+    }
+  }
+
+  const appSources = map.sources.flatMap((source, index) => (
+    source.includes("main") || source.includes(".vue")
+      ? [{ source, content: contents[index] }]
+      : []
+  ));
+
+  expect(appSources.length).toBeGreaterThan(0);
+  expect(appSources.every(({ content }) => typeof content === "string" && content.length > 0)).toBe(true);
 });
 
 it("vue SFC styles are inlined", async () => {
