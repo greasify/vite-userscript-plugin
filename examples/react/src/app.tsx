@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+console.log(await GM.getTab())
+
 export function App() {
   const [count, setCount] = useState(0)
 

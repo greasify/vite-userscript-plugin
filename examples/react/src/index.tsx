@@ -1,6 +1,10 @@
 import { createRoot } from 'react-dom/client'
 
-import { App } from './app.js'
+import { App } from './app'
 import './style.css'
 
-createRoot(document.body).render(<App />)
+if (document.body) {
+  const root = document.createElement('div')
+  document.body.append(root)
+  createRoot(root).render(<App />)
+}

@@ -1,6 +1,5 @@
 {
   "js/ts.tsdk.path": "./node_modules/typescript/lib",
-  "js/ts.preferences.importModuleSpecifierEnding": "index",
 
   // ESLint in the extension host sees Cursor's bundled TS 7 and dies.
   // Run the language server in Node so require('typescript') is the 6.x shim.

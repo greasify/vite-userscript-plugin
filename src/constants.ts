@@ -49,6 +49,7 @@ export const GMwindow = [
   'window.close',
 ] as const
 
+// Official GM.* names use different camelCase than GM_* (`xmlHttpRequest` vs `xmlhttpRequest`).
 export const GM_DOT_ALIASES = [
   'GM.xmlHttpRequest',
   'GM.getResourceUrl',

@@ -1,4 +1,4 @@
-import { createCounter } from './counter.js'
+import { createCounter } from './counter'
 import './style.css'
 
 if (document.body) {
