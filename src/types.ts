@@ -1,4 +1,6 @@
-import type { GM, GM_DOT_ALIASES, GMwindow } from './constants.js'
+import type { Grants } from './grants/types.js'
+
+export type { GMDotAlias, GMLiterals, GMWindow, Grants } from './grants/types.js'
 
 export type RunAt
   = | 'document-start'
@@ -6,11 +8,6 @@ export type RunAt
     | 'document-end'
     | 'document-idle'
     | 'context-menu'
-
-export type GMLiterals<T extends string> = [`GM_${T}` | `GM.${T}`]
-export type GMWindow = (typeof GMwindow)[number]
-export type GMDotAlias = (typeof GM_DOT_ALIASES)[number]
-export type Grants = GMWindow | GMLiterals<(typeof GM)[number]>[number] | GMDotAlias
 
 export type HeaderConfig = {
   [property: string]: any

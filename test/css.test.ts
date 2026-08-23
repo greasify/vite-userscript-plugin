@@ -1,10 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { createCssInject, escapeCssForTemplate } from '../src/css.js'
-
-it('escapeCssForTemplate escapes backticks, interpolations and slashes', () => {
-  expect(escapeCssForTemplate('a`b${c}\\d')).toBe('a\\`b\\${c}\\\\d')
-})
+import { createCssInject } from '../src/build/css.js'
 
 it('createCssInject embeds CSS via JSON and uses the auto injector', () => {
   const css = 'body { content: "`${oops}`" }'

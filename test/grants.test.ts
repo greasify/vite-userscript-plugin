@@ -1,8 +1,8 @@
 import type { Grants } from '../src/types.js'
 
 import { expect, it } from 'vitest'
-import { ensureIife, resolveBuildHeader, stripImports } from '../src/build.js'
-import { defineGrants, removeDuplicates } from '../src/grants.js'
+import { ensureIife, stripImports } from '../src/build/iife.js'
+import { defineGrants, removeDuplicates, resolveBuildHeader } from '../src/grants/index.js'
 
 it('defineGrants snapshot', () => {
   const code = `(function(){"use strict";function e(){const t=document.createElement("button");return t.textContent="Button",t.addEventListener("click",()=>{GM_notification({text:"Hello"})}),t}document.querySelector("div").appendChild(e()),console.log(GM_info),GM_addStyle("button{border:none;background-color:tomato;padding:1rem;font-size:1rem;font-weight:600;border-radius:1rem}")})();`

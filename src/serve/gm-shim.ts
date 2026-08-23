@@ -1,9 +1,10 @@
-import { GM_NAMESPACE, gmIdentifiers } from './constants.js'
+import { GM_NAMESPACE } from '../constants.js'
+import { gmIdentifiers } from '../grants/catalog.js'
 import {
   countHeaderLines,
   identitySourceMap,
   offsetSourceMap,
-} from './sourcemap.js'
+} from '../sourcemap.js'
 
 export function shouldShimModule(id: string): boolean {
   const cleanId = id.split('\0').pop() ?? id

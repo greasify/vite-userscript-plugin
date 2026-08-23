@@ -1,5 +1,6 @@
 import type { Grants } from './types.js'
-import { grants } from './constants.js'
+
+import { grants } from './catalog.js'
 
 const grantMatchers = grants.map(grant => ({
   grant,

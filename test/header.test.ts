@@ -1,7 +1,7 @@
 import type { HeaderConfig } from '../src/types.js'
 
 import { expect, it } from 'vitest'
-import { grants } from '../src/constants.js'
+import { grants } from '../src/grants/catalog.js'
 import {
   generateHeader,
   Header,

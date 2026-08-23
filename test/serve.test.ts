@@ -21,7 +21,7 @@ import {
   stripAnsi,
   toInstallUrl,
   toServeEntryPath,
-} from '../src/serve.js'
+} from '../src/serve/index.js'
 
 it('matchDevUserscript matches install path', () => {
   expect(matchDevUserscript('/foo.dev.user.js', 'foo')).toBe(true)

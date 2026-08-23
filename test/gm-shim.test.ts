@@ -5,7 +5,7 @@ import {
   createGmShimPrelude,
   shimModule,
   shouldShimModule,
-} from '../src/gm-shim.js'
+} from '../src/serve/gm-shim.js'
 import { countHeaderLines } from '../src/sourcemap.js'
 
 it('shouldShimModule accepts user JS and framework script modules', () => {
