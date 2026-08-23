@@ -4,16 +4,16 @@
 [![license](https://img.shields.io/github/license/crashmax-dev/vite-userscript-plugin)](./LICENCE)
 [![template](https://img.shields.io/github/package-json/v/crashmax-dev/vite-userscript-template?label=vite-userscript-template)](https://github.com/crashmax-dev/vite-userscript-template)
 
-> A Vite 8 plugin for developing and building Tampermonkey / Violentmonkey / Greasemonkey userscripts.
+> A Vite 8 plugin for developing and building Tampermonkey, Greasemonkey and Violentmonkey userscripts.
 
 ## Features
 
 - 🔥 Vite HMR
 - 🎨 CSS from imports and SFC `<style>`
 - 🔧 Configure Userscript header
-- 💨 All `@grant`s in the header during `vite` / `vite serve`
-- 📝 Used `@grant`s only in the production build
-- 📦 Built-in types for Tampermonkey / Violentmonkey / Greasemonkey
+- 💨 All `@grant`s in the header in dev mode
+- 📝 Only used `@grant`s in the production build
+- 📦 Built-in types for Tampermonkey, Greasemonkey and Violentmonkey
 
 ## Install
 
@@ -58,6 +58,10 @@ export default defineConfig({
 }
 ```
 
+## Types
+
+Vendored `GM_*` / `GM.*` declarations ship with the plugin. Pick **one** manager — do not mix the three `.d.ts` files.
+
 ```json
 {
   "compilerOptions": {
@@ -68,7 +72,31 @@ export default defineConfig({
 }
 ```
 
-Manager typings: [types/README.md](./types/README.md).
+Or a triple-slash reference (what the examples use in `src/vite-env.d.ts`):
+
+```ts
+/// <reference types="vite-userscript-plugin/types/tampermonkey" />
+```
+
+Replace `tampermonkey` with `greasemonkey` or `violentmonkey` as needed. The APIs are not the same.
+
+Tampermonkey (`GM_*`, sync):
+
+```ts
+const visits = GM_getValue('visits', 0)
+GM_setValue('visits', visits + 1)
+
+console.log(GM_info.script.name, visits)
+```
+
+Greasemonkey (`GM.*`, Promise-based):
+
+```ts
+const visits = await GM.getValue('visits', 0)
+await GM.setValue('visits', visits + 1)
+```
+
+Those identifiers are what the production grant scanner looks for. Sync details: [types/README.md](./types/README.md).
 
 ## Development
 
