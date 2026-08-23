@@ -1,6 +1,7 @@
 import type { Grants } from "./types.js";
 
 export const pluginName = "vite-userscript-plugin";
+export const FAQ_URL = "https://github.com/crashmax-dev/vite-userscript-plugin#faq";
 export const GM_NAMESPACE = "__viteUserscriptGM__";
 export const VITE_CLIENT_FLAG = "__viteUserscriptViteClient__";
 export const REACT_PREAMBLE_PATH = `/${pluginName}/react-preamble.js`;

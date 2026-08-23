@@ -10,6 +10,7 @@ import { posix, relative, resolve, sep } from "node:path";
 import { styleText } from "node:util";
 import { generateBanner } from "./banner.js";
 import {
+  FAQ_URL,
   GM_NAMESPACE,
   gmIdentifiers,
   grants,
@@ -43,6 +44,13 @@ export function formatInstallLine(installUrl: string): string {
   );
 
   return `  ${styleText("green", "➜")}  ${styleText("bold", "Userscript")}: ${coloredUrl}`;
+}
+
+export function formatFaqHint(): string {
+  const label = `  ${styleText("green", "➜")}  ${styleText("bold", "FAQ")}: `;
+  const link = styleText("cyan", FAQ_URL);
+
+  return `${label}${link}\n`;
 }
 
 export function stripAnsi(text: string): string {

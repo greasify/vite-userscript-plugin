@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { GM_NAMESPACE, REACT_BOOTSTRAP_PATH, REACT_PREAMBLE_PATH, VITE_CLIENT_FLAG } from "../src/constants.js";
+import { FAQ_URL, GM_NAMESPACE, REACT_BOOTSTRAP_PATH, REACT_PREAMBLE_PATH, VITE_CLIENT_FLAG } from "../src/constants.js";
 import { resolvePluginConfig } from "../src/resolve.js";
 import {
   applyServeHeader,
@@ -9,6 +9,7 @@ import {
   createReactBootstrapModule,
   createReactPreambleModule,
   DEV_SCRIPT_HEADERS,
+  formatFaqHint,
   formatInstallLine,
   generateDevWrapper,
   hasReactRefreshPlugin,
@@ -145,6 +146,14 @@ it("formatInstallLine prints an OpenAPI-style install line", () => {
   expect(plain).toContain("Userscript");
   expect(plain).toContain("http://localhost:5173/demo.dev.user.js");
   expect(plain).toMatch(/^\s+➜\s+Userscript:/);
+});
+
+it("formatFaqHint prints a FAQ block with the README URL", () => {
+  const plain = stripAnsi(formatFaqHint());
+
+  expect(plain).toContain("FAQ");
+  expect(plain).toContain("#faq");
+  expect(plain).toContain(FAQ_URL);
 });
 
 it("isViteLocalUrlLine matches Vite Local lines with ANSI", () => {

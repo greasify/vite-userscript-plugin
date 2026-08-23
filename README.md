@@ -122,13 +122,34 @@ The host page can block Vite modules from `localhost`. Use a CSP-disable extensi
 
 ### HTTPS site, HTTP Vite — mixed content
 
-`https://example.com` will not load `http://localhost:5173/@vite/client` or `ws://`. Disable-CSP does not help. Enable Vite HTTPS:
+`https://example.com` will not load `http://localhost:5173/@vite/client` or `ws://`. Disable-CSP does not help. Serve Vite over HTTPS.
+
+Easiest: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) (trusted local CA). Put it before `Userscript()`:
 
 ```ts
+import mkcert from "vite-plugin-mkcert";
+import Userscript from "vite-userscript-plugin";
+
+export default defineConfig({
+  plugins: [
+    mkcert(),
+    Userscript({
+      // ...
+    })
+  ]
+});
+```
+
+Or pass your own cert to `server.https`:
+
+```ts
+import { readFileSync } from "node:fs";
+
 export default defineConfig({
   server: {
     https: {
-      // mkcert files
+      key: readFileSync("./localhost-key.pem"),
+      cert: readFileSync("./localhost.pem")
     }
   }
 });
@@ -159,7 +180,7 @@ Serve injects `type="module"`, which is async. Production output is a synchronou
 | `server.port` | `server.port` in Vite config |
 | minify on production by default | minify off; set `build.minify` |
 | `*.proxy.user.js` + `file://` | `*.dev.user.js` from the Vite server |
-| Vite 3–5 | Vite 8 |
+| Vite 3–7 | Vite 8 |
 
 `entry` + `header` still works as sugar for a single script.
 

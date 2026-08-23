@@ -16,6 +16,7 @@ import {
   createReactPreambleModule,
   DEV_SCRIPT_HEADERS,
   findDevScript,
+  formatFaqHint,
   formatInstallLine,
   hasReactRefreshPlugin,
   matchReactBootstrap,
@@ -156,6 +157,7 @@ export default function UserscriptPlugin(
                 info(formatInstallLine(toInstallUrl(origin, script.fileName)));
               }
             }
+            info(formatFaqHint());
           };
 
           const logger = createAfterLocalLogger(
