@@ -8,6 +8,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v7
@@ -22,7 +25,4 @@ jobs:
       - run: pnpm build
 
       - name: Publish
-        shell: bash
-        run: |
-          echo "//registry.npmjs.org/:_authToken="${{ secrets.NPM_TOKEN }}"" > ~/.npmrc
-          pnpm publish --access public
+        run: pnpm publish --access public
