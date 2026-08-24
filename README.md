@@ -173,10 +173,6 @@ In serve mode the header lists every grant. In production the plugin scans the b
 > [!WARNING]
 > `https://example.com` will not load `http://localhost:5173`. Serve Vite over HTTPS: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) before `userscript()`, or `server.https`.
 
-### Old `file://` proxy scripts
-
-v1 used `{name}.proxy.user.js` and `file://`. Remove those and install `{name}.dev.user.js` from the URL `vite` prints.
-
 ### `public/` assets 404 on the target site
 
 > [!NOTE]
