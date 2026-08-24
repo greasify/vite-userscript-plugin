@@ -1,7 +1,8 @@
-import { createButton } from './button.js'
-import style from './style.scss?raw'
+import { createCounter } from './counter'
+import './style.scss'
 
-GM_addStyle(style)
+await new Promise(resolve => setTimeout(resolve, 1))
 
-const div = document.querySelector('div')!
-div.appendChild(createButton())
+if (document.body) {
+  document.body.append(createCounter())
+}

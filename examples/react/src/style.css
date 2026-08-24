@@ -1,0 +1,8 @@
+.react-userscript {
+  border-top: 1px solid black;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}

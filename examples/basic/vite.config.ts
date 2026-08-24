@@ -1,26 +1,16 @@
 import { defineConfig } from 'vite'
-import Userscript from 'vite-userscript-plugin'
+import userscript from 'vite-userscript-plugin'
+import pkg from './package.json' with { type: 'json' }
 
-import { name, version } from './package.json'
-
-export default defineConfig((config) => {
-  return {
-    plugins: [
-      Userscript({
-        entry: 'src/index.ts',
-        header: {
-          name,
-          version,
-          match: 'https://example.com/'
-        },
-        server: {
-          port: 2000
-        },
-        esbuildTransformOptions: {
-          minify: false
-        }
-      })
-
-    ]
-  }
+export default defineConfig({
+  plugins: [
+    userscript({
+      entry: 'src/index.ts',
+      header: {
+        name: pkg.name,
+        version: pkg.version,
+        match: 'https://example.com/',
+      },
+    }),
+  ],
 })

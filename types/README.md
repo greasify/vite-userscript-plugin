@@ -4,18 +4,32 @@
 [![greasemonkey](https://img.shields.io/npm/v/@types/greasemonkey?label=%40types%2Fgreasemonkey)](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/greasemonkey)
 [![violentmonkey](https://img.shields.io/npm/v/@violentmonkey/types?label=%40violentmonkey%2Ftypes)](https://github.com/violentmonkey/types)
 
-> Type declaration for `GM_*`, `GM.*` APIs in Tampermonkey, Greasemonkey and Violentmonkey.
+Vendored `GM_*` / `GM.*` declarations for Tampermonkey, Greasemonkey and Violentmonkey. Pick one manager — do not mix them in the same project.
 
-## Installation
+Synced versions are recorded in [sources.json](./sources.json).
 
-```sh
-npm install --save @types/tampermonkey
+## Usage
+
+```json
+{
+  "compilerOptions": {
+    "types": [
+      "vite-userscript-plugin/types/tampermonkey"
+    ]
+  }
+}
 ```
 
-```sh
-npm install --save @types/greasemonkey
+```ts
+/// <reference types="vite-userscript-plugin/types/tampermonkey" />
 ```
 
+Replace `tampermonkey` with `greasemonkey` or `violentmonkey` as needed.
+
+## Sync
+
 ```sh
-npm install --save @violentmonkey/types
+pnpm sync-types
 ```
+
+Copies the latest official `index.d.ts` from npm into this folder. Violentmonkey package-refs (`chrome-types`, `@types/firefox-webext-browser`, …) are rewritten to the local [violentmonkey-ambient.d.ts](./violentmonkey-ambient.d.ts) stub so consumers do not need those packages.

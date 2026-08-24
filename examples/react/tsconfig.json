@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "paths": {
+      "vite-userscript-plugin": ["../../src/index.ts"]
+    },
+    "types": ["vite-userscript-plugin/types/tampermonkey"]
+  },
+  "include": ["src/**/*", "vite.config.ts"]
+}

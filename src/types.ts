@@ -1,24 +1,13 @@
-import type { EsbuildTransformOptions } from 'vite'
+import type { Grants } from './grants/types.js'
 
-import { GM, GMwindow } from './constants.js'
+export type { GMDotAlias, GMLiterals, GMWindow, Grants } from './grants/types.js'
 
-export interface Transform {
-  minify: boolean
-  file: string
-  name: string
-  loader: 'js' | 'css'
-}
-
-export type RunAt =
-  | 'document-start'
-  | 'document-body'
-  | 'document-end'
-  | 'document-idle'
-  | 'context-menu'
-
-export type GMLiterals<T extends string> = [`GM_${T}` | `GM.${T}`]
-export type GMWindow = (typeof GMwindow)[number]
-export type Grants = GMWindow | GMLiterals<(typeof GM)[number]>[number]
+export type RunAt
+  = | 'document-start'
+    | 'document-body'
+    | 'document-end'
+    | 'document-idle'
+    | 'context-menu'
 
 export type HeaderConfig = {
   [property: string]: any
@@ -26,108 +15,110 @@ export type HeaderConfig = {
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:name
    */
-  name: string
+  'name': string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:namespace
    */
-  namespace?: string
+  'namespace'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:copyright
    */
-  copyright?: string
+  'copyright'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:version
    */
-  version: string
+  'version': string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:description
    */
-  description?: string
+  'description'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:icon
    */
-  icon?: string
+  'icon'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:icon
    */
-  iconURL?: string
+  'iconURL'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:icon
    */
-  defaulticon?: string
+  'defaulticon'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:icon64
    */
-  icon64?: string
+  'icon64'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:icon64
    */
-  icon64URL?: string
+  'icon64URL'?: string
 
   /**
+   * `@grant none` disables GM APIs. Do not mix with auto-detected grants.
+   *
    * @see https://www.tampermonkey.net/documentation.php#meta:grant
    */
-  grant?: Grants[]
+  'grant'?: Grants[] | 'none'
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:author
    */
-  author?: string
+  'author'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
-  homepage?: string
+  'homepage'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
-  homepageURL?: string
+  'homepageURL'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
-  website?: string
+  'website'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
-  source?: string
+  'source'?: string
 
   /**
-   * @see https://www.tampermonkey.net/documentation.phpmeta:antifeature
+   * @see https://www.tampermonkey.net/documentation.php#meta:antifeature
    */
-  antifeature?: [type: string, description: string][]
+  'antifeature'?: [type: string, description: string][]
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:require
    */
-  require?: string[] | string
+  'require'?: string[] | string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:resource
    */
-  resource?: [key: string, value: string][]
+  'resource'?: [key: string, value: string][]
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:include
    */
-  include?: string[] | string
+  'include'?: string[] | string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:match
    * @see https://violentmonkey.github.io/api/metadata-block/#match--exclude-match
    */
-  match: string[] | string
+  'match': string[] | string
 
   /**
    * @see https://violentmonkey.github.io/api/metadata-block/#match--exclude-match
@@ -137,7 +128,7 @@ export type HeaderConfig = {
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:exclude
    */
-  exclude?: string[] | string
+  'exclude'?: string[] | string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:run_at
@@ -145,94 +136,157 @@ export type HeaderConfig = {
   'run-at'?: RunAt
 
   /**
-   * @see https://www.tampermonkey.net/documentation.phpmeta:sandbox
+   * @see https://www.tampermonkey.net/documentation.php#meta:sandbox
    */
-  sandbox?: string
+  'sandbox'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:connect
    */
-  connect?: string[] | string
+  'connect'?: string[] | string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:noframes
    */
-  noframes?: boolean
+  'noframes'?: boolean
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:updateURL
    */
-  updateURL?: string
+  'updateURL'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:downloadURL
    */
-  downloadURL?: string
+  'downloadURL'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:supportURL
    */
-  supportURL?: string
+  'supportURL'?: string
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:webRequest
    */
-  webRequest?: string[]
+  'webRequest'?: string[]
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:unwrap
    */
-  unwrap?: boolean
+  'unwrap'?: boolean
 }
 
 export interface ServerConfig {
   /**
-   * {@link https://github.com/sindresorhus/get-port}
-   */
-  port?: number
-
-  /**
+   * Open the `.dev.user.js` install URL when the Vite server starts.
+   *
    * @default false
    */
   open?: boolean
+
+  /**
+   * Prefix applied to `@name` in serve mode.
+   * Set `false` to disable.
+   *
+   * @default 'server:'
+   */
+  prefix?: string | false
 }
 
-export interface UserscriptPluginConfig {
+export type HeaderMode = 'serve' | 'build' | 'meta'
+
+export interface HeaderGenerateContext {
+  userscript: string
+  mode: HeaderMode
+}
+
+export type CssInject
+  = | 'auto'
+    | string
+    | ((css: string) => void)
+
+/**
+ * One userscript. Pass an object, or an array of these, to {@link UserscriptPluginConfig}.
+ */
+export interface UserscriptConfig {
   /**
-   * Path of userscript entry.
+   * Path of the userscript entry.
    */
   entry: string
 
   /**
-   * Userscript file name.
+   * Output base name (`{fileName}.user.js`).
+   *
+   * @default sanitized `header.name`
    */
   fileName?: string
 
   /**
-   * Userscript header config.
-   *
-   * @see https://www.tampermonkey.net/documentation.php
+   * Userscript header (`name`, `version`, `match` required).
    */
   header: HeaderConfig
 
   /**
-   * Server config.
+   * Serve-mode options.
    */
   server?: ServerConfig
 
   /**
-   * Override default esbuild transform options.
+   * How to inject collected CSS in production builds.
    *
-   * @default
-   * ```json
-   * {
-   *   "minify": true,
-   *   "legalComments": "none"
-   * }
-   * ```
+   * @default 'auto'
    */
-  esbuildTransformOptions?: Omit<
-    EsbuildTransformOptions,
-    'format' | 'target' | 'loader' | 'sourcemap'
-  >
+  cssInject?: CssInject
+
+  /**
+   * Extra spaces after the longest `@key`, or `false` for a single space.
+   *
+   * @default 1
+   */
+  align?: number | false
+
+  /**
+   * Rewrite the generated metablock.
+   */
+  generate?: (ctx: HeaderGenerateContext) => string
+
+  /**
+   * Derive `updateURL` / `downloadURL` from `homepage`, `homepageURL`,
+   * `website`, or `source` when those fields are empty. Warns if no homepage
+   * alias is set, or if `metaFile` is `false` (`@updateURL` would point at a
+   * missing file).
+   *
+   * @default false
+   */
+  autoMetaUrls?: boolean
+
+  /**
+   * Emit `{fileName}.meta.js` alongside the userscript.
+   * Keep enabled when using `autoMetaUrls`, otherwise `@updateURL` 404s.
+   *
+   * @default true
+   */
+  metaFile?: boolean
+}
+
+export type UserscriptPluginConfig = UserscriptConfig | UserscriptConfig[]
+
+export interface ResolvedScript {
+  entry: string
+  fileName: string
+  iifeName: string
+  header: HeaderConfig
+  server: {
+    open: boolean
+    prefix: string | false
+  }
+  cssInject: CssInject
+  align: number | false
+  generate?: (ctx: HeaderGenerateContext) => string
+  autoMetaUrls: boolean
+  metaFile: boolean
+}
+
+export interface ResolvedPluginConfig {
+  scripts: ResolvedScript[]
 }

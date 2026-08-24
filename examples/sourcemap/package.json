@@ -1,0 +1,15 @@
+{
+  "name": "sourcemap-example",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "vite": "catalog:",
+    "vite-userscript-plugin": "workspace:*"
+  }
+}

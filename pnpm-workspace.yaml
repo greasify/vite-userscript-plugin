@@ -1,2 +1,14 @@
 packages:
   - 'examples/*'
+
+catalog:
+  vite: 8.2.2
+  vue: 3.5.41
+  '@vitejs/plugin-vue': 6.0.8
+  svelte: 5.56.10
+  '@sveltejs/vite-plugin-svelte': 7.3.0
+
+allowBuilds:
+  '@parcel/watcher': true
+  core-js: true
+  esbuild: true

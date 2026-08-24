@@ -1,0 +1,17 @@
+{
+  "name": "svelte-example",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "svelte": "catalog:",
+    "vite": "catalog:",
+    "vite-userscript-plugin": "workspace:*"
+  }
+}
