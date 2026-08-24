@@ -5,7 +5,7 @@ import type {
   UserscriptConfig,
   UserscriptPluginConfig,
 } from './types.js'
-import { pluginName } from './constants.js'
+import { PLUGIN_NAME } from './constants.js'
 import { resolveHomePage } from './header.js'
 import { sanitizeFileName, toIdentifier } from './names.js'
 
@@ -21,7 +21,7 @@ function assertHeader(header: Partial<HeaderConfig>, label: string): void {
   for (const field of ['name', 'version', 'match'] as const) {
     if (isEmptyHeaderField(header[field])) {
       throw new Error(
-        `[${pluginName}] ${label} is missing required header.${field}`,
+        `[${PLUGIN_NAME}] ${label} is missing required header.${field}`,
       )
     }
   }
@@ -29,7 +29,7 @@ function assertHeader(header: Partial<HeaderConfig>, label: string): void {
 
 function toResolvedScript(config: UserscriptConfig): ResolvedScript {
   if (!config.entry) {
-    throw new Error(`[${pluginName}] Provide an "entry" for each userscript`)
+    throw new Error(`[${PLUGIN_NAME}] Provide an "entry" for each userscript`)
   }
 
   assertHeader(config.header ?? {}, config.entry)
@@ -63,13 +63,13 @@ export function collectAutoMetaUrlsWarnings(config: ResolvedPluginConfig): strin
 
     if (!script.metaFile) {
       warnings.push(
-        `[${pluginName}] autoMetaUrls is enabled but metaFile is false for "${script.fileName}" — @updateURL points at a .meta.js that will not be emitted`,
+        `[${PLUGIN_NAME}] autoMetaUrls is enabled but metaFile is false for "${script.fileName}" — @updateURL points at a .meta.js that will not be emitted`,
       )
     }
 
     if (!resolveHomePage(script.header)) {
       warnings.push(
-        `[${pluginName}] autoMetaUrls is enabled but "${script.fileName}" has no homepage, homepageURL, website, or source`,
+        `[${PLUGIN_NAME}] autoMetaUrls is enabled but "${script.fileName}" has no homepage, homepageURL, website, or source`,
       )
     }
   }
@@ -81,7 +81,7 @@ export function resolvePluginConfig(config: UserscriptPluginConfig): ResolvedPlu
   const items = Array.isArray(config) ? config : [config]
 
   if (!items.length) {
-    throw new Error(`[${pluginName}] Provide a userscript config or a non-empty array`)
+    throw new Error(`[${PLUGIN_NAME}] Provide a userscript config or a non-empty array`)
   }
 
   const scripts = items.map(item => toResolvedScript(item))
@@ -90,7 +90,7 @@ export function resolvePluginConfig(config: UserscriptPluginConfig): ResolvedPlu
   for (const script of scripts) {
     if (names.has(script.fileName)) {
       throw new Error(
-        `[${pluginName}] Duplicate fileName "${script.fileName}"`,
+        `[${PLUGIN_NAME}] Duplicate fileName "${script.fileName}"`,
       )
     }
     names.add(script.fileName)

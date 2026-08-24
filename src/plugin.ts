@@ -3,7 +3,7 @@ import type { ResolvedPluginConfig, UserscriptPluginConfig } from './types.js'
 
 import { resolve } from 'node:path'
 import { applyUserscriptBundle } from './build/apply.js'
-import { pluginName } from './constants.js'
+import { PLUGIN_NAME } from './constants.js'
 import {
   collectAutoMetaUrlsWarnings,
   resolvePluginConfig,
@@ -12,7 +12,10 @@ import { shimModule, shouldShimModule } from './serve/gm-shim.js'
 import { configureDevServer } from './serve/middleware.js'
 import { hasReactRefreshPlugin } from './serve/react.js'
 
-function absolutizeEntries(config: ResolvedPluginConfig, root: string): ResolvedPluginConfig {
+function absolutizeEntries(
+  config: ResolvedPluginConfig,
+  root: string,
+): ResolvedPluginConfig {
   return {
     scripts: config.scripts.map(script => ({
       ...script,
@@ -27,7 +30,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
 
   return [
     {
-      name: `${pluginName}:config`,
+      name: `${PLUGIN_NAME}:config`,
       config(userConfig) {
         const input = Object.fromEntries(
           resolved.scripts.map(script => [script.fileName, script.entry]),
@@ -64,14 +67,14 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
       },
     },
     {
-      name: `${pluginName}:serve`,
+      name: `${PLUGIN_NAME}:serve`,
       apply: 'serve',
       configureServer(server) {
         configureDevServer(server, resolved, reactPreamble)
       },
     },
     {
-      name: `${pluginName}:gm-shim`,
+      name: `${PLUGIN_NAME}:gm-shim`,
       apply: 'serve',
       transform: {
         filter: {
@@ -89,7 +92,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
       },
     },
     {
-      name: `${pluginName}:build`,
+      name: `${PLUGIN_NAME}:build`,
       apply: 'build',
       enforce: 'post',
       generateBundle(_options, bundle) {

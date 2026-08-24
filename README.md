@@ -1,8 +1,8 @@
 # vite-userscript-plugin
 
 [![npm](https://img.shields.io/npm/v/vite-userscript-plugin)](https://npmjs.com/vite-userscript-plugin)
-[![license](https://img.shields.io/github/license/crashmax-dev/vite-userscript-plugin)](./LICENCE)
-[![template](https://img.shields.io/github/package-json/v/crashmax-dev/vite-userscript-template?label=vite-userscript-template)](https://github.com/crashmax-dev/vite-userscript-template)
+[![license](https://img.shields.io/github/license/greasify/vite-userscript-plugin)](./LICENCE)
+[![template](https://img.shields.io/github/package-json/v/greasify/vite-userscript-template?label=vite-userscript-template)](https://github.com/greasify/vite-userscript-template)
 
 > A Vite 8 plugin for developing and building Tampermonkey, Greasemonkey and Violentmonkey userscripts.
 
@@ -23,18 +23,16 @@ Requires **Vite 8** and Node `>=22`.
 pnpm add vite-userscript-plugin -D
 ```
 
-Put `Userscript()` **last** in `plugins`.
-
 ## Setup
 
 ```ts
 import { defineConfig } from 'vite'
-import Userscript from 'vite-userscript-plugin'
+import userscript from 'vite-userscript-plugin'
 import { name, version } from './package.json'
 
 export default defineConfig({
   plugins: [
-    Userscript({
+    userscript({
       entry: 'src/index.ts',
       header: {
         name,
@@ -111,7 +109,7 @@ Pass an array of the same config shape. There is no shared `header` and no `scri
 See [examples/multiple-entries](./examples/multiple-entries).
 
 ```ts
-Userscript([
+userscript([
   {
     entry: 'src/foo.ts',
     fileName: 'foo',
@@ -158,7 +156,7 @@ Demo: [examples/sourcemap](./examples/sourcemap).
 
 ## Options
 
-`Userscript(config)` or `Userscript([config, config, …])`. Each object is one full script. Options are not shared across the array.
+`userscript(config)` or `userscript([config, config, …])`. Each object is one full script. Options are not shared across the array.
 
 | Option | Default | Description |
 | --- | --- | --- |
@@ -217,7 +215,7 @@ Demo: [examples/sourcemap](./examples/sourcemap).
 
 | Example | What it shows |
 | --- | --- |
-| [basic](./examples/basic) | Vanilla + SCSS. Minimal `Userscript({ entry, header })`. |
+| [basic](./examples/basic) | Vanilla + SCSS. |
 | [react](./examples/react) | JSX, imported CSS, React refresh in dev. |
 | [vue](./examples/vue) | SFC `<style>`. This config also sets `minify` and `sourcemap`. |
 | [svelte](./examples/svelte) | SFC `<style>`. |
@@ -236,16 +234,16 @@ The host page can block Vite modules from `localhost`. Use a CSP-disable extensi
 
 `https://example.com` will not load `http://localhost:5173/@vite/client` or `ws://`. Disable-CSP does not help. Serve Vite over HTTPS.
 
-Easiest: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) (trusted local CA). Put it before `Userscript()`:
+Easiest: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) (trusted local CA). Put it before `userscript()`:
 
 ```ts
 import mkcert from 'vite-plugin-mkcert'
-import Userscript from 'vite-userscript-plugin'
+import userscript from 'vite-userscript-plugin'
 
 export default defineConfig({
   plugins: [
     mkcert(),
-    Userscript({
+    userscript({
       // ...
     })
   ]
@@ -291,7 +289,7 @@ Production is a synchronous IIFE unless you use top-level `await`. Then the wrap
 | minify on production by default | minify off; set `build.minify` |
 | `*.proxy.user.js` + `file://` | `*.dev.user.js` from the Vite server |
 | Vite 3–7 | Vite 8 |
-| `scripts` + a shared `header` | `Userscript([config, config, …])` |
+| `scripts` + a shared `header` | `userscript([config, config, …])` |
 | `ScriptOptions` | removed |
 
 `entry` + `header` is one script. Pass an array of that shape for multiple scripts.

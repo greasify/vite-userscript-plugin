@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createServer } from 'vite'
 import { expect, it } from 'vitest'
-import Userscript from '../src/index.js'
+import userscript from '../src/index.js'
 
 const fixtures = fileURLToPath(new URL('./fixtures', import.meta.url))
 const VLQ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -88,7 +88,7 @@ it('serve sourcemap keeps throw on its original line after GM-shim', async () =>
     configFile: false,
     logLevel: 'silent',
     plugins: [
-      Userscript({
+      userscript({
         entry: 'src/main.ts',
         fileName: 'overlay',
         header: {

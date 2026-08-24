@@ -10,10 +10,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crashmax-dev/vite-userscript-plugin.git"
+    "url": "git+https://github.com/greasify/vite-userscript-plugin.git"
   },
   "bugs": {
-    "url": "https://github.com/crashmax-dev/vite-userscript-plugin/issues"
+    "url": "https://github.com/greasify/vite-userscript-plugin/issues"
   },
   "keywords": [
     "vite",

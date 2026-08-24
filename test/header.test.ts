@@ -115,16 +115,16 @@ it('header autoMetaUrls joins homepage without trailing slash', () => {
       name: 'vitest',
       version: '1.0.0',
       match: 'https://example.com',
-      homepage: 'https://crashmax-dev.github.io/jsx',
+      homepage: 'https://greasify.github.io/jsx',
     },
     { autoMetaUrls: true, fileName: 'vitest' },
   )
 
   expect(header).toContain(
-    'https://crashmax-dev.github.io/jsx/vitest.meta.js',
+    'https://greasify.github.io/jsx/vitest.meta.js',
   )
   expect(header).toContain(
-    'https://crashmax-dev.github.io/jsx/vitest.user.js',
+    'https://greasify.github.io/jsx/vitest.user.js',
   )
 })
 
@@ -213,18 +213,18 @@ it('resolvePublicFileUrl joins homepage with and without a trailing slash', () =
     name: 'vitest',
     version: '1.0.0',
     match: 'https://example.com',
-    homepage: 'https://crashmax-dev.github.io/vite-userscript-plugin',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin',
   }
   const withSlash = {
     ...withoutSlash,
-    homepage: 'https://crashmax-dev.github.io/vite-userscript-plugin/',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
   }
 
   expect(resolvePublicFileUrl(withoutSlash, 'vitest.user.js.map')).toBe(
-    'https://crashmax-dev.github.io/vite-userscript-plugin/vitest.user.js.map',
+    'https://greasify.github.io/vite-userscript-plugin/vitest.user.js.map',
   )
   expect(resolvePublicFileUrl(withSlash, 'vitest.user.js.map')).toBe(
-    'https://crashmax-dev.github.io/vite-userscript-plugin/vitest.user.js.map',
+    'https://greasify.github.io/vite-userscript-plugin/vitest.user.js.map',
   )
 })
 

@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import Userscript from 'vite-userscript-plugin'
+import userscript from 'vite-userscript-plugin'
 import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
@@ -8,13 +8,13 @@ export default defineConfig({
     sourcemap: true,
   },
   plugins: [
-    Userscript({
+    userscript({
       entry: 'src/index.ts',
       autoMetaUrls: true,
       header: {
         name: pkg.name,
         version: pkg.version,
-        homepage: 'https://crashmax-dev.github.io/vite-userscript-plugin/',
+        homepage: 'https://greasify.github.io/vite-userscript-plugin/',
         match: 'https://example.com/',
       },
     }),

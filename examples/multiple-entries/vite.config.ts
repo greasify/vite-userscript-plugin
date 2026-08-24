@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
-import Userscript from 'vite-userscript-plugin'
+import userscript from 'vite-userscript-plugin'
 
 export default defineConfig({
   plugins: [
-    Userscript([
+    userscript([
       {
         entry: 'src/foo.ts',
         fileName: 'foo',

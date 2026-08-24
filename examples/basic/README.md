@@ -1,6 +1,6 @@
 # Basic example
 
-Vanilla userscript with SCSS. Minimal `Userscript({ entry, header })`.
+Vanilla userscript with SCSS.
 
 ```bash
 pnpm dev
