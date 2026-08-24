@@ -5,6 +5,7 @@ export interface OutputChunk {
   fileName: string
   code: string
   imports: string[]
+  dynamicImports?: string[]
   map?: {
     mappings: string
     file?: string

@@ -3,6 +3,7 @@ import userscript from 'vite-userscript-plugin'
 import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
+  base: './',
   build: {
     minify: true,
     sourcemap: true,

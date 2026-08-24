@@ -348,6 +348,38 @@ it('vue SFC styles are inlined', async () => {
   expect(userscript).toContain('rebeccapurple')
 })
 
+it('html app is emitted next to the userscript', async () => {
+  const outDir = await buildFixture('html', {
+    entry: 'src/main.ts',
+    fileName: 'html-app',
+    header: {
+      name: 'HTML App',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  })
+
+  const files = await listOut(outDir)
+  const userscript = await readOut(outDir, 'html-app.user.js')
+  const html = await readOut(outDir, 'index.html')
+  const pageOutputs = await Promise.all(
+    leftoverScripts(files)
+      .concat(files.filter(file => file.endsWith('.css')))
+      .map(file => readOut(outDir, file)),
+  )
+
+  expect(html).toMatch(/<script type="module"/)
+  expect(pageOutputs.some(content => content.includes('html-page-fixture'))).toBe(true)
+  expect(pageOutputs.some(content => content.includes('navy'))).toBe(true)
+  expect(userscript).toContain('html-userscript-fixture')
+  expect(userscript).toContain('tomato')
+  expect(userscript).not.toContain('html-page-fixture')
+  expect(userscript).not.toContain('navy')
+  expect(await readOut(outDir, 'html-app.meta.js')).toMatch(/@name\s+HTML App/)
+  expect(files).not.toContain('html-app.js')
+  expect(leftoverScripts(files).length).toBeGreaterThan(0)
+})
+
 it('svelte SFC styles are inlined', async () => {
   const outDir = await buildFixture(
     'svelte',

@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/github/license/greasify/vite-userscript-plugin)](./LICENCE)
 [![template](https://img.shields.io/github/package-json/v/greasify/vite-userscript-template?label=vite-userscript-template)](https://github.com/greasify/vite-userscript-template)
 
-> A Vite 8 plugin for developing and building Tampermonkey, Greasemonkey and Violentmonkey userscripts.
+> A Vite plugin for developing and building Tampermonkey, Greasemonkey and Violentmonkey userscripts.
 
 ## Features
 
@@ -14,8 +14,9 @@
 - 💨 All `@grant`s in the header in dev mode
 - 📝 Only used `@grant`s in the production build
 - 📦 Built-in types for Tampermonkey, Greasemonkey and Violentmonkey
+- 📄 Virtual module with script metadata
 
-## Install
+## Getting started
 
 Requires **Vite 8** and Node `>=22`.
 
@@ -23,20 +24,18 @@ Requires **Vite 8** and Node `>=22`.
 pnpm add vite-userscript-plugin -D
 ```
 
-## Setup
-
 ```ts
 import { defineConfig } from 'vite'
 import userscript from 'vite-userscript-plugin'
-import { name, version } from './package.json'
+import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
   plugins: [
     userscript({
       entry: 'src/index.ts',
       header: {
-        name,
-        version,
+        name: pkg.name,
+        version: pkg.version,
         match: [
           'https://example.com/',
           'https://example.org/'
@@ -56,80 +55,41 @@ export default defineConfig({
 }
 ```
 
-## Types
+Add types: Vite, **one** manager (`tampermonkey`, `greasemonkey`, or `violentmonkey`), and the virtual module.
 
-Vendored `GM_*` / `GM.*` declarations ship with the plugin. Pick **one** manager — do not mix the three `.d.ts` files.
+`src/vite-env.d.ts`:
+
+```ts
+/// <reference types="vite/client" />
+/// <reference types="vite-userscript-plugin/types/tampermonkey" />
+/// <reference types="vite-userscript-plugin/virtual" />
+```
+
+Or `tsconfig.json`:
 
 ```json
 {
   "compilerOptions": {
     "types": [
-      "vite-userscript-plugin/types/tampermonkey"
+      "vite/client",
+      "vite-userscript-plugin/types/tampermonkey",
+      "vite-userscript-plugin/virtual"
     ]
   }
 }
 ```
 
-Or a triple-slash reference (what the examples use in `src/vite-env.d.ts`):
+Details: [types/README.md](./types/README.md).
 
-```ts
-/// <reference types="vite-userscript-plugin/types/tampermonkey" />
-```
+`vite` prints `/{fileName}.dev.user.js` — install that URL once. HMR covers code and styles. Changing `@match`, `@grant`, or `@name` needs a reinstall.
 
-Replace `tampermonkey` with `greasemonkey` or `violentmonkey` as needed. The APIs are not the same.
-
-Tampermonkey (`GM_*`, sync):
-
-```ts
-const visits = GM_getValue('visits', 0)
-GM_setValue('visits', visits + 1)
-
-console.log(GM_info.script.name, visits)
-```
-
-Greasemonkey (`GM.*`, Promise-based):
-
-```ts
-const visits = await GM.getValue('visits', 0)
-await GM.setValue('visits', visits + 1)
-```
-
-Those identifiers are what the production grant scanner looks for. Sync details: [types/README.md](./types/README.md).
-
-## Development
-
-- `pnpm dev` prints `/{fileName}.dev.user.js`. Open that URL once in the manager.
-- Code and SFC style changes go through Vite HMR.
-- Changing `@match`, `@grant`, or `@name` needs a reinstall.
+`vite build` writes `{fileName}.user.js` to `dist/`.
 
 ## Multiple scripts
 
-Pass an array of the same config shape. There is no shared `header` and no `scripts` key.
+Pass an array of configs. Each item is one full script — no shared `header`.
 
 See [examples/multiple-entries](./examples/multiple-entries).
-
-```ts
-userscript([
-  {
-    entry: 'src/foo.ts',
-    fileName: 'foo',
-    header: {
-      name: 'Foo',
-      version: '1.0.0',
-      match: 'https://a.com/*'
-    }
-  },
-  {
-    entry: 'src/bar.ts',
-    fileName: 'bar',
-    header: {
-      name: 'Bar',
-      version: '1.0.0',
-      match: 'https://b.com/*'
-    }
-  }
-])
-```
 
 ## Styles
 
@@ -137,147 +97,83 @@ userscript([
 import './style.css'
 ```
 
-Vue and Svelte SFC `<style>` work without `?raw`. Use `?raw` + `GM_addStyle` if you want to own the node.
+Do not put userscript assets in `public/` — those URLs hit the host site and 404. Import the file so Vite inlines it.
 
-Imported images and `url()` in CSS are inlined. Do not use `public/` — those URLs point at the host site and 404.
+## HTML pages
+
+`index.html` is a normal Vite app next to the userscript. `vite` serves it at `/`. `vite build` writes it to `dist/` beside `{fileName}.user.js`.
+
+Keep the page's `<script>` entries distinct from `entry`.
+
+Script metadata: import `virtual:vite-userscript-plugin` (`name`, `version`, `file`).
+
+See [examples/sourcemap](./examples/sourcemap).
 
 ## Production
 
-- `vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`.
-- Minify is off. Turn it on with Vite `build.minify`.
-- The bundle is an IIFE. The manager injects it as a classic script.
-- Top-level `await` becomes `(async function () { … })()`.
-- With Vite `build.sourcemap`, the map is inlined as a `data:` `sourceMappingURL` at the end of `.user.js`.
-- A sibling `.map` file is not written.
-- `sourcesContent` keeps your files only. `node_modules` and virtual modules are omitted.
-- The map offset includes the metablock and the CSS prelude.
+`vite build` writes `{fileName}.user.js` and `{fileName}.meta.js`. `index.html` is written too, when present.
 
-Demo: [examples/sourcemap](./examples/sourcemap).
+Minify is off (`build.minify`). Sourcemaps are inlined into `.user.js` when `build.sourcemap` is on.
+
+See [examples/sourcemap](./examples/sourcemap).
 
 ## Options
 
-`userscript(config)` or `userscript([config, config, …])`. Each object is one full script. Options are not shared across the array.
+`userscript(config)` or `userscript([config, config, …])`. Options are not shared across the array.
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `entry` | — | Userscript entry. Required on every config. |
+| `entry` | — | Userscript entry. Required. |
 | `header` | — | Metablock. Required: `name`, `version`, `match`. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the `.dev.user.js` install URL when Vite starts. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
-| `cssInject` | `'auto'` | How production CSS is injected. |
+| `cssInject` | `'auto'` | How production CSS is injected. `'auto'` uses `GM_addStyle` or a `<style>` node. |
 | `align` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
 | `generate` | — | Rewrite the generated metablock. |
-| `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from a homepage alias. |
+| `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage` / `homepageURL` / `website` / `source`. |
 | `metaFile` | `true` | Emit `{fileName}.meta.js`. |
 
-### `header`
+Everything else on `header` follows the manager metablock (`@grant`, `@require`, `@connect`, …).
 
-Required fields: `name`, `version`, `match`. Everything else follows the manager metablock (`@grant`, `@require`, `@connect`, …).
+In serve mode the header lists every grant. In production the plugin scans the bundle and writes only the grants in use. `grant: "none"` disables GM APIs and is never mixed with the scan.
 
-### Grants
-
-In serve mode the header lists every grant so the manager can copy APIs into the page.
-
-In production the plugin scans the bundle for identifiers (`GM_setValue`, `GM.setValue`, `window.focus`, …). Only those grants are written.
-
-`window.focus`, `window.close`, and `window.onurlchange` are real Tampermonkey grants. They are added when those identifiers appear.
-
-`grant: "none"` disables GM APIs. That value is never mixed with auto-detected grants.
-
-### `cssInject`
-
-`'auto'` calls `GM_addStyle` when it exists, otherwise appends a `<style>` node. `@grant GM_addStyle` is added only in this mode.
-
-Pass a function or a JS expression string for a custom injector. The plugin does not add a CSS grant for those.
-
-### `autoMetaUrls` and `metaFile`
-
-When `autoMetaUrls` is on, empty `updateURL` / `downloadURL` are filled from `homepage`, `homepageURL`, `website`, or `source`.
-
-Keep `metaFile: true` if you use that. Otherwise `@updateURL` points at a file that is not emitted.
-
-Demo: [examples/sourcemap](./examples/sourcemap).
-
-### `server`
-
-`open: true` opens the install URL when Vite starts. With several scripts, only those with `open: true` are opened.
-
-`prefix` is prepended to `@name` in serve mode so the dev script does not clash with the installed production one.
-
-### `align` and `generate`
-
-`align` pads `@key` columns. `false` prints a single space.
-
-`generate({ userscript, mode })` rewrites the metablock. `mode` is `serve`, `build`, or `meta`.
+Keep `metaFile: true` if you use `autoMetaUrls`. Otherwise `@updateURL` points at a file that is not emitted.
 
 ## Examples
 
 | Example | What it shows |
 | --- | --- |
 | [basic](./examples/basic) | Vanilla + SCSS. |
-| [react](./examples/react) | JSX, imported CSS, React refresh in dev. |
-| [vue](./examples/vue) | SFC `<style>`. This config also sets `minify` and `sourcemap`. |
+| [react](./examples/react) | JSX, CSS, React refresh. |
+| [vue](./examples/vue) | SFC `<style>`, minify, sourcemap. |
 | [svelte](./examples/svelte) | SFC `<style>`. |
-| [multiple-entries](./examples/multiple-entries) | Array of configs, a shared module, two `.user.js` files. |
-| [sourcemap](./examples/sourcemap) | Inline map, `autoMetaUrls` + `homepage`. |
+| [multiple-entries](./examples/multiple-entries) | Two scripts. |
+| [sourcemap](./examples/sourcemap) | Inline map, HTML page, virtual module. |
 
 ## FAQ
 
 ### Scripts fail on Firefox because of CSP
 
-The host page can block Vite modules from `localhost`. Use a CSP-disable extension for development, or a browser profile without the site CSP.
+The host page can block Vite modules from `localhost`. Use a CSP-disable extension, or a browser profile without the site CSP.
 
 - https://github.com/Tampermonkey/tampermonkey/issues/952#issuecomment-638373937
 
 ### HTTPS site, HTTP Vite — mixed content
 
-`https://example.com` will not load `http://localhost:5173/@vite/client` or `ws://`. Disable-CSP does not help. Serve Vite over HTTPS.
-
-Easiest: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) (trusted local CA). Put it before `userscript()`:
-
-```ts
-import mkcert from 'vite-plugin-mkcert'
-import userscript from 'vite-userscript-plugin'
-
-export default defineConfig({
-  plugins: [
-    mkcert(),
-    userscript({
-      // ...
-    })
-  ]
-})
-```
-
-Or pass your own cert to `server.https`:
-
-```ts
-import { readFileSync } from 'node:fs'
-
-export default defineConfig({
-  server: {
-    https: {
-      key: readFileSync('./localhost-key.pem'),
-      cert: readFileSync('./localhost.pem')
-    }
-  }
-})
-```
+`https://example.com` will not load `http://localhost:5173`. Serve Vite over HTTPS: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) before `userscript()`, or `server.https`.
 
 ### Old `file://` proxy scripts
 
-v1 used `{name}.proxy.user.js` and `file://` + “Allow access to file URLs”. Remove those scripts from the manager and install `{name}.dev.user.js` from the Vite URL printed on `vite`.
+v1 used `{name}.proxy.user.js` and `file://`. Remove those and install `{name}.dev.user.js` from the URL `vite` prints.
 
 ### `public/` assets 404 on the target site
 
-Userscripts run on someone else’s origin. Files in `public/` are not copied there. Import the file so Vite inlines it as a data URL.
+Userscripts run on someone else’s origin. Import the file so Vite inlines it. `public/` only works for the `index.html` app on the Vite origin.
 
 ### `@run-at document-start` feels late in dev
 
-Serve injects `type="module"`, which is async.
-
-Production is a synchronous IIFE unless you use top-level `await`. Then the wrapper is `async`, and the first `await` yields a turn.
+Serve injects `type="module"` (async). Production is a synchronous IIFE unless you use top-level `await`.
 
 ## Migration from v1
 
@@ -285,14 +181,12 @@ Production is a synchronous IIFE unless you use top-level `await`. Then the wrap
 | --- | --- |
 | `vite build --watch` | `vite` |
 | `esbuildTransformOptions` | removed |
-| `server.port` | `server.port` in Vite config |
-| minify on production by default | minify off; set `build.minify` |
-| `*.proxy.user.js` + `file://` | `*.dev.user.js` from the Vite server |
+| `server.port` | Vite `server.port` |
+| minify on by default | off; set `build.minify` |
+| `*.proxy.user.js` + `file://` | `*.dev.user.js` from Vite |
 | Vite 3–7 | Vite 8 |
-| `scripts` + a shared `header` | `userscript([config, config, …])` |
+| `scripts` + shared `header` | `userscript([config, config, …])` |
 | `ScriptOptions` | removed |
-
-`entry` + `header` is one script. Pass an array of that shape for multiple scripts.
 
 ## License
 

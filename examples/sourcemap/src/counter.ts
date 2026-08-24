@@ -40,11 +40,11 @@ export function createCounter() {
   }
 
   function boom() {
-    console.log(2)
+    console.log(1)
 
     throw new Error('sourcemap')
 
-    console.log(1)
+    console.log(2)
   }
 
   actions.append(
