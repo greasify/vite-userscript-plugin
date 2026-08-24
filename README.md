@@ -81,7 +81,10 @@ Or `tsconfig.json`:
 
 Details: [types/README.md](./types/README.md).
 
-`vite` prints `/{fileName}.dev.user.js` — install that URL once. HMR covers code and styles. Changing `@match`, `@grant`, or `@name` needs a reinstall.
+`vite` prints `/{fileName}.dev.user.js` — install that URL once. HMR covers code and styles.
+
+> [!IMPORTANT]
+> Changing `@match`, `@grant`, or `@name` needs a reinstall.
 
 `vite build` writes `{fileName}.user.js` to `dist/`.
 
@@ -93,17 +96,21 @@ See [examples/multiple-entries](./examples/multiple-entries).
 
 ## Styles
 
+CSS from imports and SFC `<style>` (Vue, Svelte) is collected and injected into the userscript.
+
 ```ts
 import './style.css'
 ```
 
-Do not put userscript assets in `public/` — those URLs hit the host site and 404. Import the file so Vite inlines it.
+> [!NOTE]
+> Do not put userscript assets in `public/` — those URLs hit the host site and 404. Import the file so Vite inlines it.
 
 ## HTML pages
 
 `index.html` is a normal Vite app next to the userscript. `vite` serves it at `/`. `vite build` writes it to `dist/` beside `{fileName}.user.js`.
 
-Keep the page's `<script>` entries distinct from `entry`.
+> [!WARNING]
+> Keep the page's `<script>` entries distinct from `entry`.
 
 Script metadata: import `virtual:vite-userscript-plugin` (`name`, `version`, `file`).
 
@@ -138,7 +145,8 @@ Everything else on `header` follows the manager metablock (`@grant`, `@require`,
 
 In serve mode the header lists every grant. In production the plugin scans the bundle and writes only the grants in use. `grant: "none"` disables GM APIs and is never mixed with the scan.
 
-Keep `metaFile: true` if you use `autoMetaUrls`. Otherwise `@updateURL` points at a file that is not emitted.
+> [!WARNING]
+> Keep `metaFile: true` if you use `autoMetaUrls`. Otherwise `@updateURL` points at a file that is not emitted.
 
 ## Examples
 
@@ -155,13 +163,15 @@ Keep `metaFile: true` if you use `autoMetaUrls`. Otherwise `@updateURL` points a
 
 ### Scripts fail on Firefox because of CSP
 
-The host page can block Vite modules from `localhost`. Use a CSP-disable extension, or a browser profile without the site CSP.
-
-- https://github.com/Tampermonkey/tampermonkey/issues/952#issuecomment-638373937
+> [!WARNING]
+> The host page can block Vite modules from `localhost`. Use a CSP-disable extension, or a browser profile without the site CSP.
+>
+> https://github.com/Tampermonkey/tampermonkey/issues/952#issuecomment-638373937
 
 ### HTTPS site, HTTP Vite — mixed content
 
-`https://example.com` will not load `http://localhost:5173`. Serve Vite over HTTPS: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) before `userscript()`, or `server.https`.
+> [!WARNING]
+> `https://example.com` will not load `http://localhost:5173`. Serve Vite over HTTPS: [`vite-plugin-mkcert`](https://github.com/liuweiGL/vite-plugin-mkcert) before `userscript()`, or `server.https`.
 
 ### Old `file://` proxy scripts
 
@@ -169,11 +179,13 @@ v1 used `{name}.proxy.user.js` and `file://`. Remove those and install `{name}.d
 
 ### `public/` assets 404 on the target site
 
-Userscripts run on someone else’s origin. Import the file so Vite inlines it. `public/` only works for the `index.html` app on the Vite origin.
+> [!NOTE]
+> Userscripts run on someone else’s origin. Import the file so Vite inlines it. `public/` only works for the `index.html` app on the Vite origin.
 
 ### `@run-at document-start` feels late in dev
 
-Serve injects `type="module"` (async). Production is a synchronous IIFE unless you use top-level `await`.
+> [!NOTE]
+> Serve injects `type="module"` (async). Production is a synchronous IIFE unless you use top-level `await`.
 
 ## Migration from v1
 
