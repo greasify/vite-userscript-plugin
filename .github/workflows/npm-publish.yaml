@@ -3,7 +3,8 @@ name: NPM Publish
 on:
   push:
     tags:
-      - 'v*'
+      - '[0-9]*'
+  workflow_dispatch:
 
 jobs:
   publish:
