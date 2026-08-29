@@ -15,6 +15,10 @@ export function formatInstallLine(installUrl: string): string {
   return `  ${styleText('green', '➜')}  ${styleText('bold', 'Userscript')}: ${coloredUrl}`
 }
 
+export function formatRebuildLine(elapsedMs: number): string {
+  return `${styleText('green', 'Userscript rebuilt')} ${styleText('dim', `(${elapsedMs}ms)`)}`
+}
+
 export function formatFaqHint(): string {
   const label = `  ${styleText('green', '➜')}  ${styleText('bold', 'FAQ')}: `
   const link = styleText('cyan', FAQ_URL)

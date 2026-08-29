@@ -17,6 +17,7 @@ import {
   resolvePluginConfig,
 } from './resolve.js'
 import { shimModule, shouldShimModule } from './serve/gm-shim.js'
+import { formatRebuildLine } from './serve/logger.js'
 import { configureDevServer } from './serve/middleware.js'
 import { hasReactRefreshPlugin } from './serve/react.js'
 
@@ -55,6 +56,8 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
     let firstBuild = true
 
     const run = async (): Promise<void> => {
+      const isRebuild = !firstBuild
+      const started = Date.now()
       await build({
         configFile: server.config.configFile ?? false,
         root: server.config.root,
@@ -72,6 +75,11 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
         },
       })
       firstBuild = false
+      if (isRebuild) {
+        server.config.logger.info(formatRebuildLine(Date.now() - started), {
+          timestamp: true,
+        })
+      }
     }
 
     try {

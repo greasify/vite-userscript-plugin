@@ -3,6 +3,7 @@ export {
   createAfterLocalLogger,
   formatFaqHint,
   formatInstallLine,
+  formatRebuildLine,
   isViteLocalUrlLine,
   stripAnsi,
 } from './logger.js'

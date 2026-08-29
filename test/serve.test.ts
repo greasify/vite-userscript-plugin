@@ -18,6 +18,7 @@ import {
   findProxyScript,
   formatFaqHint,
   formatInstallLine,
+  formatRebuildLine,
   generateDevWrapper,
   hasReactRefreshPlugin,
   isViteLocalUrlLine,
@@ -184,6 +185,13 @@ it('formatInstallLine prints an OpenAPI-style install line', () => {
   expect(plain).toContain('Userscript')
   expect(plain).toContain('http://localhost:5173/demo.dev.user.js')
   expect(plain).toMatch(/^\s+➜\s+Userscript:/)
+})
+
+it('formatRebuildLine prints elapsed time', () => {
+  const plain = stripAnsi(formatRebuildLine(12))
+
+  expect(plain).toContain('Userscript rebuilt')
+  expect(plain).toContain('(12ms)')
 })
 
 it('formatFaqHint prints a FAQ block with the README URL', () => {
