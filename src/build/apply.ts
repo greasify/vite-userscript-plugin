@@ -1,6 +1,7 @@
 import type { ResolvedPluginConfig, ResolvedScript } from '../types.js'
 import type { OutputBundle, OutputChunk } from './bundle.js'
 
+import { resolve } from 'node:path'
 import { resolveBuildHeader } from '../grants/policy.js'
 import { generateHeader } from '../header.js'
 import {
@@ -11,13 +12,26 @@ import {
 } from '../sourcemap.js'
 import { isChunk } from './bundle.js'
 import { collectCss, createCssInject } from './css.js'
-import { ensureIife, isAlreadyIife, stripSourceMappingUrl } from './iife.js'
+import {
+  ensureIife,
+  isAlreadyIife,
+  stripSourceMappingUrl,
+} from './iife.js'
+import {
+  generateWatchProxy,
+  toProxyFileName,
+  toRequireFileName,
+} from './proxy.js'
 
 function importedChunkIds(chunk: OutputChunk): string[] {
   return [...chunk.imports, ...(chunk.dynamicImports ?? [])]
 }
 
-function inlineImportedChunks(chunk: OutputChunk, bundle: OutputBundle, seen = new Set<string>()): string {
+function inlineImportedChunks(
+  chunk: OutputChunk,
+  bundle: OutputBundle,
+  seen = new Set<string>(),
+): string {
   let prelude = ''
 
   for (const imported of chunk.imports) {
@@ -38,7 +52,10 @@ function inlineImportedChunks(chunk: OutputChunk, bundle: OutputBundle, seen = n
   return prelude
 }
 
-function collectImportedChunks(chunk: OutputChunk, bundle: OutputBundle): Set<string> {
+function collectImportedChunks(
+  chunk: OutputChunk,
+  bundle: OutputBundle,
+): Set<string> {
   const files = new Set<string>()
   const walk = (current: OutputChunk) => {
     for (const imported of importedChunkIds(current)) {
@@ -60,7 +77,10 @@ function collectImportedChunks(chunk: OutputChunk, bundle: OutputBundle): Set<st
   return files
 }
 
-function collectImportedCssFiles(fileNames: Iterable<string>, bundle: OutputBundle): Set<string> {
+function collectImportedCssFiles(
+  fileNames: Iterable<string>,
+  bundle: OutputBundle,
+): Set<string> {
   const files = new Set<string>()
 
   for (const fileName of fileNames) {
@@ -87,7 +107,11 @@ function withSourceMaps(fileNames: Iterable<string>): string[] {
   return files
 }
 
-export function findScriptForChunk(chunk: OutputChunk, fileName: string, scripts: ResolvedScript[]): ResolvedScript | undefined {
+export function findScriptForChunk(
+  chunk: OutputChunk,
+  fileName: string,
+  scripts: ResolvedScript[],
+): ResolvedScript | undefined {
   return scripts.find(
     script => chunk.name === script.fileName
       || fileName === `${script.fileName}.js`
@@ -95,14 +119,32 @@ export function findScriptForChunk(chunk: OutputChunk, fileName: string, scripts
   )
 }
 
-function deleteBundleFiles(bundle: OutputBundle, fileNames: Iterable<string>): void {
+function deleteBundleFiles(
+  bundle: OutputBundle,
+  fileNames: Iterable<string>,
+): void {
   for (const fileName of fileNames) {
     delete bundle[fileName]
   }
 }
 
-export function applyUserscriptBundle(bundle: OutputBundle, config: ResolvedPluginConfig, emitMeta: (fileName: string, source: string) => void): void {
-  const userscriptEntries: { fileName: string, chunk: OutputChunk, script: ResolvedScript }[] = []
+export type ApplyUserscriptBundleContext = {
+  emitFile: (fileName: string, source: string) => void
+  emitProxy?: boolean
+  outDir?: string
+}
+
+export function applyUserscriptBundle(
+  bundle: OutputBundle,
+  config: ResolvedPluginConfig,
+  context: ApplyUserscriptBundleContext,
+): void {
+  const { emitFile } = context
+  const userscriptEntries: {
+    fileName: string
+    chunk: OutputChunk
+    script: ResolvedScript
+  }[] = []
   const otherEntryFiles: string[] = []
 
   for (const [fileName, item] of Object.entries(bundle)) {
@@ -146,8 +188,40 @@ export function applyUserscriptBundle(bundle: OutputBundle, config: ResolvedPlug
     const body = `${inlined}${chunk.code}`
     const wrapped = ensureIife(body)
     const extraGrants = css && script.cssInject === 'auto' ? (['GM_addStyle'] as const) : []
-    const headerConfig = resolveBuildHeader(script.header, wrapped, extraGrants)
     const code = `${cssPrelude}${wrapped}`
+    const emitFileProxy = Boolean(
+      context.emitProxy && context.outDir && script.server.file,
+    )
+
+    leftoverAssets.push(`${fileName}.map`)
+
+    if (emitFileProxy) {
+      const requireName = toRequireFileName(script.fileName)
+      let nextCode = code.endsWith('\n') ? code : `${code}\n`
+
+      if (chunk.map) {
+        const wrapOffset = isAlreadyIife(stripSourceMappingUrl(body)) ? 0 : 1
+        const lineOffset = countHeaderLines(cssPrelude)
+          + wrapOffset
+          + countHeaderLines(inlined)
+        chunk.map = stripVendorSourcesContent(offsetSourceMap(
+          chunk.map,
+          lineOffset,
+          requireName,
+        ))
+        nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(chunk.map)}\n`
+      }
+
+      chunk.code = nextCode
+      chunk.fileName = requireName
+      emitFile(
+        toProxyFileName(script.fileName),
+        `${generateWatchProxy(script, resolve(context.outDir!, requireName))}\n`,
+      )
+      continue
+    }
+
+    const headerConfig = resolveBuildHeader(script.header, wrapped, extraGrants)
     const header = generateHeader(headerConfig, {
       align: script.align,
       autoMetaUrls: script.autoMetaUrls,
@@ -173,12 +247,11 @@ export function applyUserscriptBundle(bundle: OutputBundle, config: ResolvedPlug
       nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(chunk.map)}\n`
     }
 
-    leftoverAssets.push(`${fileName}.map`)
     chunk.code = nextCode
     chunk.fileName = nextFileName
 
     if (script.metaFile) {
-      emitMeta(
+      emitFile(
         `${script.fileName}.meta.js`,
         generateHeader(headerConfig, {
           align: script.align,

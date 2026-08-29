@@ -3,6 +3,7 @@ export {
   createAfterLocalLogger,
   formatFaqHint,
   formatInstallLine,
+  formatRebuildLine,
   isViteLocalUrlLine,
   stripAnsi,
 } from './logger.js'
@@ -19,9 +20,11 @@ export {
   applyServeHeader,
   createDevUserscript,
   findDevScript,
+  findProxyScript,
   generateDevUserscript,
   generateDevWrapper,
   matchDevUserscript,
+  matchProxyUserscript,
   toInstallUrl,
   toServeEntryPath,
 } from './wrapper.js'

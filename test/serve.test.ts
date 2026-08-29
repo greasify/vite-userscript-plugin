@@ -1,6 +1,12 @@
 import { expect, it } from 'vitest'
 
-import { FAQ_URL, GM_NAMESPACE, REACT_BOOTSTRAP_PATH, REACT_PREAMBLE_PATH, VITE_CLIENT_FLAG } from '../src/constants.js'
+import {
+  FAQ_URL,
+  GM_NAMESPACE,
+  REACT_BOOTSTRAP_PATH,
+  REACT_PREAMBLE_PATH,
+  VITE_CLIENT_FLAG,
+} from '../src/constants.js'
 import { resolvePluginConfig } from '../src/resolve.js'
 import {
   applyServeHeader,
@@ -8,12 +14,16 @@ import {
   createDevUserscript,
   createReactBootstrapModule,
   DEV_SCRIPT_HEADERS,
+  findDevScript,
+  findProxyScript,
   formatFaqHint,
   formatInstallLine,
+  formatRebuildLine,
   generateDevWrapper,
   hasReactRefreshPlugin,
   isViteLocalUrlLine,
   matchDevUserscript,
+  matchProxyUserscript,
   matchReactBootstrap,
   matchReactPreamble,
   REACT_PREAMBLE_MODULE,
@@ -27,6 +37,31 @@ it('matchDevUserscript matches install path', () => {
   expect(matchDevUserscript('/foo.dev.user.js', 'foo')).toBe(true)
   expect(matchDevUserscript('/foo.dev.user.js?t=1', 'foo')).toBe(true)
   expect(matchDevUserscript('/foo.user.js', 'foo')).toBe(false)
+})
+
+it('matchProxyUserscript matches install path', () => {
+  expect(matchProxyUserscript('/foo.proxy.user.js', 'foo')).toBe(true)
+  expect(matchProxyUserscript('/foo.proxy.user.js?t=1', 'foo')).toBe(true)
+  expect(matchProxyUserscript('/foo.dev.user.js', 'foo')).toBe(false)
+})
+
+it('findDevScript skips file-mode scripts', () => {
+  const hmr = resolvePluginConfig({
+    entry: 'src/main.ts',
+    fileName: 'demo',
+    header: { name: 'Demo', version: '1.0.0', match: 'https://example.com/*' },
+  }).scripts[0]!
+  const file = resolvePluginConfig({
+    entry: 'src/main.ts',
+    fileName: 'demo',
+    header: { name: 'Demo', version: '1.0.0', match: 'https://example.com/*' },
+    server: { file: true },
+  }).scripts[0]!
+
+  expect(findDevScript('/demo.dev.user.js', [hmr])?.fileName).toBe('demo')
+  expect(findDevScript('/demo.dev.user.js', [file])).toBeUndefined()
+  expect(findProxyScript('/demo.proxy.user.js', [file])?.fileName).toBe('demo')
+  expect(findProxyScript('/demo.proxy.user.js', [hmr])).toBeUndefined()
 })
 
 it('toServeEntryPath is a root-relative URL', () => {
@@ -138,6 +173,9 @@ it('toInstallUrl joins origin without a trailing slash', () => {
   expect(toInstallUrl('http://localhost:5173', 'demo')).toBe(
     'http://localhost:5173/demo.dev.user.js',
   )
+  expect(toInstallUrl('http://localhost:5173/', 'demo', true)).toBe(
+    'http://localhost:5173/demo.proxy.user.js',
+  )
 })
 
 it('formatInstallLine prints an OpenAPI-style install line', () => {
@@ -147,6 +185,13 @@ it('formatInstallLine prints an OpenAPI-style install line', () => {
   expect(plain).toContain('Userscript')
   expect(plain).toContain('http://localhost:5173/demo.dev.user.js')
   expect(plain).toMatch(/^\s+➜\s+Userscript:/)
+})
+
+it('formatRebuildLine prints elapsed time', () => {
+  const plain = stripAnsi(formatRebuildLine(12))
+
+  expect(plain).toContain('Userscript rebuilt')
+  expect(plain).toContain('(12ms)')
 })
 
 it('formatFaqHint prints a FAQ block with the README URL', () => {

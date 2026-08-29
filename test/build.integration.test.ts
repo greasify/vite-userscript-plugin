@@ -399,3 +399,69 @@ it('svelte SFC styles are inlined', async () => {
   expect(userscript).toContain('svelte-fixture')
   expect(userscript).toContain('darkorange')
 })
+
+it('one-shot build with server.file does not emit a proxy', async () => {
+  const outDir = await buildFixture('vanilla', {
+    entry: 'src/main.ts',
+    fileName: 'vanilla',
+    header: {
+      name: 'Vanilla',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { file: true },
+  })
+
+  const files = await listOut(outDir)
+
+  expect(files).toContain('vanilla.user.js')
+  expect(files).not.toContain('vanilla.proxy.user.js')
+  expect(files).not.toContain('vanilla.js')
+})
+
+it('development build with server.file emits a proxy and headerless IIFE', async () => {
+  const root = join(fixtures, 'vanilla')
+  const outDir = await mkdtemp(join(tmpdir(), 'userscript-vanilla-file-'))
+  outDirs.push(outDir)
+
+  await build({
+    root,
+    configFile: false,
+    logLevel: 'silent',
+    mode: 'development',
+    plugins: [
+      Userscript({
+        entry: 'src/main.ts',
+        fileName: 'vanilla',
+        header: {
+          name: 'Vanilla',
+          version: '1.0.0',
+          match: 'https://example.com/*',
+          require: 'https://cdn.example/lib.js',
+        },
+        server: { file: true },
+      }),
+    ],
+    build: {
+      outDir,
+      emptyOutDir: true,
+      write: true,
+    },
+  })
+
+  const proxy = await readOut(outDir, 'vanilla.proxy.user.js')
+  const iife = await readOut(outDir, 'vanilla.js')
+  const files = await listOut(outDir)
+
+  expect(proxy).toContain('==UserScript==')
+  expect(proxy).toContain('@require')
+  expect(proxy).toContain('file://')
+  expect(proxy).toContain('vanilla.js')
+  expect(proxy).toContain('https://cdn.example/lib.js')
+  expect(proxy).toContain('GM_addStyle')
+  expect(proxy).not.toContain('userscript-fixture')
+  expect(iife).not.toContain('==UserScript==')
+  expect(iife).toContain('userscript-fixture')
+  expect(files).not.toContain('vanilla.user.js')
+  expect(files).not.toContain('vanilla.meta.js')
+})

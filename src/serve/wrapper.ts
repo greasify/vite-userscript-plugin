@@ -2,6 +2,7 @@ import type { HeaderOptions } from '../header.js'
 import type { HeaderConfig, ResolvedScript } from '../types.js'
 
 import { posix, relative, resolve, sep } from 'node:path'
+import { toProxyFileName } from '../build/proxy.js'
 import {
   GM_NAMESPACE,
   REACT_BOOTSTRAP_PATH,
@@ -16,8 +17,14 @@ export function matchDevUserscript(url: string, fileName: string): boolean {
   return path === `/${fileName}.dev.user.js`
 }
 
-export function toInstallUrl(origin: string, fileName: string): string {
-  return `${origin.replace(/\/$/, '')}/${fileName}.dev.user.js`
+export function matchProxyUserscript(url: string, fileName: string): boolean {
+  const path = url.split('?')[0] ?? ''
+  return path === `/${toProxyFileName(fileName)}`
+}
+
+export function toInstallUrl(origin: string, fileName: string, file = false): string {
+  const name = file ? toProxyFileName(fileName) : `${fileName}.dev.user.js`
+  return `${origin.replace(/\/$/, '')}/${name}`
 }
 
 export function toServeEntryPath(root: string, entry: string): string {
@@ -99,7 +106,11 @@ export function generateDevUserscript(options: {
 }
 
 export function findDevScript(url: string, scripts: ResolvedScript[]): ResolvedScript | undefined {
-  return scripts.find(script => matchDevUserscript(url, script.fileName))
+  return scripts.find(script => !script.server.file && matchDevUserscript(url, script.fileName))
+}
+
+export function findProxyScript(url: string, scripts: ResolvedScript[]): ResolvedScript | undefined {
+  return scripts.find(script => script.server.file && matchProxyUserscript(url, script.fileName))
 }
 
 export function createDevUserscript(options: {

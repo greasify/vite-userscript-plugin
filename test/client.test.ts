@@ -22,6 +22,27 @@ it('createClientSnapshot uses the serve suffix', () => {
   ])
 })
 
+it('createClientSnapshot uses the proxy suffix in file mode', () => {
+  const { scripts } = resolvePluginConfig({
+    entry: 'src/main.ts',
+    fileName: 'landing-script',
+    header: {
+      name: 'My Package Name',
+      version: '1.2.3',
+      match: 'https://example.com/*',
+    },
+    server: { file: true },
+  })
+
+  expect(createClientSnapshot(scripts, 'serve')).toEqual([
+    {
+      name: 'My Package Name',
+      version: '1.2.3',
+      file: 'landing-script.proxy.user.js',
+    },
+  ])
+})
+
 it('createClientSnapshot uses the build suffix', () => {
   const { scripts } = resolvePluginConfig({
     entry: 'src/main.ts',

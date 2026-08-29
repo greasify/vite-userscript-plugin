@@ -1,7 +1,8 @@
-import type { Plugin } from 'vite'
+import type { Plugin, ViteDevServer } from 'vite'
 import type { ResolvedPluginConfig, UserscriptPluginConfig } from './types.js'
 
 import { resolve } from 'node:path'
+import { build } from 'vite'
 import { applyUserscriptBundle } from './build/apply.js'
 import {
   createClientSnapshot,
@@ -16,6 +17,7 @@ import {
   resolvePluginConfig,
 } from './resolve.js'
 import { shimModule, shouldShimModule } from './serve/gm-shim.js'
+import { formatRebuildLine } from './serve/logger.js'
 import { configureDevServer } from './serve/middleware.js'
 import { hasReactRefreshPlugin } from './serve/react.js'
 
@@ -35,6 +37,87 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
   let resolved = resolvePluginConfig(config)
   let reactPreamble = false
   let command: 'serve' | 'build' = 'serve'
+  let isWatch = false
+  let mode = 'production'
+  let outDir = ''
+  let fileWatchStarted = false
+
+  const shouldEmitProxy = (): boolean => {
+    return isWatch || mode === 'development'
+  }
+
+  const startFileWatchBuild = async (server: ViteDevServer): Promise<void> => {
+    if (command === 'build' || fileWatchStarted) {
+      return
+    }
+
+    fileWatchStarted = true
+    const outDirAbs = resolve(server.config.root, server.config.build.outDir)
+    let firstBuild = true
+
+    const run = async (): Promise<void> => {
+      const isRebuild = !firstBuild
+      const started = Date.now()
+      await build({
+        configFile: server.config.configFile ?? false,
+        root: server.config.root,
+        mode: server.config.mode,
+        logLevel: 'silent',
+        clearScreen: false,
+        plugins: server.config.configFile ? undefined : [UserscriptPlugin(config)],
+        build: {
+          outDir: server.config.build.outDir,
+          emptyOutDir: firstBuild,
+          minify: server.config.build.minify,
+          sourcemap: server.config.build.sourcemap,
+          write: true,
+          reportCompressedSize: false,
+        },
+      })
+      firstBuild = false
+      if (isRebuild) {
+        server.config.logger.info(formatRebuildLine(Date.now() - started), {
+          timestamp: true,
+        })
+      }
+    }
+
+    try {
+      await run()
+    } catch (error) {
+      fileWatchStarted = false
+      server.config.logger.error(
+        `[${PLUGIN_NAME}] Failed to start file-mode watch build`,
+      )
+      server.config.logger.error(String(error))
+      return
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const onChange = (file: string): void => {
+      if (file.startsWith(outDirAbs)) {
+        return
+      }
+
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        run().catch((error: unknown) => {
+          server.config.logger.error(String(error))
+        })
+      }, 80)
+    }
+
+    server.watcher.on('change', onChange)
+    server.watcher.on('add', onChange)
+
+    const closeServer = server.close.bind(server)
+    server.close = async () => {
+      server.watcher.off('change', onChange)
+      server.watcher.off('add', onChange)
+      clearTimeout(timer)
+      return closeServer()
+    }
+  }
 
   return [
     {
@@ -116,6 +199,10 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
       apply: 'serve',
       configureServer(server) {
         configureDevServer(server, resolved, reactPreamble)
+
+        if (resolved.scripts.some(script => script.server.file)) {
+          startFileWatchBuild(server)
+        }
       },
     },
     {
@@ -140,13 +227,23 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
       name: `${PLUGIN_NAME}:build`,
       apply: 'build',
       enforce: 'post',
+      configResolved(viteConfig) {
+        isWatch = Boolean(viteConfig.build.watch)
+        mode = viteConfig.mode
+        outDir = resolve(viteConfig.root, viteConfig.build.outDir)
+      },
       generateBundle(_options, bundle) {
-        applyUserscriptBundle(bundle, resolved, (fileName, source) => {
-          this.emitFile({
-            type: 'asset',
-            fileName,
-            source,
-          })
+        isWatch = this.meta.watchMode || isWatch
+        applyUserscriptBundle(bundle, resolved, {
+          emitFile: (fileName, source) => {
+            this.emitFile({
+              type: 'asset',
+              fileName,
+              source,
+            })
+          },
+          emitProxy: shouldEmitProxy(),
+          outDir,
         })
       },
     },
