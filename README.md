@@ -83,10 +83,12 @@ Details: [types/README.md](./types/README.md).
 
 `vite` prints `/{fileName}.dev.user.js` — install that URL once. HMR covers code and styles.
 
+`server.file: true` skips HMR. The same `vite` watch-builds `{fileName}.js` (headerless IIFE) and `{fileName}.proxy.user.js` with `@require file://` to that IIFE. Install the printed `/{fileName}.proxy.user.js` URL. See [examples/serve-file](./examples/serve-file).
+
 > [!IMPORTANT]
 > Changing `@match`, `@grant`, or `@name` needs a reinstall.
 
-`vite build` writes `{fileName}.user.js` to `dist/`.
+`vite build` writes `{fileName}.user.js` to `dist/`. One-shot builds do not emit the proxy.
 
 ## Multiple scripts
 
@@ -133,8 +135,9 @@ See [examples/sourcemap](./examples/sourcemap).
 | `entry` | — | Userscript entry. Required. |
 | `header` | — | Metablock. Required: `name`, `version`, `match`. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
-| `server.open` | `false` | Open the `.dev.user.js` install URL when Vite starts. |
+| `server.open` | `false` | Open the install target when Vite starts. HMR: `.dev.user.js`. `file`: `.proxy.user.js` URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
+| `server.file` | `false` | Watch-build `{fileName}.js` + `{fileName}.proxy.user.js` (`@require file://`). Install from the printed URL. No HMR. |
 | `cssInject` | `'auto'` | How production CSS is injected. `'auto'` uses `GM_addStyle` or a `<style>` node. |
 | `align` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
 | `generate` | — | Rewrite the generated metablock. |
@@ -158,6 +161,7 @@ In serve mode the header lists every grant. In production the plugin scans the b
 | [svelte](./examples/svelte) | SFC `<style>`. |
 | [multiple-entries](./examples/multiple-entries) | Two scripts. |
 | [sourcemap](./examples/sourcemap) | Inline map, HTML page, virtual module. |
+| [serve-file](./examples/serve-file) | `server.file`, install the proxy from the printed URL. |
 
 ## FAQ
 
@@ -181,17 +185,22 @@ In serve mode the header lists every grant. In production the plugin scans the b
 ### `@run-at document-start` feels late in dev
 
 > [!NOTE]
-> Serve injects `type="module"` (async). Production is a synchronous IIFE unless you use top-level `await`.
+> Serve injects `type="module"` (async). Production is a synchronous IIFE unless you use top-level `await`. `server.file` uses that IIFE in dev too.
+
+### `file://` `@require` is blocked
+
+> [!NOTE]
+> Tampermonkey must allow local file access (`@require` from `file://`). Violentmonkey polls the required file after you install `{fileName}.proxy.user.js` from the printed URL. HTTP `@require` and page auto-reload are not part of this mode.
 
 ## Migration from v1
 
 | v1 | v2 |
 | --- | --- |
-| `vite build --watch` | `vite` |
+| `vite build --watch` | `vite` (HMR) or `vite` + `server.file` |
 | `esbuildTransformOptions` | removed |
 | `server.port` | Vite `server.port` |
 | minify on by default | off; set `build.minify` |
-| `*.proxy.user.js` + `file://` | `*.dev.user.js` from Vite |
+| `*.proxy.user.js` + `file://` | `server.file: true`, or HMR `.dev.user.js` |
 | Vite 3–7 | Vite 8 |
 | `scripts` + shared `header` | `userscript([config, config, …])` |
 | `ScriptOptions` | removed |

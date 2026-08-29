@@ -1,8 +1,14 @@
 import type { ViteDevServer } from 'vite'
 import type { ResolvedPluginConfig } from '../types.js'
 
+import { resolve } from 'node:path'
 import openLink from 'open'
-import { createAfterLocalLogger, formatFaqHint, formatInstallLine } from './logger.js'
+import { generateWatchProxy, toRequireFileName } from '../build/proxy.js'
+import {
+  createAfterLocalLogger,
+  formatFaqHint,
+  formatInstallLine,
+} from './logger.js'
 import {
   createReactBootstrapModule,
   matchReactBootstrap,
@@ -10,7 +16,12 @@ import {
   REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
 } from './react.js'
-import { createDevUserscript, findDevScript, toInstallUrl } from './wrapper.js'
+import {
+  createDevUserscript,
+  findDevScript,
+  findProxyScript,
+  toInstallUrl,
+} from './wrapper.js'
 
 export const DEV_SCRIPT_HEADERS = {
   'Content-Type': 'text/javascript; charset=utf-8',
@@ -49,6 +60,17 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
       return
     }
 
+    const proxyScript = findProxyScript(url, resolved.scripts)
+    if (proxyScript) {
+      const jsAbsPath = resolve(
+        server.config.root,
+        server.config.build.outDir,
+        toRequireFileName(proxyScript.fileName),
+      )
+      writeScript(res, `${generateWatchProxy(proxyScript, jsAbsPath)}\n`)
+      return
+    }
+
     const script = findDevScript(url, resolved.scripts)
     if (!script) {
       next()
@@ -76,7 +98,7 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
     const printInstall = () => {
       for (const origin of origins) {
         for (const script of resolved.scripts) {
-          info(formatInstallLine(toInstallUrl(origin, script.fileName)))
+          info(formatInstallLine(toInstallUrl(origin, script.fileName, script.server.file)))
         }
       }
       info(formatFaqHint())
@@ -107,7 +129,7 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
     queueMicrotask(() => {
       const origin = resolveServerOrigin(server.resolvedUrls)
       for (const script of toOpen) {
-        void openLink(toInstallUrl(origin, script.fileName))
+        openLink(toInstallUrl(origin, script.fileName, script.server.file))
       }
     })
   })

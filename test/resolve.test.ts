@@ -17,7 +17,22 @@ it('resolvePluginConfig accepts a single config', () => {
   expect(resolved.scripts[0]?.fileName).toBe('Demo-Script')
   expect(resolved.scripts[0]?.iifeName).toBe('Demo_Script')
   expect(resolved.scripts[0]?.server.open).toBe(false)
+  expect(resolved.scripts[0]?.server.file).toBe(false)
   expect(resolved.scripts[0]?.metaFile).toBe(true)
+})
+
+it('resolvePluginConfig keeps server.file', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { file: true },
+  })
+
+  expect(resolved.scripts[0]?.server.file).toBe(true)
 })
 
 it('resolvePluginConfig accepts an array of configs', () => {

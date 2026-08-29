@@ -124,6 +124,15 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  examples/serve-file:
+    devDependencies:
+      vite:
+        specifier: 'catalog:'
+        version: 8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(sass-embedded@1.103.1)(sass@1.103.1)(yaml@2.9.0)
+      vite-userscript-plugin:
+        specifier: workspace:*
+        version: link:../..
+
   examples/sourcemap:
     devDependencies:
       vite:

@@ -13,13 +13,20 @@ export function createClientSnapshot(
   scripts: ResolvedScript[],
   command: 'serve' | 'build',
 ): ClientScript[] {
-  const suffix = command === 'serve' ? '.dev.user.js' : '.user.js'
+  return scripts.map((script) => {
+    let suffix = '.dev.user.js'
+    if (command === 'build') {
+      suffix = '.user.js'
+    } else if (script.server.file) {
+      suffix = '.proxy.user.js'
+    }
 
-  return scripts.map(script => ({
-    name: script.header.name,
-    version: script.header.version,
-    file: `${script.fileName}${suffix}`,
-  }))
+    return {
+      name: script.header.name,
+      version: script.header.version,
+      file: `${script.fileName}${suffix}`,
+    }
+  })
 }
 
 export function renderVirtualModule(scripts: ClientScript[]): string {

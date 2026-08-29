@@ -1,6 +1,11 @@
 import type { Grants } from './grants/types.js'
 
-export type { GMDotAlias, GMLiterals, GMWindow, Grants } from './grants/types.js'
+export type {
+  GMDotAlias,
+  GMLiterals,
+  GMWindow,
+  Grants,
+} from './grants/types.js'
 
 export type RunAt
   = | 'document-start'
@@ -178,7 +183,8 @@ export type HeaderConfig = {
 
 export interface ServerConfig {
   /**
-   * Open the `.dev.user.js` install URL when the Vite server starts.
+   * Open the install target when Vite starts.
+   * HMR: `.dev.user.js` URL. `file`: `{fileName}.proxy.user.js` URL.
    *
    * @default false
    */
@@ -191,6 +197,15 @@ export interface ServerConfig {
    * @default 'server:'
    */
   prefix?: string | false
+
+  /**
+   * Watch-build into `outDir`: headerless `{fileName}.js` and `{fileName}.proxy.user.js`
+   * with `@require file://` pointing at the IIFE.
+   * Install the proxy from the printed `/{fileName}.proxy.user.js` URL. No HMR for this script.
+   *
+   * @default false
+   */
+  file?: boolean
 }
 
 export type HeaderMode = 'serve' | 'build' | 'meta'
@@ -279,6 +294,7 @@ export interface ResolvedScript {
   server: {
     open: boolean
     prefix: string | false
+    file: boolean
   }
   cssInject: CssInject
   align: number | false

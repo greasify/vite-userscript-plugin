@@ -19,9 +19,11 @@ export {
   applyServeHeader,
   createDevUserscript,
   findDevScript,
+  findProxyScript,
   generateDevUserscript,
   generateDevWrapper,
   matchDevUserscript,
+  matchProxyUserscript,
   toInstallUrl,
   toServeEntryPath,
 } from './wrapper.js'
