@@ -242,6 +242,154 @@ it('resolvePublicFileUrl returns undefined without a valid homepage', () => {
   }, 'vitest.user.js.map')).toBeUndefined()
 })
 
+it('header joins a relative icon with homepage', () => {
+  const withoutSlash = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin',
+    icon: 'greasify.svg',
+  })
+  const withSlash = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    icon: 'greasify.svg',
+  })
+
+  expect(withoutSlash).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/greasify.svg',
+  )
+  expect(withSlash).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/greasify.svg',
+  )
+})
+
+it('header keeps absolute icon URLs', () => {
+  const header = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    icon: 'https://cdn.example.com/icon.png',
+    icon64: 'http://cdn.example.com/icon64.png',
+    iconURL: 'data:image/svg+xml,<svg></svg>',
+  })
+
+  expect(header).toContain('https://cdn.example.com/icon.png')
+  expect(header).toContain('http://cdn.example.com/icon64.png')
+  expect(header).toContain('data:image/svg+xml,<svg></svg>')
+  expect(header).not.toContain('greasify.github.io/vite-userscript-plugin/https')
+})
+
+it('header resolves mixed require and resource paths', () => {
+  const header = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    require: ['lib.js', 'https://cdn.example.com/vendor.js'],
+    resource: [['logo', 'greasify.svg'], ['remote', 'https://cdn.example.com/logo.png']],
+  })
+
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/lib.js',
+  )
+  expect(header).toContain('https://cdn.example.com/vendor.js')
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/greasify.svg',
+  )
+  expect(header).toContain('https://cdn.example.com/logo.png')
+})
+
+it('header keeps relative URLs without a usable homepage', () => {
+  const missing = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    icon: 'greasify.svg',
+  })
+  const invalid = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'not a url',
+    icon: 'greasify.svg',
+  })
+
+  expect(missing).toMatch(/@icon\s+greasify\.svg/)
+  expect(missing).not.toMatch(/@icon\s+https?:/)
+  expect(invalid).toMatch(/@icon\s+greasify\.svg/)
+  expect(invalid).not.toMatch(/@icon\s+https?:/)
+})
+
+it('header resolves a relative updateURL without autoMetaUrls', () => {
+  const header = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    updateURL: 'custom.meta.js',
+  })
+
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/custom.meta.js',
+  )
+  expect(header).not.toContain('vitest.meta.js')
+})
+
+it('header keeps protocol-relative and root-absolute icon paths', () => {
+  const header = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    icon: '//cdn.example.com/icon.png',
+    icon64: '/greasify.svg',
+  })
+
+  expect(header).toContain('//cdn.example.com/icon.png')
+  expect(header).toContain('/greasify.svg')
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/greasify.svg',
+  )
+})
+
+it('header relative icon does not mutate the input header', () => {
+  const header: HeaderConfig = {
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://example.com/project',
+    icon: 'greasify.svg',
+  }
+  const clone = structuredClone(header)
+
+  generateHeader(header)
+
+  expect(header).toEqual(clone)
+})
+
+it('header does not resolve match or homepage aliases', () => {
+  const header = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'example.com/*',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    include: 'local-page.html',
+  })
+
+  expect(header).toContain('example.com/*')
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/example.com/*',
+  )
+  expect(header).toContain('local-page.html')
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/local-page.html',
+  )
+})
+
 it('header align false uses a single space', () => {
   const header = generateHeader(
     {

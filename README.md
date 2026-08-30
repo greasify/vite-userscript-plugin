@@ -133,7 +133,7 @@ See [examples/sourcemap](./examples/sourcemap).
 | Option | Default | Description |
 | --- | --- | --- |
 | `entry` | — | Userscript entry. Required. |
-| `header` | — | Metablock. Required: `name`, `version`, `match`. |
+| `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). Absolute `http(s):` URLs stay as-is. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the install target when Vite starts. HMR: `.dev.user.js`. `file`: `.user.js` URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
@@ -181,6 +181,8 @@ In serve mode the header lists every grant. In production the plugin scans the b
 
 > [!NOTE]
 > Userscripts run on someone else’s origin. Import the file so Vite inlines it. `public/` only works for the `index.html` app on the Vite origin.
+>
+> `@icon`, `@require`, and `@resource` are different: the manager fetches them from the metablock URL, not from the `match` site. Write `icon: 'greasify.svg'` plus `homepage` (GitHub Pages, etc.) — the plugin joins them. Leave `https://…` as-is.
 
 ### `@run-at document-start` feels late in dev
 

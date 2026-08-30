@@ -1,10 +1,3 @@
-export {
-  generateHeader,
-  Header,
-  resolveHomePage,
-  resolvePublicFileUrl,
-} from './header.js'
-
 export { default } from './plugin.js'
 
 export type {

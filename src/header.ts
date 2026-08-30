@@ -13,6 +13,20 @@ export interface HeaderOptions {
   mode?: HeaderMode
 }
 
+const ABSOLUTE_URL_RE = /^[a-z][a-z0-9+.-]*:/i
+
+const HOMEPAGE_RELATIVE_FIELDS = [
+  'icon',
+  'iconURL',
+  'defaulticon',
+  'icon64',
+  'icon64URL',
+  'require',
+  'supportURL',
+  'updateURL',
+  'downloadURL',
+] as const
+
 function ensureTrailingSlash(url: string): string {
   return url.endsWith('/') ? url : `${url}/`
 }
@@ -27,22 +41,133 @@ export function resolveHomePage(header: HeaderConfig): string | undefined {
   return trimmed === '' ? undefined : trimmed
 }
 
-export function resolvePublicFileUrl(
-  header: HeaderConfig,
-  fileName: string,
-): string | undefined {
+export function isResolvableHeaderPath(value: string): boolean {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return false
+  }
+
+  if (ABSOLUTE_URL_RE.test(trimmed) || trimmed.startsWith('//') || trimmed.startsWith('/')) {
+    return false
+  }
+
+  return true
+}
+
+function containsResolvableHeaderPath(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return isResolvableHeaderPath(value)
+  }
+
+  if (!Array.isArray(value)) {
+    return false
+  }
+
+  return value.some(item => typeof item === 'string' && isResolvableHeaderPath(item))
+}
+
+function containsResolvableResourcePath(resource: unknown): boolean {
+  if (!Array.isArray(resource)) {
+    return false
+  }
+
+  return resource.some((item) => {
+    return Array.isArray(item)
+      && typeof item[1] === 'string'
+      && isResolvableHeaderPath(item[1])
+  })
+}
+
+export function listHomepageRelativeFields(header: HeaderConfig): string[] {
+  const fields: string[] = []
+
+  for (const key of HOMEPAGE_RELATIVE_FIELDS) {
+    if (containsResolvableHeaderPath(header[key])) {
+      fields.push(key)
+    }
+  }
+
+  if (containsResolvableResourcePath(header.resource)) {
+    fields.push('resource')
+  }
+
+  return fields
+}
+
+export function resolvePublicFileUrl(header: HeaderConfig, fileName: string): string | undefined {
   const homePage = resolveHomePage(header)
-  if (!homePage) return
+  if (!homePage) {
+    return
+  }
 
   try {
     return new URL(fileName, ensureTrailingSlash(homePage)).href
   } catch { }
 }
 
-function applyAutoMetaUrls(
-  header: HeaderConfig,
-  fileName: string,
-): HeaderConfig {
+function resolveHeaderUrlValue(header: HeaderConfig, value: unknown): unknown {
+  if (typeof value === 'string') {
+    if (!isResolvableHeaderPath(value)) {
+      return value
+    }
+
+    return resolvePublicFileUrl(header, value.trim()) ?? value
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(item => (
+      typeof item === 'string'
+        ? resolveHeaderUrlValue(header, item)
+        : item
+    ))
+  }
+
+  return value
+}
+
+function resolveResourceUrls(header: HeaderConfig, resource: unknown): HeaderConfig['resource'] {
+  if (!Array.isArray(resource)) {
+    return resource as HeaderConfig['resource']
+  }
+
+  return resource.map((item) => {
+    if (!Array.isArray(item) || typeof item[1] !== 'string') {
+      return item
+    }
+
+    const [key, url] = item
+    if (!isResolvableHeaderPath(url)) {
+      return item
+    }
+
+    const resolved = resolvePublicFileUrl(header, url.trim())
+    return resolved ? [key, resolved] : item
+  })
+}
+
+function applyHomepageRelativeUrls(header: HeaderConfig): HeaderConfig {
+  if (!resolveHomePage(header)) {
+    return header
+  }
+
+  const next: HeaderConfig = { ...header }
+
+  for (const key of HOMEPAGE_RELATIVE_FIELDS) {
+    if (next[key] != null) {
+      Object.assign(next, {
+        [key]: resolveHeaderUrlValue(next, next[key]),
+      })
+    }
+  }
+
+  if (next.resource != null) {
+    next.resource = resolveResourceUrls(next, next.resource)
+  }
+
+  return next
+}
+
+function applyAutoMetaUrls(header: HeaderConfig, fileName: string): HeaderConfig {
   const updateURL = header.updateURL ?? resolvePublicFileUrl(header, `${fileName}.meta.js`)
   const downloadURL = header.downloadURL ?? resolvePublicFileUrl(header, `${fileName}.user.js`)
 
@@ -79,9 +204,10 @@ function formatValue(value: unknown): string | undefined {
 
 export function generateHeader(config: HeaderConfig, options: HeaderOptions = {}): string {
   const fileName = options.fileName ?? sanitizeFileName(config.name)
+  const withRelativeUrls = applyHomepageRelativeUrls({ ...config })
   const header = options.autoMetaUrls
-    ? applyAutoMetaUrls({ ...config }, fileName)
-    : { ...config }
+    ? applyAutoMetaUrls(withRelativeUrls, fileName)
+    : withRelativeUrls
 
   const keys = Object.keys(header).filter((key) => {
     const value = header[key]
