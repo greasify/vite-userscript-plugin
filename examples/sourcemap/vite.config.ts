@@ -16,6 +16,7 @@ export default defineConfig({
         name: pkg.name,
         version: pkg.version,
         homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+        icon: 'greasify.svg',
         match: 'https://example.com/',
       },
     }),

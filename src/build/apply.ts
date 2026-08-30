@@ -1,4 +1,3 @@
-import type { Grants } from '../grants/types.js'
 import type { HeaderConfig, ResolvedPluginConfig, ResolvedScript } from '../types.js'
 import type { OutputBundle, OutputChunk } from './bundle.js'
 
@@ -126,15 +125,14 @@ function createHeadedUserscript(
     body: string
     code: string
     cssPrelude: string
-    extraGrants: readonly Grants[]
     inlined: string
     map?: OutputChunk['map']
     wrapped: string
   },
 ): { code: string, headerConfig: HeaderConfig } {
-  const headerConfig = resolveBuildHeader(script.header, options.wrapped, options.extraGrants)
+  const headerConfig = resolveBuildHeader(script.header, options.wrapped)
   const header = generateHeader(headerConfig, {
-    align: script.align,
+    align: script.headerAlign,
     autoMetaUrls: script.autoMetaUrls,
     fileName: script.fileName,
     generate: script.generate,
@@ -229,10 +227,9 @@ export function applyUserscriptBundle(
       }
     }
 
-    const cssPrelude = css ? createCssInject(css, script.cssInject) : ''
+    const cssPrelude = css ? createCssInject(css) : ''
     const body = `${inlined}${chunk.code}`
     const wrapped = ensureIife(body)
-    const extraGrants = css && script.cssInject === 'auto' ? (['GM_addStyle'] as const) : []
     const code = `${cssPrelude}${wrapped}`
     const emitFileProxy = Boolean(
       context.emitProxy && context.outDir && script.server.file,
@@ -244,7 +241,6 @@ export function applyUserscriptBundle(
       body,
       code,
       cssPrelude,
-      extraGrants,
       inlined,
       map: chunk.map,
       wrapped,
@@ -284,7 +280,7 @@ export function applyUserscriptBundle(
       emitFile(
         `${script.fileName}.meta.js`,
         generateHeader(headed.headerConfig, {
-          align: script.align,
+          align: script.headerAlign,
           autoMetaUrls: script.autoMetaUrls,
           fileName: script.fileName,
           generate: script.generate,

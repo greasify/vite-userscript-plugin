@@ -1,7 +1,11 @@
 import type { UserscriptPluginConfig } from '../src/types.js'
 
 import { expect, expectTypeOf, it } from 'vitest'
-import { collectAutoMetaUrlsWarnings, resolvePluginConfig } from '../src/resolve.js'
+import {
+  collectAutoMetaUrlsWarnings,
+  collectHomepageRelativeUrlWarnings,
+  resolvePluginConfig,
+} from '../src/resolve.js'
 
 it('resolvePluginConfig accepts a single config', () => {
   const resolved = resolvePluginConfig({
@@ -145,6 +149,52 @@ it('collectAutoMetaUrlsWarnings is empty when autoMetaUrls is off', () => {
   })
 
   expect(collectAutoMetaUrlsWarnings(resolved)).toEqual([])
+})
+
+it('collectHomepageRelativeUrlWarnings when icon is relative and homepage is missing', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      icon: 'greasify.svg',
+      require: ['lib.js', 'https://cdn.example.com/vendor.js'],
+    },
+  })
+
+  expect(collectHomepageRelativeUrlWarnings(resolved)).toEqual([
+    '[vite-userscript-plugin] "Demo" has relative header URLs (icon, require) but no homepage, homepageURL, website, or source',
+  ])
+})
+
+it('collectHomepageRelativeUrlWarnings skips absolute icon URLs', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      icon: 'https://cdn.example.com/icon.png',
+    },
+  })
+
+  expect(collectHomepageRelativeUrlWarnings(resolved)).toEqual([])
+})
+
+it('collectHomepageRelativeUrlWarnings skips relative icon when homepage is set', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      homepage: 'https://example.com/project',
+      icon: 'greasify.svg',
+    },
+  })
+
+  expect(collectHomepageRelativeUrlWarnings(resolved)).toEqual([])
 })
 
 it('userscriptPluginConfig accepts a single config', () => {

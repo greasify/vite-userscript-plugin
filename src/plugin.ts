@@ -13,7 +13,7 @@ import {
 import { PLUGIN_NAME } from './constants.js'
 import { resolvePluginBuildInput } from './html.js'
 import {
-  collectAutoMetaUrlsWarnings,
+  collectConfigWarnings,
   resolvePluginConfig,
 } from './resolve.js'
 import { shimModule, shouldShimModule } from './serve/gm-shim.js'
@@ -176,7 +176,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
         resolved = absolutizeEntries(resolved, viteConfig.root)
         reactPreamble = hasReactRefreshPlugin(viteConfig.plugins)
 
-        for (const message of collectAutoMetaUrlsWarnings(resolved)) {
+        for (const message of collectConfigWarnings(resolved)) {
           viteConfig.logger.warn(message)
         }
       },

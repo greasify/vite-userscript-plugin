@@ -133,13 +133,12 @@ See [examples/sourcemap](./examples/sourcemap).
 | Option | Default | Description |
 | --- | --- | --- |
 | `entry` | — | Userscript entry. Required. |
-| `header` | — | Metablock. Required: `name`, `version`, `match`. |
+| `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). Absolute `http(s):` URLs stay as-is. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the install target when Vite starts. HMR: `.dev.user.js`. `file`: `.user.js` URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
 | `server.file` | `false` | Watch-build `{fileName}.user.js` + `{fileName}.js` + `{fileName}.proxy.user.js`. Install `.user.js` (or the proxy if `file://` `@require` works). No HMR. |
-| `cssInject` | `'auto'` | How production CSS is injected. `'auto'` uses `GM_addStyle` or a `<style>` node. |
-| `align` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
+| `headerAlign` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
 | `generate` | — | Rewrite the generated metablock. |
 | `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage` / `homepageURL` / `website` / `source`. |
 | `metaFile` | `true` | Emit `{fileName}.meta.js`. |
@@ -181,6 +180,8 @@ In serve mode the header lists every grant. In production the plugin scans the b
 
 > [!NOTE]
 > Userscripts run on someone else’s origin. Import the file so Vite inlines it. `public/` only works for the `index.html` app on the Vite origin.
+>
+> `@icon`, `@require`, and `@resource` are different: the manager fetches them from the metablock URL, not from the `match` site. Write `icon: 'greasify.svg'` plus `homepage` (GitHub Pages, etc.) — the plugin joins them. Leave `https://…` as-is.
 
 ### `@run-at document-start` feels late in dev
 
@@ -204,6 +205,8 @@ In serve mode the header lists every grant. In production the plugin scans the b
 | Vite 3–7 | Vite 8 |
 | `scripts` + shared `header` | `userscript([config, config, …])` |
 | `ScriptOptions` | removed |
+| `cssInject` | removed; imported CSS always appends a `<style>` node |
+| `align` | `headerAlign` |
 
 ## License
 

@@ -6,7 +6,7 @@ import type {
   UserscriptPluginConfig,
 } from './types.js'
 import { PLUGIN_NAME } from './constants.js'
-import { resolveHomePage } from './header.js'
+import { listHomepageRelativeFields, resolveHomePage } from './header.js'
 import { sanitizeFileName, toIdentifier } from './names.js'
 
 function isEmptyHeaderField(value: unknown): boolean {
@@ -46,8 +46,7 @@ function toResolvedScript(config: UserscriptConfig): ResolvedScript {
       prefix: config.server?.prefix ?? 'server:',
       file: config.server?.file ?? false,
     },
-    cssInject: config.cssInject ?? 'auto',
-    align: config.align ?? 1,
+    headerAlign: config.headerAlign ?? 1,
     generate: config.generate,
     autoMetaUrls: config.autoMetaUrls ?? false,
     metaFile: config.metaFile ?? true,
@@ -76,6 +75,34 @@ export function collectAutoMetaUrlsWarnings(config: ResolvedPluginConfig): strin
   }
 
   return warnings
+}
+
+export function collectHomepageRelativeUrlWarnings(config: ResolvedPluginConfig): string[] {
+  const warnings: string[] = []
+
+  for (const script of config.scripts) {
+    if (resolveHomePage(script.header)) {
+      continue
+    }
+
+    const fields = listHomepageRelativeFields(script.header)
+    if (!fields.length) {
+      continue
+    }
+
+    warnings.push(
+      `[${PLUGIN_NAME}] "${script.fileName}" has relative header URLs (${fields.join(', ')}) but no homepage, homepageURL, website, or source`,
+    )
+  }
+
+  return warnings
+}
+
+export function collectConfigWarnings(config: ResolvedPluginConfig): string[] {
+  return [
+    ...collectAutoMetaUrlsWarnings(config),
+    ...collectHomepageRelativeUrlWarnings(config),
+  ]
 }
 
 export function resolvePluginConfig(config: UserscriptPluginConfig): ResolvedPluginConfig {

@@ -131,7 +131,7 @@ it('ensureIife strips sourceMappingURL before wrapping', () => {
   expect(wrapped).not.toContain('sourceMappingURL')
 })
 
-it('resolveBuildHeader adds GM_addStyle when CSS is inlined', () => {
+it('resolveBuildHeader merges extraGrants with scanned and declared grants', () => {
   const header = resolveBuildHeader(
     {
       name: 'a',

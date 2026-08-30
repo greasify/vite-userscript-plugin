@@ -33,7 +33,7 @@ export function generateWatchProxy(
   jsAbsPath: string,
 ): string {
   return generateHeader(createWatchProxyHeader(script, jsAbsPath), {
-    align: script.align,
+    align: script.headerAlign,
     autoMetaUrls: false,
     fileName: script.fileName,
     generate: script.generate,
