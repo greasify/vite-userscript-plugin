@@ -419,7 +419,7 @@ it('one-shot build with server.file does not emit a proxy', async () => {
   expect(files).not.toContain('vanilla.js')
 })
 
-it('development build with server.file emits a proxy and headerless IIFE', async () => {
+it('development build with server.file emits a proxy, IIFE, and headed userscript', async () => {
   const root = join(fixtures, 'vanilla')
   const outDir = await mkdtemp(join(tmpdir(), 'userscript-vanilla-file-'))
   outDirs.push(outDir)
@@ -451,6 +451,7 @@ it('development build with server.file emits a proxy and headerless IIFE', async
 
   const proxy = await readOut(outDir, 'vanilla.proxy.user.js')
   const iife = await readOut(outDir, 'vanilla.js')
+  const userscript = await readOut(outDir, 'vanilla.user.js')
   const files = await listOut(outDir)
 
   expect(proxy).toContain('==UserScript==')
@@ -462,6 +463,9 @@ it('development build with server.file emits a proxy and headerless IIFE', async
   expect(proxy).not.toContain('userscript-fixture')
   expect(iife).not.toContain('==UserScript==')
   expect(iife).toContain('userscript-fixture')
-  expect(files).not.toContain('vanilla.user.js')
+  expect(userscript).toContain('==UserScript==')
+  expect(userscript).toContain('userscript-fixture')
+  expect(userscript).not.toContain('file://')
+  expect(files).toContain('vanilla.user.js')
   expect(files).not.toContain('vanilla.meta.js')
 })

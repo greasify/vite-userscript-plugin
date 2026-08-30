@@ -1,6 +1,7 @@
 import type { ViteDevServer } from 'vite'
 import type { ResolvedPluginConfig } from '../types.js'
 
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import openLink from 'open'
 import { generateWatchProxy, toRequireFileName } from '../build/proxy.js'
@@ -19,6 +20,7 @@ import {
 import {
   createDevUserscript,
   findDevScript,
+  findFileUserscript,
   findProxyScript,
   toInstallUrl,
 } from './wrapper.js'
@@ -60,6 +62,22 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
       return
     }
 
+    const fileScript = findFileUserscript(url, resolved.scripts)
+    if (fileScript) {
+      const userJsPath = resolve(
+        server.config.root,
+        server.config.build.outDir,
+        `${fileScript.fileName}.user.js`,
+      )
+      try {
+        writeScript(res, readFileSync(userJsPath, 'utf8'))
+      } catch {
+        res.statusCode = 404
+        res.end()
+      }
+      return
+    }
+
     const proxyScript = findProxyScript(url, resolved.scripts)
     if (proxyScript) {
       const jsAbsPath = resolve(
@@ -98,7 +116,13 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
     const printInstall = () => {
       for (const origin of origins) {
         for (const script of resolved.scripts) {
-          info(formatInstallLine(toInstallUrl(origin, script.fileName, script.server.file)))
+          if (script.server.file) {
+            info(formatInstallLine(toInstallUrl(origin, script.fileName, 'user')))
+            info(formatInstallLine(toInstallUrl(origin, script.fileName, 'proxy'), 'Proxy'))
+            continue
+          }
+
+          info(formatInstallLine(toInstallUrl(origin, script.fileName)))
         }
       }
       info(formatFaqHint())
@@ -129,7 +153,11 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
     queueMicrotask(() => {
       const origin = resolveServerOrigin(server.resolvedUrls)
       for (const script of toOpen) {
-        openLink(toInstallUrl(origin, script.fileName, script.server.file))
+        openLink(toInstallUrl(
+          origin,
+          script.fileName,
+          script.server.file ? 'user' : 'dev',
+        ))
       }
     })
   })

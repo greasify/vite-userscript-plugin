@@ -15,6 +15,7 @@ import {
   createReactBootstrapModule,
   DEV_SCRIPT_HEADERS,
   findDevScript,
+  findFileUserscript,
   findProxyScript,
   formatFaqHint,
   formatInstallLine,
@@ -23,6 +24,7 @@ import {
   hasReactRefreshPlugin,
   isViteLocalUrlLine,
   matchDevUserscript,
+  matchFileUserscript,
   matchProxyUserscript,
   matchReactBootstrap,
   matchReactPreamble,
@@ -45,6 +47,12 @@ it('matchProxyUserscript matches install path', () => {
   expect(matchProxyUserscript('/foo.dev.user.js', 'foo')).toBe(false)
 })
 
+it('matchFileUserscript matches install path', () => {
+  expect(matchFileUserscript('/foo.user.js', 'foo')).toBe(true)
+  expect(matchFileUserscript('/foo.user.js?t=1', 'foo')).toBe(true)
+  expect(matchFileUserscript('/foo.proxy.user.js', 'foo')).toBe(false)
+})
+
 it('findDevScript skips file-mode scripts', () => {
   const hmr = resolvePluginConfig({
     entry: 'src/main.ts',
@@ -62,6 +70,8 @@ it('findDevScript skips file-mode scripts', () => {
   expect(findDevScript('/demo.dev.user.js', [file])).toBeUndefined()
   expect(findProxyScript('/demo.proxy.user.js', [file])?.fileName).toBe('demo')
   expect(findProxyScript('/demo.proxy.user.js', [hmr])).toBeUndefined()
+  expect(findFileUserscript('/demo.user.js', [file])?.fileName).toBe('demo')
+  expect(findFileUserscript('/demo.user.js', [hmr])).toBeUndefined()
 })
 
 it('toServeEntryPath is a root-relative URL', () => {
@@ -173,8 +183,11 @@ it('toInstallUrl joins origin without a trailing slash', () => {
   expect(toInstallUrl('http://localhost:5173', 'demo')).toBe(
     'http://localhost:5173/demo.dev.user.js',
   )
-  expect(toInstallUrl('http://localhost:5173/', 'demo', true)).toBe(
+  expect(toInstallUrl('http://localhost:5173/', 'demo', 'proxy')).toBe(
     'http://localhost:5173/demo.proxy.user.js',
+  )
+  expect(toInstallUrl('http://localhost:5173/', 'demo', 'user')).toBe(
+    'http://localhost:5173/demo.user.js',
   )
 })
 
@@ -184,7 +197,15 @@ it('formatInstallLine prints an OpenAPI-style install line', () => {
 
   expect(plain).toContain('Userscript')
   expect(plain).toContain('http://localhost:5173/demo.dev.user.js')
-  expect(plain).toMatch(/^\s+➜\s+Userscript:/)
+  expect(plain).toMatch(/^\s+➜\s+Userscript\s*:/)
+})
+
+it('formatInstallLine labels a proxy install line', () => {
+  const plain = stripAnsi(formatInstallLine('http://localhost:5173/demo.proxy.user.js', 'Proxy'))
+
+  expect(plain).toContain('Proxy')
+  expect(plain).toContain('http://localhost:5173/demo.proxy.user.js')
+  expect(plain).toMatch(/^\s+➜\s+Proxy\s*:/)
 })
 
 it('formatRebuildLine prints elapsed time', () => {

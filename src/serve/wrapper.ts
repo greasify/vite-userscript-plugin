@@ -22,9 +22,21 @@ export function matchProxyUserscript(url: string, fileName: string): boolean {
   return path === `/${toProxyFileName(fileName)}`
 }
 
-export function toInstallUrl(origin: string, fileName: string, file = false): string {
-  const name = file ? toProxyFileName(fileName) : `${fileName}.dev.user.js`
-  return `${origin.replace(/\/$/, '')}/${name}`
+export function matchFileUserscript(url: string, fileName: string): boolean {
+  const path = url.split('?')[0] ?? ''
+  return path === `/${fileName}.user.js`
+}
+
+export type InstallKind = 'dev' | 'user' | 'proxy'
+
+export function toInstallUrl(origin: string, fileName: string, kind: InstallKind = 'dev'): string {
+  const names = {
+    dev: `${fileName}.dev.user.js`,
+    proxy: toProxyFileName(fileName),
+    user: `${fileName}.user.js`,
+  }
+
+  return `${origin.replace(/\/$/, '')}/${names[kind]}`
 }
 
 export function toServeEntryPath(root: string, entry: string): string {
@@ -111,6 +123,10 @@ export function findDevScript(url: string, scripts: ResolvedScript[]): ResolvedS
 
 export function findProxyScript(url: string, scripts: ResolvedScript[]): ResolvedScript | undefined {
   return scripts.find(script => script.server.file && matchProxyUserscript(url, script.fileName))
+}
+
+export function findFileUserscript(url: string, scripts: ResolvedScript[]): ResolvedScript | undefined {
+  return scripts.find(script => script.server.file && matchFileUserscript(url, script.fileName))
 }
 
 export function createDevUserscript(options: {

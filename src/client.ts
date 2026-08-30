@@ -18,7 +18,7 @@ export function createClientSnapshot(
     if (command === 'build') {
       suffix = '.user.js'
     } else if (script.server.file) {
-      suffix = '.proxy.user.js'
+      suffix = '.user.js'
     }
 
     return {

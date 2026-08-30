@@ -184,7 +184,7 @@ export type HeaderConfig = {
 export interface ServerConfig {
   /**
    * Open the install target when Vite starts.
-   * HMR: `.dev.user.js` URL. `file`: `{fileName}.proxy.user.js` URL.
+   * HMR: `.dev.user.js` URL. `file`: `{fileName}.user.js` URL.
    *
    * @default false
    */
@@ -199,9 +199,9 @@ export interface ServerConfig {
   prefix?: string | false
 
   /**
-   * Watch-build into `outDir`: headerless `{fileName}.js` and `{fileName}.proxy.user.js`
-   * with `@require file://` pointing at the IIFE.
-   * Install the proxy from the printed `/{fileName}.proxy.user.js` URL. No HMR for this script.
+   * Watch-build into `outDir`: `{fileName}.user.js`, headerless `{fileName}.js`,
+   * and `{fileName}.proxy.user.js` with `@require file://` pointing at the IIFE.
+   * Install `/{fileName}.user.js` (Firefox-safe) or the proxy URL. No HMR for this script.
    *
    * @default false
    */
