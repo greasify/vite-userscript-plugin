@@ -246,7 +246,7 @@ export interface UserscriptConfig {
    *
    * @default 1
    */
-  align?: number | false
+  headerAlign?: number | false
 
   /**
    * Rewrite the generated metablock.
@@ -284,7 +284,7 @@ export interface ResolvedScript {
     prefix: string | false
     file: boolean
   }
-  align: number | false
+  headerAlign: number | false
   generate?: (ctx: HeaderGenerateContext) => string
   autoMetaUrls: boolean
   metaFile: boolean

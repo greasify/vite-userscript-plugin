@@ -138,7 +138,7 @@ See [examples/sourcemap](./examples/sourcemap).
 | `server.open` | `false` | Open the install target when Vite starts. HMR: `.dev.user.js`. `file`: `.user.js` URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
 | `server.file` | `false` | Watch-build `{fileName}.user.js` + `{fileName}.js` + `{fileName}.proxy.user.js`. Install `.user.js` (or the proxy if `file://` `@require` works). No HMR. |
-| `align` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
+| `headerAlign` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
 | `generate` | — | Rewrite the generated metablock. |
 | `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage` / `homepageURL` / `website` / `source`. |
 | `metaFile` | `true` | Emit `{fileName}.meta.js`. |
@@ -206,6 +206,7 @@ In serve mode the header lists every grant. In production the plugin scans the b
 | `scripts` + shared `header` | `userscript([config, config, …])` |
 | `ScriptOptions` | removed |
 | `cssInject` | removed; imported CSS always appends a `<style>` node |
+| `align` | `headerAlign` |
 
 ## License
 

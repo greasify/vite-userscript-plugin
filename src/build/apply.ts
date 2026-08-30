@@ -132,7 +132,7 @@ function createHeadedUserscript(
 ): { code: string, headerConfig: HeaderConfig } {
   const headerConfig = resolveBuildHeader(script.header, options.wrapped)
   const header = generateHeader(headerConfig, {
-    align: script.align,
+    align: script.headerAlign,
     autoMetaUrls: script.autoMetaUrls,
     fileName: script.fileName,
     generate: script.generate,
@@ -280,7 +280,7 @@ export function applyUserscriptBundle(
       emitFile(
         `${script.fileName}.meta.js`,
         generateHeader(headed.headerConfig, {
-          align: script.align,
+          align: script.headerAlign,
           autoMetaUrls: script.autoMetaUrls,
           fileName: script.fileName,
           generate: script.generate,

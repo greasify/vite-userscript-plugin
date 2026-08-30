@@ -46,7 +46,7 @@ function toResolvedScript(config: UserscriptConfig): ResolvedScript {
       prefix: config.server?.prefix ?? 'server:',
       file: config.server?.file ?? false,
     },
-    align: config.align ?? 1,
+    headerAlign: config.headerAlign ?? 1,
     generate: config.generate,
     autoMetaUrls: config.autoMetaUrls ?? false,
     metaFile: config.metaFile ?? true,

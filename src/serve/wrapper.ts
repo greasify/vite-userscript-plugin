@@ -141,7 +141,7 @@ export function createDevUserscript(options: {
     root: options.root,
     prefix: options.script.server.prefix,
     headerOptions: {
-      align: options.script.align,
+      align: options.script.headerAlign,
       autoMetaUrls: options.script.autoMetaUrls,
       generate: options.script.generate,
     },
