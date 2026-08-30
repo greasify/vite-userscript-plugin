@@ -83,7 +83,7 @@ Details: [types/README.md](./types/README.md).
 
 `vite` prints `/{fileName}.dev.user.js` — install that URL once. HMR covers code and styles.
 
-`server.file: true` skips HMR. The same `vite` watch-builds `{fileName}.js` (headerless IIFE) and `{fileName}.proxy.user.js` with `@require file://` to that IIFE. Install the printed `/{fileName}.proxy.user.js` URL. See [examples/serve-file](./examples/serve-file).
+`server.file: true` skips HMR. The same `vite` watch-builds `{fileName}.user.js` (headed IIFE), `{fileName}.js`, and `{fileName}.proxy.user.js` (`@require file://` to the IIFE). Install the printed `/{fileName}.user.js` URL (Firefox-safe). The `Proxy` line is for managers that can poll `file://`. See [examples/serve-file](./examples/serve-file).
 
 > [!IMPORTANT]
 > Changing `@match`, `@grant`, or `@name` needs a reinstall.
@@ -135,9 +135,9 @@ See [examples/sourcemap](./examples/sourcemap).
 | `entry` | — | Userscript entry. Required. |
 | `header` | — | Metablock. Required: `name`, `version`, `match`. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
-| `server.open` | `false` | Open the install target when Vite starts. HMR: `.dev.user.js`. `file`: `.proxy.user.js` URL. |
+| `server.open` | `false` | Open the install target when Vite starts. HMR: `.dev.user.js`. `file`: `.user.js` URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
-| `server.file` | `false` | Watch-build `{fileName}.js` + `{fileName}.proxy.user.js` (`@require file://`). Install from the printed URL. No HMR. |
+| `server.file` | `false` | Watch-build `{fileName}.user.js` + `{fileName}.js` + `{fileName}.proxy.user.js`. Install `.user.js` (or the proxy if `file://` `@require` works). No HMR. |
 | `cssInject` | `'auto'` | How production CSS is injected. `'auto'` uses `GM_addStyle` or a `<style>` node. |
 | `align` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
 | `generate` | — | Rewrite the generated metablock. |
@@ -161,7 +161,7 @@ In serve mode the header lists every grant. In production the plugin scans the b
 | [svelte](./examples/svelte) | SFC `<style>`. |
 | [multiple-entries](./examples/multiple-entries) | Two scripts. |
 | [sourcemap](./examples/sourcemap) | Inline map, HTML page, virtual module. |
-| [serve-file](./examples/serve-file) | `server.file`, install the proxy from the printed URL. |
+| [serve-file](./examples/serve-file) | `server.file`, install `.user.js` or the proxy from the printed URLs. |
 
 ## FAQ
 
@@ -190,7 +190,7 @@ In serve mode the header lists every grant. In production the plugin scans the b
 ### `file://` `@require` is blocked
 
 > [!NOTE]
-> Tampermonkey must allow local file access (`@require` from `file://`). Violentmonkey polls the required file after you install `{fileName}.proxy.user.js` from the printed URL. HTTP `@require` and page auto-reload are not part of this mode.
+> Firefox extensions cannot read `file://`. Install the printed `{fileName}.user.js` URL instead of the proxy. Tampermonkey on Chromium must allow local file access for the proxy `@require`. Violentmonkey can poll the local IIFE after you install the proxy.
 
 ## Migration from v1
 

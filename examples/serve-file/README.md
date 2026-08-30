@@ -1,13 +1,13 @@
 # Serve file example
 
-Vanilla userscript with `server.file`. `pnpm dev` watch-builds a headerless IIFE and serves a header-only proxy.
+Vanilla userscript with `server.file`. `pnpm dev` watch-builds a headed `.user.js`, a headerless IIFE, and a header-only proxy.
 
 ```bash
 pnpm dev
 pnpm build
 ```
 
-Install the printed `*.proxy.user.js` URL. The proxy `@require`s `serve-file-example.js` from disk. Watch overwrites the IIFE; Violentmonkey polls the local file.
+Install the printed **Userscript** URL (`*.user.js`) — this works in Firefox. The **Proxy** URL `@require`s `serve-file-example.js` from disk; Violentmonkey can poll that file where `file://` is allowed.
 
 `pnpm build` writes `serve-file-example.user.js` + `.meta.js` — no proxy, no headerless `.js`.
 

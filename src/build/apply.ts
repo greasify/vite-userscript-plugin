@@ -1,4 +1,5 @@
-import type { ResolvedPluginConfig, ResolvedScript } from '../types.js'
+import type { Grants } from '../grants/types.js'
+import type { HeaderConfig, ResolvedPluginConfig, ResolvedScript } from '../types.js'
 import type { OutputBundle, OutputChunk } from './bundle.js'
 
 import { resolve } from 'node:path'
@@ -119,6 +120,50 @@ export function findScriptForChunk(
   )
 }
 
+function createHeadedUserscript(
+  script: ResolvedScript,
+  options: {
+    body: string
+    code: string
+    cssPrelude: string
+    extraGrants: readonly Grants[]
+    inlined: string
+    map?: OutputChunk['map']
+    wrapped: string
+  },
+): { code: string, headerConfig: HeaderConfig } {
+  const headerConfig = resolveBuildHeader(script.header, options.wrapped, options.extraGrants)
+  const header = generateHeader(headerConfig, {
+    align: script.align,
+    autoMetaUrls: script.autoMetaUrls,
+    fileName: script.fileName,
+    generate: script.generate,
+    mode: 'build',
+  })
+  const prefix = `${header}\n\n`
+  const nextFileName = `${script.fileName}.user.js`
+  let nextCode = `${prefix}${options.code}`
+
+  if (options.map) {
+    const wrapOffset = isAlreadyIife(stripSourceMappingUrl(options.body)) ? 0 : 1
+    const lineOffset = countHeaderLines(prefix)
+      + countHeaderLines(options.cssPrelude)
+      + wrapOffset
+      + countHeaderLines(options.inlined)
+    const map = stripVendorSourcesContent(offsetSourceMap(
+      options.map,
+      lineOffset,
+      nextFileName,
+    ))
+    nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(map)}\n`
+  }
+
+  return {
+    headerConfig,
+    code: nextCode.endsWith('\n') ? nextCode : `${nextCode}\n`,
+  }
+}
+
 function deleteBundleFiles(
   bundle: OutputBundle,
   fileNames: Iterable<string>,
@@ -195,6 +240,16 @@ export function applyUserscriptBundle(
 
     leftoverAssets.push(`${fileName}.map`)
 
+    const headed = createHeadedUserscript(script, {
+      body,
+      code,
+      cssPrelude,
+      extraGrants,
+      inlined,
+      map: chunk.map,
+      wrapped,
+    })
+
     if (emitFileProxy) {
       const requireName = toRequireFileName(script.fileName)
       let nextCode = code.endsWith('\n') ? code : `${code}\n`
@@ -218,42 +273,17 @@ export function applyUserscriptBundle(
         toProxyFileName(script.fileName),
         `${generateWatchProxy(script, resolve(context.outDir!, requireName))}\n`,
       )
+      emitFile(`${script.fileName}.user.js`, headed.code)
       continue
     }
 
-    const headerConfig = resolveBuildHeader(script.header, wrapped, extraGrants)
-    const header = generateHeader(headerConfig, {
-      align: script.align,
-      autoMetaUrls: script.autoMetaUrls,
-      fileName: script.fileName,
-      generate: script.generate,
-      mode: 'build',
-    })
-    const prefix = `${header}\n\n`
-    const nextFileName = `${script.fileName}.user.js`
-    let nextCode = `${prefix}${code}`
-
-    if (chunk.map) {
-      const wrapOffset = isAlreadyIife(stripSourceMappingUrl(body)) ? 0 : 1
-      const lineOffset = countHeaderLines(prefix)
-        + countHeaderLines(cssPrelude)
-        + wrapOffset
-        + countHeaderLines(inlined)
-      chunk.map = stripVendorSourcesContent(offsetSourceMap(
-        chunk.map,
-        lineOffset,
-        nextFileName,
-      ))
-      nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(chunk.map)}\n`
-    }
-
-    chunk.code = nextCode
-    chunk.fileName = nextFileName
+    chunk.code = headed.code
+    chunk.fileName = `${script.fileName}.user.js`
 
     if (script.metaFile) {
       emitFile(
         `${script.fileName}.meta.js`,
-        generateHeader(headerConfig, {
+        generateHeader(headed.headerConfig, {
           align: script.align,
           autoMetaUrls: script.autoMetaUrls,
           fileName: script.fileName,

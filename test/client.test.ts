@@ -22,7 +22,7 @@ it('createClientSnapshot uses the serve suffix', () => {
   ])
 })
 
-it('createClientSnapshot uses the proxy suffix in file mode', () => {
+it('createClientSnapshot uses the user.js suffix in file mode', () => {
   const { scripts } = resolvePluginConfig({
     entry: 'src/main.ts',
     fileName: 'landing-script',
@@ -38,7 +38,7 @@ it('createClientSnapshot uses the proxy suffix in file mode', () => {
     {
       name: 'My Package Name',
       version: '1.2.3',
-      file: 'landing-script.proxy.user.js',
+      file: 'landing-script.user.js',
     },
   ])
 })

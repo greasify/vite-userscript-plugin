@@ -3,7 +3,7 @@ import type { Logger } from 'vite'
 import { styleText } from 'node:util'
 import { FAQ_URL } from '../constants.js'
 
-export function formatInstallLine(installUrl: string): string {
+export function formatInstallLine(installUrl: string, label = 'Userscript'): string {
   const coloredUrl = styleText(
     'cyan',
     installUrl.replace(
@@ -11,8 +11,9 @@ export function formatInstallLine(installUrl: string): string {
       (_match, port: string) => `:${styleText('bold', port)}/`,
     ),
   )
+  const padded = label.padEnd('Userscript'.length)
 
-  return `  ${styleText('green', '➜')}  ${styleText('bold', 'Userscript')}: ${coloredUrl}`
+  return `  ${styleText('green', '➜')}  ${styleText('bold', padded)}: ${coloredUrl}`
 }
 
 export function formatRebuildLine(elapsedMs: number): string {

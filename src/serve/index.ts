@@ -20,11 +20,14 @@ export {
   applyServeHeader,
   createDevUserscript,
   findDevScript,
+  findFileUserscript,
   findProxyScript,
   generateDevUserscript,
   generateDevWrapper,
   matchDevUserscript,
+  matchFileUserscript,
   matchProxyUserscript,
   toInstallUrl,
   toServeEntryPath,
 } from './wrapper.js'
+export type { InstallKind } from './wrapper.js'
