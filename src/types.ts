@@ -215,11 +215,6 @@ export interface HeaderGenerateContext {
   mode: HeaderMode
 }
 
-export type CssInject
-  = | 'auto'
-    | string
-    | ((css: string) => void)
-
 /**
  * One userscript. Pass an object, or an array of these, to {@link UserscriptPluginConfig}.
  */
@@ -245,13 +240,6 @@ export interface UserscriptConfig {
    * Serve-mode options.
    */
   server?: ServerConfig
-
-  /**
-   * How to inject collected CSS in production builds.
-   *
-   * @default 'auto'
-   */
-  cssInject?: CssInject
 
   /**
    * Extra spaces after the longest `@key`, or `false` for a single space.
@@ -296,7 +284,6 @@ export interface ResolvedScript {
     prefix: string | false
     file: boolean
   }
-  cssInject: CssInject
   align: number | false
   generate?: (ctx: HeaderGenerateContext) => string
   autoMetaUrls: boolean

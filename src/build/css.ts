@@ -1,15 +1,10 @@
-import type { CssInject } from '../types.js'
 import type { OutputBundle, OutputChunk } from './bundle.js'
 import { isAsset, isChunk } from './bundle.js'
 
 const defaultCssInjector = `(function (css) {
-  if (typeof GM_addStyle === 'function') {
-    GM_addStyle(css)
-  } else {
-    var style = document.createElement('style')
-    style.textContent = css
-    ;(document.head || document.documentElement).appendChild(style)
-  }
+  var style = document.createElement('style')
+  style.textContent = css
+  ;(document.head || document.documentElement).appendChild(style)
 })`
 
 function collectImportedCss(chunk: OutputChunk, bundle: OutputBundle, seen = new Set<string>()): string[] {
@@ -49,16 +44,6 @@ export function collectCss(chunk: OutputChunk, bundle: OutputBundle): { css: str
   return { css, files }
 }
 
-export function createCssInject(css: string, cssInject: CssInject = 'auto'): string {
-  const payload = JSON.stringify(css)
-
-  if (cssInject === 'auto') {
-    return `${defaultCssInjector}(${payload});\n`
-  }
-
-  if (typeof cssInject === 'function') {
-    return `(${cssInject.toString()})(${payload});\n`
-  }
-
-  return `(${cssInject})(${payload});\n`
+export function createCssInject(css: string): string {
+  return `${defaultCssInjector}(${JSON.stringify(css)});\n`
 }
