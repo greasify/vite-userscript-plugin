@@ -31,6 +31,7 @@ import {
   REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
   stripAnsi,
+  toInstallPath,
   toInstallUrl,
   toServeEntryPath,
 } from '../src/serve/index.js'
@@ -76,6 +77,18 @@ it('findDevScript skips file-mode scripts', () => {
 
 it('toServeEntryPath is a root-relative URL', () => {
   expect(toServeEntryPath('/proj', '/proj/src/main.ts')).toBe('/src/main.ts')
+})
+
+it('toInstallPath is origin-relative', () => {
+  expect(toInstallPath('foo')).toBe('/foo.dev.user.js')
+  expect(toInstallPath('foo', 'user')).toBe('/foo.user.js')
+  expect(toInstallPath('foo', 'proxy')).toBe('/foo.proxy.user.js')
+})
+
+it('toInstallUrl joins origin and install path', () => {
+  expect(toInstallUrl('http://localhost:5173/', 'foo', 'user')).toBe(
+    'http://localhost:5173/foo.user.js',
+  )
 })
 
 it('applyServeHeader prefixes the name and fills grants', () => {

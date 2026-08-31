@@ -20,6 +20,7 @@ import { shimModule, shouldShimModule } from './serve/gm-shim.js'
 import { formatRebuildLine } from './serve/logger.js'
 import { configureDevServer } from './serve/middleware.js'
 import { hasReactRefreshPlugin } from './serve/react.js'
+import { toInstallPath } from './serve/wrapper.js'
 
 function absolutizeEntries(
   config: ResolvedPluginConfig,
@@ -135,6 +136,11 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
           ? userOutput.entryFileNames
           : undefined
 
+        const openScript = resolved.scripts.find(script => script.server.open)
+        const openPath = openScript?.server.open
+          ? toInstallPath(openScript.fileName, openScript.server.open)
+          : undefined
+
         return {
           appType: userConfig.appType ?? (hasHtml ? 'spa' : 'custom'),
           optimizeDeps: {
@@ -143,6 +149,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
           },
           server: {
             cors: userConfig.server?.cors ?? true,
+            ...(openPath ? { open: openPath } : {}),
           },
           build: {
             minify: userConfig.build?.minify ?? false,
@@ -176,7 +183,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
         resolved = absolutizeEntries(resolved, viteConfig.root)
         reactPreamble = hasReactRefreshPlugin(viteConfig.plugins)
 
-        for (const message of collectConfigWarnings(resolved)) {
+        for (const message of collectConfigWarnings(resolved, config)) {
           viteConfig.logger.warn(message)
         }
       },

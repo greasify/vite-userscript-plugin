@@ -27,6 +27,7 @@ export {
   matchDevUserscript,
   matchFileUserscript,
   matchProxyUserscript,
+  toInstallPath,
   toInstallUrl,
   toServeEntryPath,
 } from './wrapper.js'

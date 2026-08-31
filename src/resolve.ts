@@ -2,6 +2,8 @@ import type {
   HeaderConfig,
   ResolvedPluginConfig,
   ResolvedScript,
+  ResolvedServerOpen,
+  ServerOpen,
   UserscriptConfig,
   UserscriptPluginConfig,
 } from './types.js'
@@ -27,6 +29,18 @@ function assertHeader(header: Partial<HeaderConfig>, label: string): void {
   }
 }
 
+function resolveServerOpen(open: ServerOpen | undefined, file: boolean): ResolvedServerOpen {
+  if (!open) {
+    return false
+  }
+
+  if (open === true) {
+    return file ? 'user' : 'dev'
+  }
+
+  return file ? open : 'dev'
+}
+
 function toResolvedScript(config: UserscriptConfig): ResolvedScript {
   if (!config.entry) {
     throw new Error(`[${PLUGIN_NAME}] Provide an "entry" for each userscript`)
@@ -36,15 +50,17 @@ function toResolvedScript(config: UserscriptConfig): ResolvedScript {
 
   const fileName = sanitizeFileName(config.fileName ?? config.header.name)
 
+  const file = config.server?.file ?? false
+
   return {
     entry: config.entry,
     fileName,
     iifeName: toIdentifier(fileName),
     header: config.header,
     server: {
-      open: config.server?.open ?? false,
+      open: resolveServerOpen(config.server?.open, file),
       prefix: config.server?.prefix ?? 'server:',
-      file: config.server?.file ?? false,
+      file,
     },
     headerAlign: config.headerAlign ?? 1,
     generate: config.generate,
@@ -98,10 +114,40 @@ export function collectHomepageRelativeUrlWarnings(config: ResolvedPluginConfig)
   return warnings
 }
 
-export function collectConfigWarnings(config: ResolvedPluginConfig): string[] {
+export function collectServerOpenWarnings(
+  config: ResolvedPluginConfig,
+  input: UserscriptPluginConfig,
+): string[] {
+  const warnings: string[] = []
+  const items = Array.isArray(input) ? input : [input]
+
+  for (const [index, script] of config.scripts.entries()) {
+    const open = items[index]?.server?.open
+    if ((open === 'user' || open === 'proxy') && !script.server.file) {
+      warnings.push(
+        `[${PLUGIN_NAME}] server.open: "${open}" requires server.file for "${script.fileName}" — opening .dev.user.js instead`,
+      )
+    }
+  }
+
+  const opened = config.scripts.filter(script => script.server.open)
+  if (opened.length > 1) {
+    warnings.push(
+      `[${PLUGIN_NAME}] server.open is set on multiple scripts; Vite opens only "${opened[0]?.fileName}"`,
+    )
+  }
+
+  return warnings
+}
+
+export function collectConfigWarnings(
+  config: ResolvedPluginConfig,
+  input: UserscriptPluginConfig,
+): string[] {
   return [
     ...collectAutoMetaUrlsWarnings(config),
     ...collectHomepageRelativeUrlWarnings(config),
+    ...collectServerOpenWarnings(config, input),
   ]
 }
 
