@@ -15,7 +15,8 @@ function formatLabeledLine(label: string, value: string): string {
 
 export function alignViteUrlLine(message: string): string {
   return message.replace(
-    new RegExp(`(Local(?:\\u001B\\[[0-9;]*m)*:)(\\s+)`),
+    // eslint-disable-next-line no-control-regex -- ESC prefix of ANSI CSI sequences
+    /(Local(?:\u001B\[[0-9;]*m)*:)(\s+)/,
     (_match, prefix: string) => `${prefix}${colonPadFor('Local')}`,
   )
 }
