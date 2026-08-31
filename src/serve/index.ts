@@ -1,5 +1,6 @@
 export { createGmShimPrelude, shimModule, shouldShimModule } from './gm-shim.js'
 export {
+  alignViteUrlLine,
   createAfterLocalLogger,
   formatFaqHint,
   formatInstallLine,
