@@ -1,7 +1,7 @@
 {
   "name": "vite-userscript-plugin",
   "type": "module",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "packageManager": "pnpm@11.22.0",
   "author": {
     "name": "Vitalij Ryndin",
@@ -54,9 +54,6 @@
   "peerDependencies": {
     "vite": "^8.0.0"
   },
-  "dependencies": {
-    "open": "11.0.1"
-  },
   "devDependencies": {
     "@antfu/eslint-config": "7.2.0",
     "@sveltejs/vite-plugin-svelte": "catalog:",
@@ -69,7 +66,7 @@
     "prettier-plugin-css-order": "2.2.0",
     "svelte": "catalog:",
     "tsdown": "0.22.14",
-    "turbo": "2.10.11",
+    "turbo": "2.10.12",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "catalog:",
     "vitest": "4.1.11",

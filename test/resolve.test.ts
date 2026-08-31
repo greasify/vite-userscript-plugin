@@ -4,6 +4,7 @@ import { expect, expectTypeOf, it } from 'vitest'
 import {
   collectAutoMetaUrlsWarnings,
   collectHomepageRelativeUrlWarnings,
+  collectServerOpenWarnings,
   resolvePluginConfig,
 } from '../src/resolve.js'
 
@@ -37,6 +38,108 @@ it('resolvePluginConfig keeps server.file', () => {
   })
 
   expect(resolved.scripts[0]?.server.file).toBe(true)
+})
+
+it('resolvePluginConfig maps server.open true to dev', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { open: true },
+  })
+
+  expect(resolved.scripts[0]?.server.open).toBe('dev')
+})
+
+it('resolvePluginConfig maps server.open true to user in file mode', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { file: true, open: true },
+  })
+
+  expect(resolved.scripts[0]?.server.open).toBe('user')
+})
+
+it('resolvePluginConfig keeps server.open user in file mode', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { file: true, open: 'user' },
+  })
+
+  expect(resolved.scripts[0]?.server.open).toBe('user')
+})
+
+it('resolvePluginConfig keeps server.open proxy in file mode', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { file: true, open: 'proxy' },
+  })
+
+  expect(resolved.scripts[0]?.server.open).toBe('proxy')
+})
+
+it('resolvePluginConfig falls back when server.open proxy has no file mode', () => {
+  const input = {
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { open: 'proxy' as const },
+  }
+  const resolved = resolvePluginConfig(input)
+
+  expect(resolved.scripts[0]?.server.open).toBe('dev')
+  expect(collectServerOpenWarnings(resolved, input)).toEqual([
+    '[vite-userscript-plugin] server.open: "proxy" requires server.file for "Demo" — opening .dev.user.js instead',
+  ])
+})
+
+it('collectServerOpenWarnings when multiple scripts set open', () => {
+  const input = [
+    {
+      entry: 'src/a.ts',
+      header: {
+        name: 'A',
+        version: '1.0.0',
+        match: 'https://a.com/*',
+      },
+      server: { open: true },
+    },
+    {
+      entry: 'src/b.ts',
+      header: {
+        name: 'B',
+        version: '1.0.0',
+        match: 'https://b.com/*',
+      },
+      server: { open: true },
+    },
+  ]
+  const resolved = resolvePluginConfig(input)
+
+  expect(collectServerOpenWarnings(resolved, input)).toEqual([
+    '[vite-userscript-plugin] server.open is set on multiple scripts; Vite opens only "A"',
+  ])
 })
 
 it('resolvePluginConfig accepts an array of configs', () => {
@@ -201,6 +304,19 @@ it('userscriptPluginConfig accepts a single config', () => {
   expectTypeOf<{
     entry: string
     header: { name: string, version: string, match: string }
+  }>().toExtend<UserscriptPluginConfig>()
+})
+
+it('userscriptPluginConfig accepts server.open user and proxy', () => {
+  expectTypeOf<{
+    entry: string
+    header: { name: string, version: string, match: string }
+    server: { open: 'user' }
+  }>().toExtend<UserscriptPluginConfig>()
+  expectTypeOf<{
+    entry: string
+    header: { name: string, version: string, match: string }
+    server: { file: true, open: 'proxy' }
   }>().toExtend<UserscriptPluginConfig>()
 })
 

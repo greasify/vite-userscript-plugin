@@ -181,14 +181,19 @@ export type HeaderConfig = {
   'unwrap'?: boolean
 }
 
+export type ServerOpen = boolean | 'user' | 'proxy'
+
+export type ResolvedServerOpen = false | 'dev' | 'user' | 'proxy'
+
 export interface ServerConfig {
   /**
    * Open the install target when Vite starts.
-   * HMR: `.dev.user.js` URL. `file`: `{fileName}.user.js` URL.
+   * `true`: HMR → `.dev.user.js`; `file` → `{fileName}.user.js`.
+   * `'user'` / `'proxy'`: file-mode install URL. Vite opens one path.
    *
    * @default false
    */
-  open?: boolean
+  open?: ServerOpen
 
   /**
    * Prefix applied to `@name` in serve mode.
@@ -280,7 +285,7 @@ export interface ResolvedScript {
   iifeName: string
   header: HeaderConfig
   server: {
-    open: boolean
+    open: ResolvedServerOpen
     prefix: string | false
     file: boolean
   }

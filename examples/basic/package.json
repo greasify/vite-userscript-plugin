@@ -9,7 +9,7 @@
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "sass-embedded": "1.103.1",
+    "sass-embedded": "catalog:",
     "vite": "catalog:",
     "vite-userscript-plugin": "workspace:*"
   }

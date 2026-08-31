@@ -3,7 +3,6 @@ import type { ResolvedPluginConfig } from '../types.js'
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import openLink from 'open'
 import { generateWatchProxy, toRequireFileName } from '../build/proxy.js'
 import {
   createAfterLocalLogger,
@@ -143,22 +142,4 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
       logger.flush()
     }
   }
-
-  server.httpServer?.once('listening', () => {
-    const toOpen = resolved.scripts.filter(script => script.server.open)
-    if (!toOpen.length) {
-      return
-    }
-
-    queueMicrotask(() => {
-      const origin = resolveServerOrigin(server.resolvedUrls)
-      for (const script of toOpen) {
-        openLink(toInstallUrl(
-          origin,
-          script.fileName,
-          script.server.file ? 'user' : 'dev',
-        ))
-      }
-    })
-  })
 }

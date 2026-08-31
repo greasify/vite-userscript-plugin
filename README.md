@@ -135,7 +135,7 @@ See [examples/sourcemap](./examples/sourcemap).
 | `entry` | — | Userscript entry. Required. |
 | `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). Absolute `http(s):` URLs stay as-is. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
-| `server.open` | `false` | Open the install target when Vite starts. HMR: `.dev.user.js`. `file`: `.user.js` URL. |
+| `server.open` | `false` | Open the install target when Vite starts (`true`, `'user'`, `'proxy'`). HMR: `.dev.user.js`. `file`: `.user.js` or `.proxy.user.js`. Vite opens one URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
 | `server.file` | `false` | Watch-build `{fileName}.user.js` + `{fileName}.js` + `{fileName}.proxy.user.js`. Install `.user.js` (or the proxy if `file://` `@require` works). No HMR. |
 | `headerAlign` | `1` | Extra spaces after the longest `@key`. `false` — one space. |

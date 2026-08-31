@@ -29,14 +29,22 @@ export function matchFileUserscript(url: string, fileName: string): boolean {
 
 export type InstallKind = 'dev' | 'user' | 'proxy'
 
-export function toInstallUrl(origin: string, fileName: string, kind: InstallKind = 'dev'): string {
+function toInstallFileName(fileName: string, kind: InstallKind): string {
   const names = {
     dev: `${fileName}.dev.user.js`,
     proxy: toProxyFileName(fileName),
     user: `${fileName}.user.js`,
   }
 
-  return `${origin.replace(/\/$/, '')}/${names[kind]}`
+  return names[kind]
+}
+
+export function toInstallPath(fileName: string, kind: InstallKind = 'dev'): string {
+  return `/${toInstallFileName(fileName, kind)}`
+}
+
+export function toInstallUrl(origin: string, fileName: string, kind: InstallKind = 'dev'): string {
+  return `${origin.replace(/\/$/, '')}${toInstallPath(fileName, kind)}`
 }
 
 export function toServeEntryPath(root: string, entry: string): string {

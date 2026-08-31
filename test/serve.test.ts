@@ -9,6 +9,7 @@ import {
 } from '../src/constants.js'
 import { resolvePluginConfig } from '../src/resolve.js'
 import {
+  alignViteUrlLine,
   applyServeHeader,
   createAfterLocalLogger,
   createDevUserscript,
@@ -31,6 +32,7 @@ import {
   REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
   stripAnsi,
+  toInstallPath,
   toInstallUrl,
   toServeEntryPath,
 } from '../src/serve/index.js'
@@ -76,6 +78,18 @@ it('findDevScript skips file-mode scripts', () => {
 
 it('toServeEntryPath is a root-relative URL', () => {
   expect(toServeEntryPath('/proj', '/proj/src/main.ts')).toBe('/src/main.ts')
+})
+
+it('toInstallPath is origin-relative', () => {
+  expect(toInstallPath('foo')).toBe('/foo.dev.user.js')
+  expect(toInstallPath('foo', 'user')).toBe('/foo.user.js')
+  expect(toInstallPath('foo', 'proxy')).toBe('/foo.proxy.user.js')
+})
+
+it('toInstallUrl joins origin and install path', () => {
+  expect(toInstallUrl('http://localhost:5173/', 'foo', 'user')).toBe(
+    'http://localhost:5173/foo.user.js',
+  )
 })
 
 it('applyServeHeader prefixes the name and fills grants', () => {
@@ -197,7 +211,7 @@ it('formatInstallLine prints an OpenAPI-style install line', () => {
 
   expect(plain).toContain('Userscript')
   expect(plain).toContain('http://localhost:5173/demo.dev.user.js')
-  expect(plain).toMatch(/^\s+➜\s+Userscript\s*:/)
+  expect(plain).toMatch(/^\s+➜\s+Userscript: /)
 })
 
 it('formatInstallLine labels a proxy install line', () => {
@@ -205,7 +219,18 @@ it('formatInstallLine labels a proxy install line', () => {
 
   expect(plain).toContain('Proxy')
   expect(plain).toContain('http://localhost:5173/demo.proxy.user.js')
-  expect(plain).toMatch(/^\s+➜\s+Proxy\s*:/)
+  expect(plain).toMatch(/^\s+➜\s+Proxy: /)
+})
+
+it('formatInstallLine aligns URLs after the colon', () => {
+  const userscript = stripAnsi(formatInstallLine('http://localhost:5173/demo.user.js'))
+  const proxy = stripAnsi(formatInstallLine('http://localhost:5173/demo.proxy.user.js', 'Proxy'))
+  const faq = stripAnsi(formatFaqHint())
+  const local = stripAnsi(alignViteUrlLine('  ➜  Local:   http://localhost:5173/'))
+
+  expect(userscript.indexOf('http')).toBe(proxy.indexOf('http'))
+  expect(userscript.indexOf('http')).toBe(faq.indexOf('http'))
+  expect(userscript.indexOf('http')).toBe(local.indexOf('http'))
 })
 
 it('formatRebuildLine prints elapsed time', () => {
@@ -248,8 +273,25 @@ it('createAfterLocalLogger inserts after the last Local line', () => {
   logger.flush()
 
   expect(lines).toEqual([
-    '  ➜  Local:   http://localhost:5173/',
+    '  ➜  Local:      http://localhost:5173/',
     'INSTALL',
     '  ➜  Network: use --host to expose',
   ])
+})
+
+it('createAfterLocalLogger aligns ANSI Local lines', () => {
+  const lines: string[] = []
+  const logger = createAfterLocalLogger(
+    (msg) => {
+      lines.push(String(msg))
+    },
+    1,
+    () => {},
+  )
+
+  logger.info('  \u001B[32m➜\u001B[39m  \u001B[1mLocal\u001B[22m:   http://localhost:5173/')
+  logger.flush()
+
+  const install = stripAnsi(formatInstallLine('http://localhost:5173/demo.user.js'))
+  expect(stripAnsi(lines[0] ?? '').indexOf('http')).toBe(install.indexOf('http'))
 })
