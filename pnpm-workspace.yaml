@@ -3,9 +3,10 @@ packages:
 
 catalog:
   vite: 8.2.2
-  vue: 3.5.41
+  vue: 3.5.42
+  sass-embedded: 1.103.1
   '@vitejs/plugin-vue': 6.0.8
-  svelte: 5.56.10
+  svelte: 5.57.0
   '@sveltejs/vite-plugin-svelte': 7.3.0
 
 allowBuilds:
