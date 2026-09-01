@@ -285,6 +285,21 @@ it('collectHomepageRelativeUrlWarnings skips absolute icon URLs', () => {
   expect(collectHomepageRelativeUrlWarnings(resolved)).toEqual([])
 })
 
+it('collectHomepageRelativeUrlWarnings skips downloadURL and updateURL none', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      downloadURL: 'none',
+      updateURL: 'NONE',
+    },
+  })
+
+  expect(collectHomepageRelativeUrlWarnings(resolved)).toEqual([])
+})
+
 it('collectHomepageRelativeUrlWarnings skips relative icon when homepage is set', () => {
   const resolved = resolvePluginConfig({
     entry: 'src/main.ts',

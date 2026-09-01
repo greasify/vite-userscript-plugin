@@ -41,9 +41,16 @@ export function resolveHomePage(header: HeaderConfig): string | undefined {
   return trimmed === '' ? undefined : trimmed
 }
 
-export function isResolvableHeaderPath(value: string): boolean {
+export function isResolvableHeaderPath(value: string, field?: string): boolean {
   const trimmed = value.trim()
   if (!trimmed) {
+    return false
+  }
+
+  if (
+    (field === 'updateURL' || field === 'downloadURL')
+    && trimmed.toLowerCase() === 'none'
+  ) {
     return false
   }
 
@@ -54,16 +61,16 @@ export function isResolvableHeaderPath(value: string): boolean {
   return true
 }
 
-function containsResolvableHeaderPath(value: unknown): boolean {
+function containsResolvableHeaderPath(value: unknown, field?: string): boolean {
   if (typeof value === 'string') {
-    return isResolvableHeaderPath(value)
+    return isResolvableHeaderPath(value, field)
   }
 
   if (!Array.isArray(value)) {
     return false
   }
 
-  return value.some(item => typeof item === 'string' && isResolvableHeaderPath(item))
+  return value.some(item => typeof item === 'string' && isResolvableHeaderPath(item, field))
 }
 
 function containsResolvableResourcePath(resource: unknown): boolean {
@@ -82,7 +89,7 @@ export function listHomepageRelativeFields(header: HeaderConfig): string[] {
   const fields: string[] = []
 
   for (const key of HOMEPAGE_RELATIVE_FIELDS) {
-    if (containsResolvableHeaderPath(header[key])) {
+    if (containsResolvableHeaderPath(header[key], key)) {
       fields.push(key)
     }
   }
@@ -105,9 +112,9 @@ export function resolvePublicFileUrl(header: HeaderConfig, fileName: string): st
   } catch { }
 }
 
-function resolveHeaderUrlValue(header: HeaderConfig, value: unknown): unknown {
+function resolveHeaderUrlValue(header: HeaderConfig, value: unknown, field?: string): unknown {
   if (typeof value === 'string') {
-    if (!isResolvableHeaderPath(value)) {
+    if (!isResolvableHeaderPath(value, field)) {
       return value
     }
 
@@ -117,7 +124,7 @@ function resolveHeaderUrlValue(header: HeaderConfig, value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(item => (
       typeof item === 'string'
-        ? resolveHeaderUrlValue(header, item)
+        ? resolveHeaderUrlValue(header, item, field)
         : item
     ))
   }
@@ -155,7 +162,7 @@ function applyHomepageRelativeUrls(header: HeaderConfig): HeaderConfig {
   for (const key of HOMEPAGE_RELATIVE_FIELDS) {
     if (next[key] != null) {
       Object.assign(next, {
-        [key]: resolveHeaderUrlValue(next, next[key]),
+        [key]: resolveHeaderUrlValue(next, next[key], key),
       })
     }
   }

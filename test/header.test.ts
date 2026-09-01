@@ -339,6 +339,47 @@ it('header resolves a relative updateURL without autoMetaUrls', () => {
   expect(header).not.toContain('vitest.meta.js')
 })
 
+it('header keeps downloadURL and updateURL none without joining homepage', () => {
+  const header = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    downloadURL: 'none',
+    updateURL: 'None',
+  })
+
+  expect(header).toMatch(/@downloadURL\s+none/)
+  expect(header).toMatch(/@updateURL\s+None/)
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/none',
+  )
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/None',
+  )
+})
+
+it('header autoMetaUrls keeps explicit none meta URLs', () => {
+  const header = generateHeader(
+    {
+      name: 'vitest',
+      version: '1.0.0',
+      match: 'https://example.com',
+      homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+      downloadURL: ' none ',
+    },
+    { autoMetaUrls: true, fileName: 'vitest' },
+  )
+
+  expect(header).toMatch(/@downloadURL\s+none/)
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/none',
+  )
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/vitest.meta.js',
+  )
+})
+
 it('header keeps protocol-relative and root-absolute icon paths', () => {
   const header = generateHeader({
     name: 'vitest',

@@ -80,21 +80,36 @@ export type HeaderConfig = {
   'author'?: string
 
   /**
+   * Script homepage. Also the base for relative `icon`, `iconURL`,
+   * `defaulticon`, `icon64`, `icon64URL`, `require`, `resource`, `supportURL`,
+   * `updateURL`, and `downloadURL`. Absolute `http(s):` URLs stay as-is.
+   * `updateURL` / `downloadURL` of `none` are not joined.
+   *
+   * Fallback order: `homepage`, `homepageURL`, `website`, `source`.
+   *
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
   'homepage'?: string
 
   /**
+   * Alias of `homepage`. Used as the relative-URL base when `homepage` is empty.
+   *
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
   'homepageURL'?: string
 
   /**
+   * Alias of `homepage`. Used as the relative-URL base when `homepage` and
+   * `homepageURL` are empty.
+   *
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
   'website'?: string
 
   /**
+   * Alias of `homepage`. Used as the relative-URL base when `homepage`,
+   * `homepageURL`, and `website` are empty.
+   *
    * @see https://www.tampermonkey.net/documentation.php#meta:homepage
    */
   'source'?: string
@@ -156,14 +171,18 @@ export type HeaderConfig = {
   'noframes'?: boolean
 
   /**
+   * `none` disables update checks. It is not joined with homepage.
+   *
    * @see https://www.tampermonkey.net/documentation.php#meta:updateURL
    */
-  'updateURL'?: string
+  'updateURL'?: 'none' | (string & {})
 
   /**
+   * `none` disables update checks (pinned / non-latest installs). It is not joined with homepage.
+   *
    * @see https://www.tampermonkey.net/documentation.php#meta:downloadURL
    */
-  'downloadURL'?: string
+  'downloadURL'?: 'none' | (string & {})
 
   /**
    * @see https://www.tampermonkey.net/documentation.php#meta:supportURL
