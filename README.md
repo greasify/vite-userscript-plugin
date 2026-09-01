@@ -133,7 +133,7 @@ See [examples/sourcemap](./examples/sourcemap).
 | Option | Default | Description |
 | --- | --- | --- |
 | `entry` | — | Userscript entry. Required. |
-| `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). Absolute `http(s):` URLs stay as-is. |
+| `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). Absolute `http(s):` URLs stay as-is. `updateURL` / `downloadURL` of `none` disable updates and are not joined. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the install target when Vite starts (`true`, `'user'`, `'proxy'`). HMR: `.dev.user.js`. `file`: `.user.js` or `.proxy.user.js`. Vite opens one URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
