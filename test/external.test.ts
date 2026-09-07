@@ -5,6 +5,13 @@ import {
   rewriteExternalImports,
   rewriteImportClause,
 } from '../src/build/external.js'
+import { resolvePluginConfig } from '../src/resolve.js'
+import {
+  findResolvedExternal,
+  matchExternalModuleId,
+  renderExternalModule,
+  toExternalModuleId,
+} from '../src/serve/external.js'
 
 it('resolveExternals maps string URLs to identifier globals', () => {
   expect(resolveExternals({
@@ -63,4 +70,31 @@ it('rewriteExternalImports rewrites ESM imports of required packages', () => {
   expect(code).not.toContain('fake-vue')
   expect(code).toContain('const { createApp } = Vue;')
   expect(code).toContain('createApp($);')
+})
+
+it('renderExternalModule exports the CDN global for serve shims', () => {
+  expect(renderExternalModule('$')).toBe(
+    'const api = globalThis["$"];\nexport default api;\n',
+  )
+  expect(matchExternalModuleId(toExternalModuleId('jquery'))).toBe('jquery')
+})
+
+it('findResolvedExternal looks up a specifier across scripts', () => {
+  const { scripts } = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    external: {
+      jquery: {
+        global: '$',
+        url: 'https://cdn.example/jquery.js',
+      },
+    },
+  })
+
+  expect(findResolvedExternal(scripts, 'jquery')?.global).toBe('$')
+  expect(findResolvedExternal(scripts, 'vue')).toBeUndefined()
 })

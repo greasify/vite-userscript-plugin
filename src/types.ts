@@ -316,10 +316,13 @@ export interface UserscriptConfig {
   metaFile?: boolean
 
   /**
-   * Keep these packages out of the production bundle and load them via `@require`.
+   * Keep these packages out of the bundle and load them via `@require`.
    * Keys are specifiers (`jquery`, `vue`). A string value is the CDN URL; the
    * global name is derived from the specifier. Pass `{ global, url }` for `$` / `Vue`.
-   * HMR still resolves the package from `node_modules` when it is installed.
+   *
+   * Install `@types/…` (or a types-only package) for `tsc`. Do not install the
+   * runtime package — serve maps the specifier to the CDN global, build rewrites
+   * the import. See `examples/external-cdn`.
    */
   external?: UserscriptExternal
 }

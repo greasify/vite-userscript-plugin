@@ -147,6 +147,24 @@ it('applyServeHeader accepts a custom prefix', () => {
   expect(header.name).toBe('dev:Demo')
 })
 
+it('applyServeHeader adds external CDN requires', () => {
+  const header = applyServeHeader(
+    {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    'server:',
+    [{
+      specifier: 'jquery',
+      global: '$',
+      url: 'https://cdn.example/jquery.js',
+    }],
+  )
+
+  expect(header.require).toEqual(['https://cdn.example/jquery.js'])
+})
+
 it('generateDevWrapper injects vite client once and the entry', () => {
   const wrapper = generateDevWrapper({
     origin: 'http://localhost:5173',
@@ -159,6 +177,20 @@ it('generateDevWrapper injects vite client once and the entry', () => {
   expect(wrapper).toContain('http://localhost:5173/@vite/client')
   expect(wrapper).toContain('http://localhost:5173/src/main.ts')
   expect(wrapper).not.toContain(REACT_BOOTSTRAP_PATH)
+})
+
+it('generateDevWrapper copies external CDN globals onto the page', () => {
+  const wrapper = generateDevWrapper({
+    origin: 'http://localhost:5173',
+    entryPath: '/src/main.ts',
+    externals: [{
+      specifier: 'jquery',
+      global: '$',
+      url: 'https://cdn.example/jquery.js',
+    }],
+  })
+
+  expect(wrapper).toContain('root.$ = $')
 })
 
 it('generateDevWrapper boots React through the preamble module', () => {
@@ -234,6 +266,36 @@ it('createDevUserscript can omit the server prefix', () => {
 
   expect(userscript).not.toContain('server:Demo')
   expect(userscript).toMatch(/@name\s+Demo/)
+})
+
+it('createDevUserscript writes CDN @require and copies the global', () => {
+  const config = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    external: {
+      jquery: {
+        global: '$',
+        url: 'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js',
+      },
+    },
+  })
+
+  const userscript = createDevUserscript({
+    origin: 'http://localhost:5173',
+    root: '/proj',
+    script: {
+      ...config.scripts[0]!,
+      entry: '/proj/src/main.ts',
+    },
+  })
+
+  expect(userscript).toContain('@require')
+  expect(userscript).toContain('jquery.min.js')
+  expect(userscript).toContain('root.$ = $')
 })
 
 it('dev userscript response headers disable caching', () => {

@@ -1,7 +1,8 @@
 import type { HeaderOptions } from '../header.js'
-import type { HeaderConfig, ResolvedScript } from '../types.js'
+import type { HeaderConfig, ResolvedExternal, ResolvedScript } from '../types.js'
 
 import { posix, relative, resolve, sep } from 'node:path'
+import { withExternalRequires } from '../build/external.js'
 import { toProxyFileName } from '../build/proxy.js'
 import {
   GM_NAMESPACE,
@@ -55,28 +56,36 @@ export function toServeEntryPath(root: string, entry: string): string {
   return `/${rel}`
 }
 
-export function applyServeHeader(header: HeaderConfig, prefix: string | false): HeaderConfig {
+export function applyServeHeader(
+  header: HeaderConfig,
+  prefix: string | false,
+  externals: readonly ResolvedExternal[] = [],
+): HeaderConfig {
   const named: HeaderConfig = {
     ...header,
     name: prefix === false ? header.name : `${prefix}${header.name}`,
   }
 
-  return withServeGrants(named)
+  return withServeGrants(withExternalRequires(named, externals))
 }
 
 export function generateDevWrapper(options: {
   origin: string
   entryPath: string
   reactPreamble?: boolean
+  externals?: readonly ResolvedExternal[]
 }): string {
   const clientUrl = `${options.origin}/@vite/client`
   const entryUrl = `${options.origin}${options.entryPath}`
   const bootstrapUrl = `${options.origin}${REACT_BOOTSTRAP_PATH}?entry=${encodeURIComponent(options.entryPath)}`
-  const copies = gmIdentifiers
-    .map(
+  const copies = [
+    ...gmIdentifiers.map(
       id => `if (typeof ${id} !== 'undefined') gm.${id} = ${id};`,
-    )
-    .join('\n  ')
+    ),
+    ...(options.externals ?? []).map(
+      item => `if (typeof ${item.global} !== 'undefined') root.${item.global} = ${item.global};`,
+    ),
+  ].join('\n  ')
   const injectTarget = options.reactPreamble ? bootstrapUrl : entryUrl
   const clientInject = options.reactPreamble
     ? ''
@@ -112,7 +121,11 @@ export function generateDevUserscript(options: {
   headerOptions: HeaderOptions
   reactPreamble?: boolean
 }): string {
-  const headerConfig = applyServeHeader(options.script.header, options.prefix)
+  const headerConfig = applyServeHeader(
+    options.script.header,
+    options.prefix,
+    options.script.external,
+  )
   const header = generateHeader(headerConfig, {
     ...options.headerOptions,
     fileName: options.script.fileName,
@@ -122,6 +135,7 @@ export function generateDevUserscript(options: {
     origin: options.origin,
     entryPath: toServeEntryPath(options.root, options.script.entry),
     reactPreamble: options.reactPreamble,
+    externals: options.script.external,
   })
 
   return `${header}\n\n${wrapper}`

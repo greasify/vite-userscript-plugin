@@ -17,6 +17,13 @@ import {
   collectConfigWarnings,
   resolvePluginConfig,
 } from './resolve.js'
+import {
+  findResolvedExternal,
+  listExternalSpecifiers,
+  matchExternalModuleId,
+  renderExternalModule,
+  toExternalModuleId,
+} from './serve/external.js'
 import { shimModule, shouldShimModule } from './serve/gm-shim.js'
 import { formatRebuildLine } from './serve/logger.js'
 import { configureDevServer } from './serve/middleware.js'
@@ -156,9 +163,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
           ? toInstallPath(openScript.fileName, openScript.server.open)
           : undefined
 
-        const specifiers = [...new Set(
-          resolved.scripts.flatMap(script => script.external.map(item => item.specifier)),
-        )]
+        const specifiers = listExternalSpecifiers(resolved.scripts)
         const rolldownOptions: NonNullable<NonNullable<UserConfig['build']>['rolldownOptions']> = {
           input,
           output: {
@@ -192,7 +197,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
           appType: userConfig.appType ?? (hasHtml ? 'spa' : 'custom'),
           optimizeDeps: {
             entries: Object.values(input),
-            exclude: [VIRTUAL_MODULE_ID],
+            exclude: [VIRTUAL_MODULE_ID, ...specifiers],
           },
           server: {
             cors: userConfig.server?.cors ?? true,
@@ -221,11 +226,27 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
         if (id === VIRTUAL_MODULE_ID) {
           return RESOLVED_VIRTUAL_MODULE_ID
         }
+
+        if (command === 'serve' && findResolvedExternal(resolved.scripts, id)) {
+          return toExternalModuleId(id)
+        }
       },
       load: (id) => {
         if (id === RESOLVED_VIRTUAL_MODULE_ID) {
           return renderVirtualModule(createClientSnapshot(resolved.scripts, command))
         }
+
+        const specifier = matchExternalModuleId(id)
+        if (!specifier) {
+          return
+        }
+
+        const external = findResolvedExternal(resolved.scripts, specifier)
+        if (!external) {
+          return
+        }
+
+        return renderExternalModule(external.global)
       },
     },
     {

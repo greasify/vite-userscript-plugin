@@ -1,3 +1,11 @@
+export {
+  EXTERNAL_MODULE_PREFIX,
+  findResolvedExternal,
+  listExternalSpecifiers,
+  matchExternalModuleId,
+  renderExternalModule,
+  toExternalModuleId,
+} from './external.js'
 export { createGmShimPrelude, shimModule, shouldShimModule } from './gm-shim.js'
 export {
   alignViteUrlLine,
