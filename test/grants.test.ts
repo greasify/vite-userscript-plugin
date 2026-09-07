@@ -1,16 +1,17 @@
 import type { Grants } from '../src/types.js'
 
 import { expect, it } from 'vitest'
-import { ensureIife, stripImports } from '../src/build/iife.js'
 import { defineGrants, removeDuplicates, resolveBuildHeader } from '../src/grants/index.js'
 
-it('defineGrants snapshot', () => {
-  const code = `(function(){"use strict";function e(){const t=document.createElement("button");return t.textContent="Button",t.addEventListener("click",()=>{GM_notification({text:"Hello"})}),t}document.querySelector("div").appendChild(e()),console.log(GM_info),GM_addStyle("button{border:none;background-color:tomato;padding:1rem;font-size:1rem;font-weight:600;border-radius:1rem}")})();`
-  const grants = defineGrants(code)
-  expect(grants).toMatchSnapshot()
+it('defineGrants detects GM_* calls in minified code', () => {
+  const grants = defineGrants(
+    `(function(){"use strict";function e(){GM_notification({text:"Hello"})}console.log(GM_info),GM_addStyle("button{}")})();`,
+  )
+
+  expect(grants).toEqual(['GM_addStyle', 'GM_notification', 'GM_info'])
 })
 
-it('removeDuplicates snapshot', () => {
+it('removeDuplicates keeps first-seen order', () => {
   const grants: Grants[] = [
     'GM_addElement',
     'GM_addElement',
@@ -19,12 +20,15 @@ it('removeDuplicates snapshot', () => {
     'GM_addStyle',
   ]
 
-  expect(removeDuplicates(grants)).toMatchSnapshot()
+  expect(removeDuplicates(grants)).toEqual([
+    'GM_addElement',
+    'GM_addStyle',
+    'GM_download',
+  ])
 })
 
-it('removeDuplicates insert string to array', () => {
-  const str = 'hello'
-  expect(removeDuplicates(str)).toEqual([str])
+it('removeDuplicates wraps a single value', () => {
+  expect(removeDuplicates('hello')).toEqual(['hello'])
 })
 
 it('defineGrants detects batch storage APIs', () => {
@@ -66,6 +70,32 @@ it('defineGrants detects official GM.* aliases', () => {
   expect(grants).not.toContain('GM_getResourceUrl')
 })
 
+it('defineGrants does not treat DOM window.close as a grant', () => {
+  const grants = defineGrants(
+    'window.close(); window.focus(); window.onurlchange = null; unsafeWindow.foo = 1',
+  )
+
+  expect(grants).not.toContain('window.close')
+  expect(grants).not.toContain('window.focus')
+  expect(grants).not.toContain('window.onurlchange')
+  expect(grants).toContain('unsafeWindow')
+})
+
+it('resolveBuildHeader keeps an explicit window.close grant', () => {
+  const header = resolveBuildHeader(
+    {
+      name: 'a',
+      version: '1.0.0',
+      match: 'https://example.com',
+      grant: ['window.close'],
+    },
+    'window.close()',
+  )
+
+  expect(header.grant).toContain('window.close')
+  expect(defineGrants('window.close()')).not.toContain('window.close')
+})
+
 it('resolveBuildHeader keeps grant none', () => {
   const header = resolveBuildHeader(
     {
@@ -75,63 +105,12 @@ it('resolveBuildHeader keeps grant none', () => {
       grant: 'none',
     },
     'GM_addStyle("x")',
-    ['GM_addStyle'],
   )
 
   expect(header.grant).toBe('none')
 })
 
-it('ensureIife wraps ESM exports', () => {
-  const wrapped = ensureIife('const name = "foo";\nexport { name };\n')
-
-  expect(wrapped.startsWith('(function () {')).toBe(true)
-  expect(wrapped).toContain('const name = "foo"')
-  expect(wrapped).not.toContain('export { name }')
-})
-
-it('ensureIife wraps side-effect ESM', () => {
-  const wrapped = ensureIife('document.body.dataset.x = "1";\n')
-
-  expect(wrapped.startsWith('(function () {')).toBe(true)
-  expect(wrapped).toContain('document.body.dataset.x')
-})
-
-it('stripImports removes leftover static imports after inlining', () => {
-  const stripped = stripImports(
-    'import { helper } from "./shared-abc.js";\nimport "./side-effect.js";\nhelper();\n',
-  )
-
-  expect(stripped).not.toMatch(/\bimport\s/)
-  expect(stripped).toContain('helper();')
-})
-
-it('ensureIife strips leftover imports before wrapping', () => {
-  const wrapped = ensureIife(
-    'import { name } from "./shared.js";\nconst value = name;\nexport { value };\n',
-  )
-
-  expect(wrapped.startsWith('(function () {')).toBe(true)
-  expect(wrapped).not.toMatch(/\bimport\s/)
-  expect(wrapped).not.toContain('export { value }')
-  expect(wrapped).toContain('const value = name')
-})
-
-it('ensureIife uses an async IIFE when await is present', () => {
-  const wrapped = ensureIife('const value = await Promise.resolve("ok");\n')
-
-  expect(wrapped.startsWith('(async function () {')).toBe(true)
-  expect(wrapped).toContain('await Promise.resolve')
-  expect(ensureIife(wrapped)).toBe(wrapped)
-})
-
-it('ensureIife strips sourceMappingURL before wrapping', () => {
-  const wrapped = ensureIife('const value = 1;\n//# sourceMappingURL=chunk.js.map\n')
-
-  expect(wrapped).toContain('const value = 1')
-  expect(wrapped).not.toContain('sourceMappingURL')
-})
-
-it('resolveBuildHeader merges extraGrants with scanned and declared grants', () => {
+it('resolveBuildHeader merges declared grants with scanned grants', () => {
   const header = resolveBuildHeader(
     {
       name: 'a',
@@ -139,15 +118,14 @@ it('resolveBuildHeader merges extraGrants with scanned and declared grants', () 
       match: 'https://example.com',
       grant: ['GM_setValue'],
     },
-    'console.log(1)',
-    ['GM_addStyle'],
+    'GM_getValue("k")',
   )
 
-  expect(header.grant).toContain('GM_addStyle')
   expect(header.grant).toContain('GM_setValue')
+  expect(header.grant).toContain('GM_getValue')
 })
 
-it('resolveBuildHeader skips extra CSS grant when none is requested', () => {
+it('resolveBuildHeader does not inject GM_addStyle without a scan hit', () => {
   const header = resolveBuildHeader(
     {
       name: 'a',

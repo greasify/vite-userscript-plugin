@@ -4,7 +4,6 @@ import { expect, it } from 'vitest'
 import { grants } from '../src/grants/catalog.js'
 import {
   generateHeader,
-  Header,
   resolvePublicFileUrl,
 } from '../src/header.js'
 
@@ -33,7 +32,7 @@ const defaultHeader: HeaderConfig = {
 }
 
 it('header default snapshot', () => {
-  const header = new Header(defaultHeader).generate()
+  const header = generateHeader(defaultHeader)
   expect(header).toMatchSnapshot()
 })
 
@@ -442,4 +441,28 @@ it('header align false uses a single space', () => {
   )
 
   expect(header).toContain('// @name vitest')
+})
+
+it('headerAlign extra spaces pad after the longest key', () => {
+  const tight = generateHeader(
+    {
+      name: 'vitest',
+      version: '1.0.0',
+      match: 'https://example.com',
+    },
+    { align: false },
+  )
+  const padded = generateHeader(
+    {
+      name: 'vitest',
+      version: '1.0.0',
+      match: 'https://example.com',
+    },
+    { align: 3 },
+  )
+  const tightName = tight.split('\n').find(line => line.startsWith('// @name')) ?? ''
+  const paddedName = padded.split('\n').find(line => line.startsWith('// @name')) ?? ''
+
+  expect(paddedName.length).toBeGreaterThan(tightName.length)
+  expect(paddedName).toMatch(/@name\s{2,}vitest/)
 })

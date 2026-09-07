@@ -1,5 +1,6 @@
 import type { OutputBundle, OutputChunk } from './bundle.js'
-import { isAsset, isChunk } from './bundle.js'
+import { isAsset } from './bundle.js'
+import { walkImportedChunks } from './graph.js'
 
 const defaultCssInjector = `(function (css) {
   var style = document.createElement('style')
@@ -7,21 +8,11 @@ const defaultCssInjector = `(function (css) {
   ;(document.head || document.documentElement).appendChild(style)
 })`
 
-function collectImportedCss(chunk: OutputChunk, bundle: OutputBundle, seen = new Set<string>()): string[] {
+function collectImportedCss(chunk: OutputChunk, bundle: OutputBundle): string[] {
   const files = [...(chunk.viteMetadata?.importedCss ?? [])]
 
-  for (const imported of chunk.imports) {
-    if (seen.has(imported)) {
-      continue
-    }
-
-    const dep = bundle[imported]
-    if (!dep || !isChunk(dep) || dep.isEntry) {
-      continue
-    }
-
-    seen.add(imported)
-    files.push(...collectImportedCss(dep, bundle, seen))
+  for (const { chunk: dep } of walkImportedChunks(chunk, bundle)) {
+    files.push(...(dep.viteMetadata?.importedCss ?? []))
   }
 
   return files

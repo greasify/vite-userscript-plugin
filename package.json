@@ -1,8 +1,8 @@
 {
   "name": "vite-userscript-plugin",
   "type": "module",
-  "version": "2.3.1",
-  "packageManager": "pnpm@11.22.0",
+  "version": "2.4.0",
+  "packageManager": "pnpm@11.25.0",
   "author": {
     "name": "Vitalij Ryndin",
     "url": "https://github.com/crashmax-dev"
@@ -46,7 +46,8 @@
     "build:examples": "turbo run build --filter=./examples/*",
     "test": "vitest",
     "test:ui": "vitest --ui --watch",
-    "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p scripts/tsconfig.json && turbo run type-check --filter=./examples/*",
+    "type-check": "tsc --noEmit -p tsconfig.json && turbo run type-check --filter=./examples/*",
+    "check-update": "taze major -Irl",
     "sync-types": "node scripts/sync-types.ts",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache"
@@ -65,7 +66,8 @@
     "eslint-plugin-format": "2.0.1",
     "prettier-plugin-css-order": "2.2.0",
     "svelte": "catalog:",
-    "tsdown": "0.22.14",
+    "taze": "21.1.0",
+    "tsdown": "0.23.0",
     "turbo": "2.10.12",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "catalog:",

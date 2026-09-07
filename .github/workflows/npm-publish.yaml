@@ -25,6 +25,7 @@ jobs:
       - run: pnpm test
       - run: pnpm lint
       - run: pnpm build
+      - run: pnpm build:examples
 
       - name: Publish
         run: pnpm publish --access public --no-git-checks

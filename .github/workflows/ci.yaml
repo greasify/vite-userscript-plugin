@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@22
+          cache: true
+
+      - run: pnpm type-check
+      - run: pnpm test
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm build:examples

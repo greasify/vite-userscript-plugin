@@ -2,82 +2,56 @@ import { expect, it } from 'vitest'
 import { createClientSnapshot } from '../src/client.js'
 import { resolvePluginConfig } from '../src/resolve.js'
 
-it('createClientSnapshot uses the serve suffix', () => {
-  const { scripts } = resolvePluginConfig({
-    entry: 'src/main.ts',
+it.each([
+  {
+    name: 'serve suffix',
+    command: 'serve' as const,
     fileName: 'landing-script',
-    header: {
-      name: 'My Package Name',
-      version: '1.2.3',
-      match: 'https://example.com/*',
-    },
-  })
-
-  expect(createClientSnapshot(scripts, 'serve')).toEqual([
-    {
-      name: 'My Package Name',
-      version: '1.2.3',
-      file: 'landing-script.dev.user.js',
-    },
-  ])
-})
-
-it('createClientSnapshot uses the user.js suffix in file mode', () => {
-  const { scripts } = resolvePluginConfig({
-    entry: 'src/main.ts',
+    headerName: 'My Package Name',
+    expectedFile: 'landing-script.dev.user.js',
+  },
+  {
+    name: 'file-mode suffix',
+    command: 'serve' as const,
     fileName: 'landing-script',
-    header: {
-      name: 'My Package Name',
-      version: '1.2.3',
-      match: 'https://example.com/*',
-    },
-    server: { file: true },
-  })
-
-  expect(createClientSnapshot(scripts, 'serve')).toEqual([
-    {
-      name: 'My Package Name',
-      version: '1.2.3',
-      file: 'landing-script.user.js',
-    },
-  ])
-})
-
-it('createClientSnapshot uses the build suffix', () => {
-  const { scripts } = resolvePluginConfig({
-    entry: 'src/main.ts',
+    headerName: 'My Package Name',
+    file: true,
+    serverFile: true,
+    expectedFile: 'landing-script.user.js',
+  },
+  {
+    name: 'build suffix',
+    command: 'build' as const,
     fileName: 'landing-script',
-    header: {
-      name: 'My Package Name',
-      version: '1.2.3',
-      match: 'https://example.com/*',
-    },
-  })
-
-  expect(createClientSnapshot(scripts, 'build')).toEqual([
-    {
-      name: 'My Package Name',
-      version: '1.2.3',
-      file: 'landing-script.user.js',
-    },
-  ])
-})
-
-it('createClientSnapshot uses plugin fileName for file, not sanitized header.name', () => {
-  const { scripts } = resolvePluginConfig({
-    entry: 'src/main.ts',
+    headerName: 'My Package Name',
+    expectedFile: 'landing-script.user.js',
+  },
+  {
+    name: 'custom fileName not sanitized header.name',
+    command: 'serve' as const,
     fileName: 'custom-landing',
+    headerName: 'Not The File Name',
+    expectedFile: 'custom-landing.dev.user.js',
+  },
+])('createClientSnapshot $name', ({ command, fileName, headerName, serverFile, expectedFile }) => {
+  const { scripts } = resolvePluginConfig({
+    entry: 'src/main.ts',
+    fileName,
     header: {
-      name: 'Not The File Name',
-      version: '2.0.0',
+      name: headerName,
+      version: '1.2.3',
       match: 'https://example.com/*',
     },
+    ...(serverFile ? { server: { file: true } } : {}),
   })
 
-  const [script] = createClientSnapshot(scripts, 'serve')
+  const [script] = createClientSnapshot(scripts, command)
 
-  expect(script?.file).toBe('custom-landing.dev.user.js')
-  expect(script?.name).toBe('Not The File Name')
+  expect(script).toEqual({
+    name: headerName,
+    version: '1.2.3',
+    file: expectedFile,
+  })
   expect(JSON.stringify(script)).not.toContain('fileName')
 })
 

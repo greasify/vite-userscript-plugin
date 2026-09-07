@@ -2,7 +2,9 @@ import type { Grants } from './types.js'
 
 import { grants } from './catalog.js'
 
-const grantMatchers = grants.map(grant => ({
+const autoDetectGrants = grants.filter(grant => !grant.startsWith('window.'))
+
+const grantMatchers = autoDetectGrants.map(grant => ({
   grant,
   pattern: new RegExp(`\\b${grant.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`),
 }))

@@ -111,6 +111,8 @@ import './style.css'
 
 `index.html` is a normal Vite app next to the userscript. `vite` serves it at `/`. `vite build` writes it to `dist/` beside `{fileName}.user.js`.
 
+The plugin sets `build.assetsInlineLimit` very high so userscript assets become data URLs. The HTML app’s assets will too, unless you set `build.assetsInlineLimit` yourself.
+
 > [!WARNING]
 > Keep the page's `<script>` entries distinct from `entry`.
 
@@ -142,10 +144,30 @@ See [examples/sourcemap](./examples/sourcemap).
 | `generate` | — | Rewrite the generated metablock. |
 | `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage` / `homepageURL` / `website` / `source`. |
 | `metaFile` | `true` | Emit `{fileName}.meta.js`. |
+| `external` | — | Keep these packages out of the bundle and load them via `@require`. Keys are specifiers (`jquery`, `vue`). A string value is the CDN URL (global name from the specifier). Pass `{ global, url }` for `$` / `Vue`. Install `@types/…` for `tsc`; do not install the runtime package. See [examples/external-cdn](./examples/external-cdn). |
 
 Everything else on `header` follows the manager metablock (`@grant`, `@require`, `@connect`, …).
 
-In serve mode the header lists every grant. In production the plugin scans the bundle and writes only the grants in use. `grant: "none"` disables GM APIs and is never mixed with the scan.
+```ts
+userscript({
+  entry: 'src/index.ts',
+  header: {
+    name: pkg.name,
+    version: pkg.version,
+    match: 'https://example.com/*',
+  },
+  external: {
+    jquery: {
+      global: '$',
+      url: 'https://cdn.jsdelivr.net/npm/jquery@4.0.0/dist/jquery.min.js',
+    },
+  },
+})
+```
+
+For types without bundling the package: add `@types/jquery` (not `jquery`) and a `d.ts` that references those types. The import type-checks; the plugin maps it to the CDN global. Full setup: [examples/external-cdn](./examples/external-cdn).
+
+In serve mode the header lists every grant. In production the plugin scans the bundle and writes only the grants in use. `window.focus`, `window.close`, and `window.onurlchange` are **not** auto-detected (they collide with DOM APIs) — list them in `header.grant` when you need them. `grant: "none"` disables GM APIs and is never mixed with the scan.
 
 > [!WARNING]
 > Keep `metaFile: true` if you use `autoMetaUrls`. Otherwise `@updateURL` points at a file that is not emitted.
@@ -161,6 +183,7 @@ In serve mode the header lists every grant. In production the plugin scans the b
 | [multiple-entries](./examples/multiple-entries) | Two scripts. |
 | [sourcemap](./examples/sourcemap) | Inline map, HTML page, virtual module. |
 | [serve-file](./examples/serve-file) | `server.file`, install `.user.js` or the proxy from the printed URLs. |
+| [external-cdn](./examples/external-cdn) | `@types/jquery` only; runtime `$` from a CDN `@require`. |
 
 ## FAQ
 

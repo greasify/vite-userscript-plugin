@@ -31,6 +31,7 @@ import {
   matchReactPreamble,
   REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
+  resolveServerOrigin,
   stripAnsi,
   toInstallPath,
   toInstallUrl,
@@ -120,6 +121,50 @@ it('applyServeHeader keeps grant none', () => {
   expect(header.grant).toBe('none')
 })
 
+it('applyServeHeader can disable the name prefix', () => {
+  const header = applyServeHeader(
+    {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    false,
+  )
+
+  expect(header.name).toBe('Demo')
+})
+
+it('applyServeHeader accepts a custom prefix', () => {
+  const header = applyServeHeader(
+    {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    'dev:',
+  )
+
+  expect(header.name).toBe('dev:Demo')
+})
+
+it('applyServeHeader adds external CDN requires', () => {
+  const header = applyServeHeader(
+    {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    'server:',
+    [{
+      specifier: 'jquery',
+      global: '$',
+      url: 'https://cdn.example/jquery.js',
+    }],
+  )
+
+  expect(header.require).toEqual(['https://cdn.example/jquery.js'])
+})
+
 it('generateDevWrapper injects vite client once and the entry', () => {
   const wrapper = generateDevWrapper({
     origin: 'http://localhost:5173',
@@ -132,6 +177,20 @@ it('generateDevWrapper injects vite client once and the entry', () => {
   expect(wrapper).toContain('http://localhost:5173/@vite/client')
   expect(wrapper).toContain('http://localhost:5173/src/main.ts')
   expect(wrapper).not.toContain(REACT_BOOTSTRAP_PATH)
+})
+
+it('generateDevWrapper copies external CDN globals onto the page', () => {
+  const wrapper = generateDevWrapper({
+    origin: 'http://localhost:5173',
+    entryPath: '/src/main.ts',
+    externals: [{
+      specifier: 'jquery',
+      global: '$',
+      url: 'https://cdn.example/jquery.js',
+    }],
+  })
+
+  expect(wrapper).toContain('root.$ = $')
 })
 
 it('generateDevWrapper boots React through the preamble module', () => {
@@ -183,6 +242,60 @@ it('createDevUserscript writes a header and wrapper', () => {
   expect(userscript).toContain('@name')
   expect(userscript).toContain('server:Demo')
   expect(userscript).toContain('/@vite/client')
+})
+
+it('createDevUserscript can omit the server prefix', () => {
+  const config = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    server: { prefix: false },
+  })
+
+  const userscript = createDevUserscript({
+    origin: 'http://localhost:5173',
+    root: '/proj',
+    script: {
+      ...config.scripts[0]!,
+      entry: '/proj/src/main.ts',
+    },
+  })
+
+  expect(userscript).not.toContain('server:Demo')
+  expect(userscript).toMatch(/@name\s+Demo/)
+})
+
+it('createDevUserscript writes CDN @require and copies the global', () => {
+  const config = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    external: {
+      jquery: {
+        global: '$',
+        url: 'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js',
+      },
+    },
+  })
+
+  const userscript = createDevUserscript({
+    origin: 'http://localhost:5173',
+    root: '/proj',
+    script: {
+      ...config.scripts[0]!,
+      entry: '/proj/src/main.ts',
+    },
+  })
+
+  expect(userscript).toContain('@require')
+  expect(userscript).toContain('jquery.min.js')
+  expect(userscript).toContain('root.$ = $')
 })
 
 it('dev userscript response headers disable caching', () => {
@@ -294,4 +407,16 @@ it('createAfterLocalLogger aligns ANSI Local lines', () => {
 
   const install = stripAnsi(formatInstallLine('http://localhost:5173/demo.user.js'))
   expect(stripAnsi(lines[0] ?? '').indexOf('http')).toBe(install.indexOf('http'))
+})
+
+it('resolveServerOrigin prefers the first local URL', () => {
+  expect(resolveServerOrigin({
+    local: ['http://localhost:5173/', 'http://127.0.0.1:5173/'],
+    network: ['http://192.168.0.2:5173/'],
+  })).toBe('http://localhost:5173')
+  expect(resolveServerOrigin({
+    local: [],
+    network: ['http://192.168.0.2:5173/'],
+  })).toBe('http://192.168.0.2:5173')
+  expect(resolveServerOrigin(null)).toBe('http://localhost:5173')
 })

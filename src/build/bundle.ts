@@ -6,6 +6,7 @@ export interface OutputChunk {
   code: string
   imports: string[]
   dynamicImports?: string[]
+  exports?: string[]
   map?: {
     mappings: string
     file?: string

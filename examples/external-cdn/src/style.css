@@ -1,0 +1,12 @@
+.external-cdn-userscript {
+  border-top: 1px solid black;
+}
+
+.external-cdn-userscript .meta {
+  color: #555;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}

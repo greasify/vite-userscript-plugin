@@ -1,9 +1,10 @@
-import type { Plugin, ViteDevServer } from 'vite'
+import type { Plugin, UserConfig, ViteDevServer } from 'vite'
 import type { ResolvedPluginConfig, UserscriptPluginConfig } from './types.js'
 
 import { resolve } from 'node:path'
 import { build } from 'vite'
 import { applyUserscriptBundle } from './build/apply.js'
+import { mergeRolldownExternal } from './build/external.js'
 import {
   createClientSnapshot,
   renderVirtualModule,
@@ -16,10 +17,18 @@ import {
   collectConfigWarnings,
   resolvePluginConfig,
 } from './resolve.js'
+import {
+  findResolvedExternal,
+  listExternalSpecifiers,
+  matchExternalModuleId,
+  renderExternalModule,
+  toExternalModuleId,
+} from './serve/external.js'
 import { shimModule, shouldShimModule } from './serve/gm-shim.js'
 import { formatRebuildLine } from './serve/logger.js'
 import { configureDevServer } from './serve/middleware.js'
 import { hasReactRefreshPlugin } from './serve/react.js'
+import { createDebouncedSingleFlight } from './serve/watch-queue.js'
 import { toInstallPath } from './serve/wrapper.js'
 
 function absolutizeEntries(
@@ -94,28 +103,41 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
       return
     }
 
-    let timer: ReturnType<typeof setTimeout> | undefined
+    const scheduler = createDebouncedSingleFlight(
+      run,
+      80,
+      (error) => {
+        server.config.logger.error(String(error))
+      },
+    )
+
     const onChange = (file: string): void => {
       if (file.startsWith(outDirAbs)) {
         return
       }
 
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        run().catch((error: unknown) => {
-          server.config.logger.error(String(error))
-        })
-      }, 80)
+      scheduler.schedule()
     }
 
     server.watcher.on('change', onChange)
     server.watcher.on('add', onChange)
 
-    const closeServer = server.close.bind(server)
-    server.close = async () => {
+    let cleaned = false
+    const cleanup = (): void => {
+      if (cleaned) {
+        return
+      }
+
+      cleaned = true
+      scheduler.cancel()
       server.watcher.off('change', onChange)
       server.watcher.off('add', onChange)
-      clearTimeout(timer)
+    }
+
+    server.httpServer?.once('close', cleanup)
+    const closeServer = server.close.bind(server)
+    server.close = async () => {
+      cleanup()
       return closeServer()
     }
   }
@@ -123,7 +145,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
   return [
     {
       name: `${PLUGIN_NAME}:config`,
-      config(userConfig) {
+      config(userConfig, env) {
         const { input, hasHtml } = resolvePluginBuildInput(userConfig, resolved.scripts)
         const scriptNames = new Set(resolved.scripts.map(script => script.fileName))
 
@@ -141,11 +163,41 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
           ? toInstallPath(openScript.fileName, openScript.server.open)
           : undefined
 
+        const specifiers = listExternalSpecifiers(resolved.scripts)
+        const rolldownOptions: NonNullable<NonNullable<UserConfig['build']>['rolldownOptions']> = {
+          input,
+          output: {
+            format: 'es',
+            entryFileNames: (chunkInfo) => {
+              if (scriptNames.has(chunkInfo.name)) {
+                return '[name].js'
+              }
+
+              if (typeof userEntryFileNames === 'function') {
+                return userEntryFileNames(chunkInfo)
+              }
+
+              if (typeof userEntryFileNames === 'string') {
+                return userEntryFileNames
+              }
+
+              return 'assets/[name]-[hash].js'
+            },
+          },
+        }
+
+        if (env.command === 'build' && specifiers.length) {
+          rolldownOptions.external = mergeRolldownExternal(
+            userConfig.build.rolldownOptions.external,
+            specifiers,
+          ) as typeof rolldownOptions.external
+        }
+
         return {
           appType: userConfig.appType ?? (hasHtml ? 'spa' : 'custom'),
           optimizeDeps: {
             entries: Object.values(input),
-            exclude: [VIRTUAL_MODULE_ID],
+            exclude: [VIRTUAL_MODULE_ID, ...specifiers],
           },
           server: {
             cors: userConfig.server?.cors ?? true,
@@ -154,27 +206,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
           build: {
             minify: userConfig.build?.minify ?? false,
             assetsInlineLimit: userConfig.build?.assetsInlineLimit ?? Number.MAX_SAFE_INTEGER,
-            rolldownOptions: {
-              input,
-              output: {
-                format: 'es',
-                entryFileNames: (chunkInfo) => {
-                  if (scriptNames.has(chunkInfo.name)) {
-                    return '[name].js'
-                  }
-
-                  if (typeof userEntryFileNames === 'function') {
-                    return userEntryFileNames(chunkInfo)
-                  }
-
-                  if (typeof userEntryFileNames === 'string') {
-                    return userEntryFileNames
-                  }
-
-                  return 'assets/[name]-[hash].js'
-                },
-              },
-            },
+            rolldownOptions,
           },
         }
       },
@@ -194,11 +226,27 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
         if (id === VIRTUAL_MODULE_ID) {
           return RESOLVED_VIRTUAL_MODULE_ID
         }
+
+        if (command === 'serve' && findResolvedExternal(resolved.scripts, id)) {
+          return toExternalModuleId(id)
+        }
       },
       load: (id) => {
         if (id === RESOLVED_VIRTUAL_MODULE_ID) {
           return renderVirtualModule(createClientSnapshot(resolved.scripts, command))
         }
+
+        const specifier = matchExternalModuleId(id)
+        if (!specifier) {
+          return
+        }
+
+        const external = findResolvedExternal(resolved.scripts, specifier)
+        if (!external) {
+          return
+        }
+
+        return renderExternalModule(external.global)
       },
     },
     {

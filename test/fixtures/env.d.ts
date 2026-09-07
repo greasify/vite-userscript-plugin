@@ -7,3 +7,12 @@ declare module '*.vue' {
   const component: DefineComponent<object, object, unknown>
   export default component
 }
+
+declare module 'fake-jquery' {
+  const $: string
+  export default $
+}
+
+declare module 'fake-vue' {
+  export function createApp(): void
+}
