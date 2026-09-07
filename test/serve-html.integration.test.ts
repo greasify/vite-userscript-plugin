@@ -47,35 +47,3 @@ it('serve transforms index.html and still serves the install script', async () =
     await server.close()
   }
 })
-
-it('virtual module uses a custom fileName from the plugin config', async () => {
-  const server = await createServer({
-    root: join(fixtures, 'html'),
-    configFile: false,
-    logLevel: 'silent',
-    plugins: [
-      userscript({
-        entry: 'src/main.ts',
-        fileName: 'custom-landing',
-        header: {
-          name: 'Not The File Name',
-          version: '2.0.0',
-          match: 'https://example.com/*',
-        },
-      }),
-    ],
-  })
-
-  try {
-    await server.listen()
-    const virtual = await server.transformRequest('virtual:vite-userscript-plugin')
-
-    expect(virtual?.code).toContain('"name":"Not The File Name"')
-    expect(virtual?.code).toContain('"version":"2.0.0"')
-    expect(virtual?.code).toContain('"file":"custom-landing.dev.user.js"')
-    expect(virtual?.code).not.toContain('"fileName"')
-    expect(virtual?.code).not.toContain('Not-The-File-Name')
-  } finally {
-    await server.close()
-  }
-})

@@ -275,14 +275,3 @@ export function generateHeader(config: HeaderConfig, options: HeaderOptions = {}
     mode: options.mode ?? 'build',
   })
 }
-
-export class Header {
-  constructor(
-    private readonly config: HeaderConfig,
-    private readonly options: HeaderOptions = {},
-  ) {}
-
-  generate() {
-    return generateHeader(this.config, this.options)
-  }
-}

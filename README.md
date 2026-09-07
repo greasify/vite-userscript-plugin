@@ -111,6 +111,8 @@ import './style.css'
 
 `index.html` is a normal Vite app next to the userscript. `vite` serves it at `/`. `vite build` writes it to `dist/` beside `{fileName}.user.js`.
 
+The plugin sets `build.assetsInlineLimit` very high so userscript assets become data URLs. The HTML app’s assets will too, unless you set `build.assetsInlineLimit` yourself.
+
 > [!WARNING]
 > Keep the page's `<script>` entries distinct from `entry`.
 
@@ -142,10 +144,28 @@ See [examples/sourcemap](./examples/sourcemap).
 | `generate` | — | Rewrite the generated metablock. |
 | `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage` / `homepageURL` / `website` / `source`. |
 | `metaFile` | `true` | Emit `{fileName}.meta.js`. |
+| `external` | — | Production: keep these packages out of the bundle and load them via `@require`. Keys are specifiers (`jquery`, `vue`). A string value is the CDN URL (global name from the specifier). Pass `{ global, url }` for `$` / `Vue`. HMR still resolves the package from `node_modules` when it is installed. |
 
 Everything else on `header` follows the manager metablock (`@grant`, `@require`, `@connect`, …).
 
-In serve mode the header lists every grant. In production the plugin scans the bundle and writes only the grants in use. `grant: "none"` disables GM APIs and is never mixed with the scan.
+```ts
+userscript({
+  entry: 'src/index.ts',
+  header: {
+    name: pkg.name,
+    version: pkg.version,
+    match: 'https://example.com/*',
+  },
+  external: {
+    jquery: {
+      global: '$',
+      url: 'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js',
+    },
+  },
+})
+```
+
+In serve mode the header lists every grant. In production the plugin scans the bundle and writes only the grants in use. `window.focus`, `window.close`, and `window.onurlchange` are **not** auto-detected (they collide with DOM APIs) — list them in `header.grant` when you need them. `grant: "none"` disables GM APIs and is never mixed with the scan.
 
 > [!WARNING]
 > Keep `metaFile: true` if you use `autoMetaUrls`. Otherwise `@updateURL` points at a file that is not emitted.

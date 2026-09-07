@@ -20,7 +20,6 @@ it('resolvePluginConfig accepts a single config', () => {
 
   expect(resolved.scripts).toHaveLength(1)
   expect(resolved.scripts[0]?.fileName).toBe('Demo-Script')
-  expect(resolved.scripts[0]?.iifeName).toBe('Demo_Script')
   expect(resolved.scripts[0]?.server.open).toBe(false)
   expect(resolved.scripts[0]?.server.file).toBe(false)
   expect(resolved.scripts[0]?.metaFile).toBe(true)
@@ -38,6 +37,31 @@ it('resolvePluginConfig keeps server.file', () => {
   })
 
   expect(resolved.scripts[0]?.server.file).toBe(true)
+})
+
+it('resolvePluginConfig resolves external CDN requires', () => {
+  const resolved = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    external: {
+      jquery: {
+        global: '$',
+        url: 'https://cdn.example/jquery.js',
+      },
+    },
+  })
+
+  expect(resolved.scripts[0]?.external).toEqual([
+    {
+      specifier: 'jquery',
+      global: '$',
+      url: 'https://cdn.example/jquery.js',
+    },
+  ])
 })
 
 it('resolvePluginConfig maps server.open true to dev', () => {

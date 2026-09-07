@@ -92,6 +92,28 @@ it('generateWatchProxy is a metablock without a body', () => {
   expect(proxy).not.toContain('/@vite/client')
 })
 
+it('createWatchProxyHeader appends external CDN requires', () => {
+  const script = resolvePluginConfig({
+    entry: 'src/main.ts',
+    fileName: 'demo',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    external: {
+      jquery: {
+        global: '$',
+        url: 'https://cdn.example/jquery.js',
+      },
+    },
+  }).scripts[0]!
+  const header = createWatchProxyHeader(script, '/proj/dist/demo.js')
+
+  expect(header.require).toContain('https://cdn.example/jquery.js')
+  expect(header.require).toContain(toFileRequireUrl('/proj/dist/demo.js'))
+})
+
 it('generateWatchProxy prints grant none', () => {
   const proxy = generateWatchProxy(
     resolveDemo({ grant: 'none' }),

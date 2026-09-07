@@ -3,6 +3,7 @@ import type { HeaderConfig, ResolvedScript } from '../types.js'
 import { pathToFileURL } from 'node:url'
 import { withServeGrants } from '../grants/policy.js'
 import { generateHeader } from '../header.js'
+import { withExternalRequires } from './external.js'
 
 export function toFileRequireUrl(absPath: string): string {
   return pathToFileURL(absPath).href
@@ -20,7 +21,7 @@ export function createWatchProxyHeader(
   script: ResolvedScript,
   jsAbsPath: string,
 ): HeaderConfig {
-  const header = withServeGrants({ ...script.header })
+  const header = withServeGrants(withExternalRequires(script.header, script.external))
 
   return {
     ...header,

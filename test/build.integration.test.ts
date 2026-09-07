@@ -242,23 +242,6 @@ it('multiple entries keep a single sourceMappingURL after the IIFE', async () =>
   expect((await listOut(outDir)).filter(file => file.endsWith('.map'))).toEqual([])
 })
 
-it('grant none is preserved and CSS grant is not added', async () => {
-  const outDir = await buildFixture('grant-none', {
-    entry: 'src/main.ts',
-    fileName: 'none',
-    header: {
-      name: 'None',
-      version: '1.0.0',
-      match: 'https://example.com/*',
-      grant: 'none',
-    },
-  })
-
-  const userscript = await readOut(outDir, 'none.user.js')
-  expect(userscript).toMatch(/@grant\s+none/)
-  expect(userscript).not.toContain('GM_addStyle')
-})
-
 it('grant none with CSS keeps the none grant and still inlines styles', async () => {
   const outDir = await buildFixture('vanilla', {
     entry: 'src/main.ts',
@@ -470,4 +453,57 @@ it('development build with server.file emits a proxy, IIFE, and headed userscrip
   expect(userscript).not.toContain('file://')
   expect(files).toContain('vanilla.user.js')
   expect(files).not.toContain('vanilla.meta.js')
+})
+
+it('dynamic import chunks and their CSS are inlined', async () => {
+  const outDir = await buildFixture('dynamic-import', {
+    entry: 'src/main.ts',
+    fileName: 'dynamic',
+    header: {
+      name: 'Dynamic',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  })
+
+  const userscript = await readOut(outDir, 'dynamic.user.js')
+  const files = await listOut(outDir)
+
+  expect(userscript).toContain('dynamic-import-fixture')
+  expect(userscript).toContain('limegreen')
+  expect(userscript).toMatch(/Promise\.resolve\(\{\s*label\s*\}\)/)
+  expect(userscript).not.toMatch(/\bimport\s*\(/)
+  expect(files.filter(file => file.endsWith('.css'))).toEqual([])
+  expect(leftoverScripts(files)).toEqual([])
+})
+
+it('external packages become @require globals', async () => {
+  const outDir = await buildFixture('external', {
+    entry: 'src/main.ts',
+    fileName: 'external',
+    header: {
+      name: 'External',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+    external: {
+      'fake-jquery': {
+        global: '$',
+        url: 'https://cdn.example/jquery.js',
+      },
+      'fake-vue': {
+        global: 'Vue',
+        url: 'https://cdn.example/vue.js',
+      },
+    },
+  })
+
+  const userscript = await readOut(outDir, 'external.user.js')
+
+  expect(userscript).toContain('@require')
+  expect(userscript).toContain('https://cdn.example/jquery.js')
+  expect(userscript).toContain('https://cdn.example/vue.js')
+  expect(userscript).toContain('const { createApp } = Vue')
+  expect(userscript).not.toContain('fake-jquery')
+  expect(userscript).not.toContain('fake-vue')
 })

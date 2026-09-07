@@ -7,9 +7,10 @@ import type {
   UserscriptConfig,
   UserscriptPluginConfig,
 } from './types.js'
+import { resolveExternals } from './build/external.js'
 import { PLUGIN_NAME } from './constants.js'
 import { listHomepageRelativeFields, resolveHomePage } from './header.js'
-import { sanitizeFileName, toIdentifier } from './names.js'
+import { sanitizeFileName } from './names.js'
 
 function isEmptyHeaderField(value: unknown): boolean {
   if (value == null || value === '') {
@@ -55,7 +56,6 @@ function toResolvedScript(config: UserscriptConfig): ResolvedScript {
   return {
     entry: config.entry,
     fileName,
-    iifeName: toIdentifier(fileName),
     header: config.header,
     server: {
       open: resolveServerOpen(config.server?.open, file),
@@ -66,6 +66,7 @@ function toResolvedScript(config: UserscriptConfig): ResolvedScript {
     generate: config.generate,
     autoMetaUrls: config.autoMetaUrls ?? false,
     metaFile: config.metaFile ?? true,
+    external: resolveExternals(config.external),
   }
 }
 

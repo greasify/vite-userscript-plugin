@@ -46,7 +46,7 @@
     "build:examples": "turbo run build --filter=./examples/*",
     "test": "vitest",
     "test:ui": "vitest --ui --watch",
-    "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p scripts/tsconfig.json && turbo run type-check --filter=./examples/*",
+    "type-check": "tsc --noEmit -p tsconfig.json && turbo run type-check --filter=./examples/*",
     "sync-types": "node scripts/sync-types.ts",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache"

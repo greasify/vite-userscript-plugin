@@ -12,19 +12,21 @@ import { gmIdentifiers } from '../grants/catalog.js'
 import { withServeGrants } from '../grants/policy.js'
 import { generateHeader } from '../header.js'
 
-export function matchDevUserscript(url: string, fileName: string): boolean {
+export function matchUserscriptPath(url: string, fileName: string, suffix: string): boolean {
   const path = url.split('?')[0] ?? ''
-  return path === `/${fileName}.dev.user.js`
+  return path === `/${fileName}${suffix}`
+}
+
+export function matchDevUserscript(url: string, fileName: string): boolean {
+  return matchUserscriptPath(url, fileName, '.dev.user.js')
 }
 
 export function matchProxyUserscript(url: string, fileName: string): boolean {
-  const path = url.split('?')[0] ?? ''
-  return path === `/${toProxyFileName(fileName)}`
+  return matchUserscriptPath(url, fileName, '.proxy.user.js')
 }
 
 export function matchFileUserscript(url: string, fileName: string): boolean {
-  const path = url.split('?')[0] ?? ''
-  return path === `/${fileName}.user.js`
+  return matchUserscriptPath(url, fileName, '.user.js')
 }
 
 export type InstallKind = 'dev' | 'user' | 'proxy'

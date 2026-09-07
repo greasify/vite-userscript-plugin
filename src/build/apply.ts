@@ -12,6 +12,12 @@ import {
 } from '../sourcemap.js'
 import { isChunk } from './bundle.js'
 import { collectCss, createCssInject } from './css.js'
+import { rewriteExternalImports, withExternalRequires } from './external.js'
+import {
+  collectImportedChunkIds,
+  inlineImportedChunks,
+  rewriteInlinedDynamicImports,
+} from './graph.js'
 import {
   ensureIife,
   isAlreadyIife,
@@ -22,60 +28,6 @@ import {
   toProxyFileName,
   toRequireFileName,
 } from './proxy.js'
-
-function importedChunkIds(chunk: OutputChunk): string[] {
-  return [...chunk.imports, ...(chunk.dynamicImports ?? [])]
-}
-
-function inlineImportedChunks(
-  chunk: OutputChunk,
-  bundle: OutputBundle,
-  seen = new Set<string>(),
-): string {
-  let prelude = ''
-
-  for (const imported of chunk.imports) {
-    if (seen.has(imported)) {
-      continue
-    }
-
-    const dep = bundle[imported]
-    if (!dep || !isChunk(dep) || dep.isEntry) {
-      continue
-    }
-
-    seen.add(imported)
-    prelude += inlineImportedChunks(dep, bundle, seen)
-    prelude += dep.code.endsWith('\n') ? dep.code : `${dep.code}\n`
-  }
-
-  return prelude
-}
-
-function collectImportedChunks(
-  chunk: OutputChunk,
-  bundle: OutputBundle,
-): Set<string> {
-  const files = new Set<string>()
-  const walk = (current: OutputChunk) => {
-    for (const imported of importedChunkIds(current)) {
-      if (files.has(imported)) {
-        continue
-      }
-
-      const dep = bundle[imported]
-      if (!dep || !isChunk(dep) || dep.isEntry) {
-        continue
-      }
-
-      files.add(imported)
-      walk(dep)
-    }
-  }
-
-  walk(chunk)
-  return files
-}
 
 function collectImportedCssFiles(
   fileNames: Iterable<string>,
@@ -119,6 +71,26 @@ export function findScriptForChunk(
   )
 }
 
+function offsetUserscriptMap(options: {
+  map: NonNullable<OutputChunk['map']>
+  fileName: string
+  cssPrelude: string
+  inlined: string
+  body: string
+  headerPrefix?: string
+}) {
+  const wrapOffset = isAlreadyIife(stripSourceMappingUrl(options.body)) ? 0 : 1
+  const lineOffset = countHeaderLines(options.headerPrefix ?? '')
+    + countHeaderLines(options.cssPrelude)
+    + wrapOffset
+    + countHeaderLines(options.inlined)
+  return stripVendorSourcesContent(offsetSourceMap(
+    options.map,
+    lineOffset,
+    options.fileName,
+  ))
+}
+
 function createHeadedUserscript(
   script: ResolvedScript,
   options: {
@@ -130,7 +102,10 @@ function createHeadedUserscript(
     wrapped: string
   },
 ): { code: string, headerConfig: HeaderConfig } {
-  const headerConfig = resolveBuildHeader(script.header, options.wrapped)
+  const headerConfig = resolveBuildHeader(
+    withExternalRequires(script.header, script.external),
+    options.wrapped,
+  )
   const header = generateHeader(headerConfig, {
     align: script.headerAlign,
     autoMetaUrls: script.autoMetaUrls,
@@ -143,16 +118,14 @@ function createHeadedUserscript(
   let nextCode = `${prefix}${options.code}`
 
   if (options.map) {
-    const wrapOffset = isAlreadyIife(stripSourceMappingUrl(options.body)) ? 0 : 1
-    const lineOffset = countHeaderLines(prefix)
-      + countHeaderLines(options.cssPrelude)
-      + wrapOffset
-      + countHeaderLines(options.inlined)
-    const map = stripVendorSourcesContent(offsetSourceMap(
-      options.map,
-      lineOffset,
-      nextFileName,
-    ))
+    const map = offsetUserscriptMap({
+      map: options.map,
+      fileName: nextFileName,
+      cssPrelude: options.cssPrelude,
+      inlined: options.inlined,
+      body: options.body,
+      headerPrefix: prefix,
+    })
     nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(map)}\n`
   }
 
@@ -207,7 +180,7 @@ export function applyUserscriptBundle(
   for (const fileName of otherEntryFiles) {
     const chunk = bundle[fileName]
     if (chunk && isChunk(chunk)) {
-      for (const dep of collectImportedChunks(chunk, bundle)) {
+      for (const dep of collectImportedChunkIds(chunk, bundle)) {
         keptChunks.add(dep)
       }
     }
@@ -228,7 +201,10 @@ export function applyUserscriptBundle(
     }
 
     const cssPrelude = css ? createCssInject(css) : ''
-    const body = `${inlined}${chunk.code}`
+    const body = rewriteExternalImports(
+      rewriteInlinedDynamicImports(`${inlined}${chunk.code}`, chunk, bundle),
+      script.external,
+    )
     const wrapped = ensureIife(body)
     const code = `${cssPrelude}${wrapped}`
     const emitFileProxy = Boolean(
@@ -251,15 +227,13 @@ export function applyUserscriptBundle(
       let nextCode = code.endsWith('\n') ? code : `${code}\n`
 
       if (chunk.map) {
-        const wrapOffset = isAlreadyIife(stripSourceMappingUrl(body)) ? 0 : 1
-        const lineOffset = countHeaderLines(cssPrelude)
-          + wrapOffset
-          + countHeaderLines(inlined)
-        chunk.map = stripVendorSourcesContent(offsetSourceMap(
-          chunk.map,
-          lineOffset,
-          requireName,
-        ))
+        chunk.map = offsetUserscriptMap({
+          map: chunk.map,
+          fileName: requireName,
+          cssPrelude,
+          inlined,
+          body,
+        })
         nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(chunk.map)}\n`
       }
 

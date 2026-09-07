@@ -239,6 +239,26 @@ export interface HeaderGenerateContext {
   mode: HeaderMode
 }
 
+export interface ExternalRequire {
+  /**
+   * Global name the `@require` script assigns (e.g. `$`, `Vue`).
+   */
+  global: string
+
+  /**
+   * Absolute URL added to `@require`.
+   */
+  url: string
+}
+
+export type UserscriptExternal = Record<string, string | ExternalRequire>
+
+export interface ResolvedExternal {
+  specifier: string
+  global: string
+  url: string
+}
+
 /**
  * One userscript. Pass an object, or an array of these, to {@link UserscriptPluginConfig}.
  */
@@ -294,6 +314,14 @@ export interface UserscriptConfig {
    * @default true
    */
   metaFile?: boolean
+
+  /**
+   * Keep these packages out of the production bundle and load them via `@require`.
+   * Keys are specifiers (`jquery`, `vue`). A string value is the CDN URL; the
+   * global name is derived from the specifier. Pass `{ global, url }` for `$` / `Vue`.
+   * HMR still resolves the package from `node_modules` when it is installed.
+   */
+  external?: UserscriptExternal
 }
 
 export type UserscriptPluginConfig = UserscriptConfig | UserscriptConfig[]
@@ -301,7 +329,6 @@ export type UserscriptPluginConfig = UserscriptConfig | UserscriptConfig[]
 export interface ResolvedScript {
   entry: string
   fileName: string
-  iifeName: string
   header: HeaderConfig
   server: {
     open: ResolvedServerOpen
@@ -312,6 +339,7 @@ export interface ResolvedScript {
   generate?: (ctx: HeaderGenerateContext) => string
   autoMetaUrls: boolean
   metaFile: boolean
+  external: ResolvedExternal[]
 }
 
 export interface ResolvedPluginConfig {

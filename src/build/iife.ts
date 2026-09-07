@@ -22,13 +22,21 @@ export function stripExports(code: string): string {
     .replace(/^export\s+(const|let|var)/gm, '$1')
 }
 
+export function stripDynamicImports(code: string): string {
+  return code.replace(
+    /\bimport\s*\(\s*(?:\/\*[\s\S]*?\*\/\s*)?["'][^"']+["']\s*\)/g,
+    'Promise.resolve({})',
+  )
+}
+
 export function stripModuleSyntax(code: string): string {
-  return stripExports(stripImports(code))
+  return stripExports(stripImports(stripDynamicImports(code)))
 }
 
 export function isAlreadyIife(code: string): boolean {
+  const trimmed = code.trimStart()
   return !/^\s*(?:import|export)\s/m.test(code)
-    && /\(\s*(?:async\s+)?function\b/.test(code)
+    && /^\(\s*(?:async\s+)?function\b/.test(trimmed)
 }
 
 export function ensureIife(code: string): string {
