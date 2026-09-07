@@ -8,6 +8,7 @@
     "test/fixtures/**/*.ts",
     "test/fixtures/**/*.d.ts",
     "vitest.config.ts",
-    "tsdown.config.ts"
+    "tsdown.config.ts",
+    "taze.config.ts"
   ]
 }

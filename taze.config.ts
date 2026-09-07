@@ -1,0 +1,8 @@
+import { defineConfig } from 'taze'
+
+export default defineConfig({
+  exclude: [
+    'typescript',
+    '@typescript/native',
+  ],
+})
