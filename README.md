@@ -159,7 +159,7 @@ userscript({
   external: {
     jquery: {
       global: '$',
-        url: 'https://cdn.jsdelivr.net/npm/jquery@4.0.0/dist/jquery.min.js',
+      url: 'https://cdn.jsdelivr.net/npm/jquery@4.0.0/dist/jquery.min.js',
     },
   },
 })
