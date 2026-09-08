@@ -1,0 +1,21 @@
+.web-worker-userscript {
+  border-top: 1px solid black;
+}
+
+.web-worker-userscript .meta {
+  color: #555;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.web-worker-userscript .log {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.web-worker-userscript .log li {
+  margin: 0.25rem 0;
+}

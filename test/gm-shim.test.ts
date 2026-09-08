@@ -25,6 +25,14 @@ it('shouldShimModule rejects styles, raw queries and node_modules', () => {
   expect(shouldShimModule('/node_modules/vue/dist/vue.js')).toBe(false)
 })
 
+it('shouldShimModule rejects worker queries', () => {
+  expect(shouldShimModule('/src/echo.ts?worker')).toBe(false)
+  expect(shouldShimModule('/src/echo.ts?worker&inline')).toBe(false)
+  expect(shouldShimModule('/src/echo.ts?worker&url')).toBe(false)
+  expect(shouldShimModule('/src/echo.ts?worker_file&type=module')).toBe(false)
+  expect(shouldShimModule('/src/echo.ts?sharedworker')).toBe(false)
+})
+
 it('shimModule offsets the sourcemap past the prelude', () => {
   const code = 'console.log(2)\n\nthrow new Error("sourcemap")\n\nconsole.log(1)\n'
   const shimmed = shimModule(code, '/src/counter.ts')

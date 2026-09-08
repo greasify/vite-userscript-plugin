@@ -6,7 +6,11 @@ export {
   renderExternalModule,
   toExternalModuleId,
 } from './external.js'
-export { createGmShimPrelude, shimModule, shouldShimModule } from './gm-shim.js'
+export {
+  createGmShimPrelude,
+  shimModule,
+  shouldShimModule,
+} from './gm-shim.js'
 export {
   alignViteUrlLine,
   createAfterLocalLogger,
@@ -16,7 +20,11 @@ export {
   isViteLocalUrlLine,
   stripAnsi,
 } from './logger.js'
-export { configureDevServer, DEV_SCRIPT_HEADERS, resolveServerOrigin } from './middleware.js'
+export {
+  configureDevServer,
+  DEV_SCRIPT_HEADERS,
+  resolveServerOrigin,
+} from './middleware.js'
 export {
   createReactBootstrapModule,
   hasReactRefreshPlugin,
@@ -27,6 +35,7 @@ export {
 } from './react.js'
 export type { DebouncedSingleFlight } from './watch-queue.js'
 export { createDebouncedSingleFlight } from './watch-queue.js'
+export { isWebWorkerRequest, webWorkerWrapper } from './web-worker.js'
 export type { InstallKind } from './wrapper.js'
 export {
   applyServeHeader,

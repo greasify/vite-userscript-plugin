@@ -29,6 +29,7 @@ import { formatRebuildLine } from './serve/logger.js'
 import { configureDevServer } from './serve/middleware.js'
 import { hasReactRefreshPlugin } from './serve/react.js'
 import { createDebouncedSingleFlight } from './serve/watch-queue.js'
+import { isWebWorkerRequest, webWorkerWrapper } from './serve/web-worker.js'
 import { toInstallPath } from './serve/wrapper.js'
 
 function absolutizeEntries(
@@ -247,6 +248,16 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
         }
 
         return renderExternalModule(external.global)
+      },
+    },
+    {
+      name: `${PLUGIN_NAME}:web-worker`,
+      enforce: 'pre',
+      apply: 'serve',
+      load(id) {
+        if (isWebWorkerRequest(id)) {
+          return webWorkerWrapper
+        }
       },
     },
     {
