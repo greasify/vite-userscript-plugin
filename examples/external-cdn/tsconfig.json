@@ -1,10 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "paths": {
-      "vite-userscript-plugin": ["../../src/index.ts"]
-    },
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["src/**/*", "vite.config.ts"]
+  "include": [
+    "src",
+    "vite.config.ts"
+  ]
 }

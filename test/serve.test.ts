@@ -24,6 +24,7 @@ import {
   generateDevWrapper,
   hasReactRefreshPlugin,
   isViteLocalUrlLine,
+  isWebWorkerRequest,
   matchDevUserscript,
   matchFileUserscript,
   matchProxyUserscript,
@@ -36,6 +37,7 @@ import {
   toInstallPath,
   toInstallUrl,
   toServeEntryPath,
+  webWorkerWrapper,
 } from '../src/serve/index.js'
 
 it('matchDevUserscript matches install path', () => {
@@ -407,6 +409,23 @@ it('createAfterLocalLogger aligns ANSI Local lines', () => {
 
   const install = stripAnsi(formatInstallLine('http://localhost:5173/demo.user.js'))
   expect(stripAnsi(lines[0] ?? '').indexOf('http')).toBe(install.indexOf('http'))
+})
+
+it('isWebWorkerRequest matches constructor worker queries', () => {
+  expect(isWebWorkerRequest('/src/echo.ts?worker')).toBe(true)
+  expect(isWebWorkerRequest('/src/echo.ts?worker&inline')).toBe(true)
+  expect(isWebWorkerRequest('/src/echo.ts?inline&worker')).toBe(true)
+  expect(isWebWorkerRequest('/src/echo.ts?worker&url')).toBe(false)
+  expect(isWebWorkerRequest('/src/echo.ts?sharedworker')).toBe(false)
+  expect(isWebWorkerRequest('/src/echo.ts?worker_file&type=module')).toBe(false)
+  expect(isWebWorkerRequest('/src/echo.ts')).toBe(false)
+})
+
+it('webWorkerWrapper is a data-URI module worker', () => {
+  expect(webWorkerWrapper).toContain('data:text/javascript')
+  expect(webWorkerWrapper).toContain(`import.meta['url']`)
+  expect(webWorkerWrapper).toContain('?worker_file&type=module')
+  expect(webWorkerWrapper).toContain('function WorkerWrapper')
 })
 
 it('resolveServerOrigin prefers the first local URL', () => {

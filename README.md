@@ -15,6 +15,7 @@
 - 📝 Only used `@grant`s in the production build
 - 📦 Built-in types for Tampermonkey, Greasemonkey and Violentmonkey
 - 📄 Virtual module with script metadata
+- 🧵 Support Web Workers
 
 ## Getting started
 
@@ -107,6 +108,14 @@ import './style.css'
 > [!NOTE]
 > Do not put userscript assets in `public/` — those URLs hit the host site and 404. Import the file so Vite inlines it.
 
+## Web Workers
+
+HMR serve rewrites `import Worker from './w?worker'` (and `?worker&inline`) to a data-URI module worker that imports Vite's `?worker_file`. The host page cannot load `/src/w.ts?worker_file` from localhost.
+
+`vite build` and `server.file` keep Vite's worker emit. A plain `?worker` is a separate file the match site cannot serve — use `?worker&inline`. `?worker&url` and `?sharedworker` stay as Vite emits them.
+
+See [examples/web-worker](./examples/web-worker).
+
 ## HTML pages
 
 `index.html` is a normal Vite app next to the userscript. `vite` serves it at `/`. `vite build` writes it to `dist/` beside `{fileName}.user.js`.
@@ -184,6 +193,7 @@ In serve mode the header lists every grant. In production the plugin scans the b
 | [sourcemap](./examples/sourcemap) | Inline map, HTML page, virtual module. |
 | [serve-file](./examples/serve-file) | `server.file`, install `.user.js` or the proxy from the printed URLs. |
 | [external-cdn](./examples/external-cdn) | `@types/jquery` only; runtime `$` from a CDN `@require`. |
+| [web-worker](./examples/web-worker) | `?worker&inline`, data-URI bridge in HMR. |
 
 ## FAQ
 

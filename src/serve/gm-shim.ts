@@ -25,6 +25,10 @@ export function shouldShimModule(id: string): boolean {
     return false
   }
 
+  if (/[?&](?:worker_file|sharedworker|worker)(?:&|$)/.test(cleanId)) {
+    return false
+  }
+
   if (/\.(?:m|c)?[jt]sx?(?:$|\?)/.test(cleanId)) {
     return true
   }
