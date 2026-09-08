@@ -3,7 +3,7 @@
   "compilerOptions": {
     "paths": {
       "vite-userscript-plugin": ["../src/index.ts"],
-      "vite-userscript-plugin/virtual": ["../src/virtual.ts"],
+      "vite-userscript-plugin/virtual": ["../src/virtual.ts"]
     }
   }
 }
