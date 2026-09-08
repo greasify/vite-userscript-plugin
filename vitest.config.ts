@@ -21,7 +21,11 @@ export default defineConfig({
         test: {
           name: 'integration',
           include: ['test/**/*.integration.test.ts'],
-          exclude: ['**/node_modules/**', '**/dist/**', '**/examples/**'],
+          exclude: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/examples/**',
+          ],
           testTimeout: 30_000,
         },
       },
