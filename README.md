@@ -87,7 +87,7 @@ Details: [types/README.md](./types/README.md).
 `server.file: true` skips HMR. The same `vite` watch-builds `{fileName}.user.js` (headed IIFE), `{fileName}.js`, and `{fileName}.proxy.user.js` (`@require file://` to the IIFE). Install the printed `/{fileName}.user.js` URL (Firefox-safe). The `Proxy` line is for managers that can poll `file://`. See [examples/serve-file](./examples/serve-file).
 
 > [!IMPORTANT]
-> Changing `@match`, `@grant`, or `@name` needs a reinstall.
+> Changing `@match`, `@grant`, or `@name` needs a reinstall. Serve logs a hint when those fields change.
 
 `vite build` writes `{fileName}.user.js` to `dist/`. One-shot builds do not emit the proxy.
 
@@ -144,7 +144,7 @@ See [examples/sourcemap](./examples/sourcemap).
 | Option | Default | Description |
 | --- | --- | --- |
 | `entry` | — | Userscript entry. Required. |
-| `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). Absolute `http(s):` URLs stay as-is. `updateURL` / `downloadURL` of `none` disable updates and are not joined. |
+| `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). In serve, relative `icon` / `require` / `resource` join the Vite origin instead so the manager can fetch them from localhost. Absolute `http(s):` URLs stay as-is. `updateURL` / `downloadURL` of `none` disable updates and are not joined. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the install target when Vite starts (`true`, `'user'`, `'proxy'`). HMR: `.dev.user.js`. `file`: `.user.js` or `.proxy.user.js`. Vite opens one URL. |
 | `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
@@ -194,6 +194,8 @@ In serve mode the header lists every grant. In production the plugin scans the b
 | [serve-file](./examples/serve-file) | `server.file`, install `.user.js` or the proxy from the printed URLs. |
 | [external-cdn](./examples/external-cdn) | `@types/jquery` only; runtime `$` from a CDN `@require`. |
 | [web-worker](./examples/web-worker) | `?worker&inline`, data-URI bridge in HMR. |
+| [gm-api](./examples/gm-api) | Storage, menu, notification, clipboard, `GM_info`. Build writes only used `@grant`s. |
+| [xhr-resource](./examples/xhr-resource) | `GM.xmlHttpRequest`, `@connect`, `@resource` + `GM_getResourceText`. |
 
 ## FAQ
 

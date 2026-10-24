@@ -466,3 +466,95 @@ it('headerAlign extra spaces pad after the longest key', () => {
   expect(paddedName.length).toBeGreaterThan(tightName.length)
   expect(paddedName).toMatch(/@name\s{2,}vitest/)
 })
+
+it('header serveOrigin joins relative icon require and resource', () => {
+  const header = generateHeader(
+    {
+      name: 'vitest',
+      version: '1.0.0',
+      match: 'https://example.com',
+      homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+      icon: 'greasify.svg',
+      require: ['lib.js', 'https://cdn.example.com/vendor.js'],
+      resource: [['hint', 'hint.json'], ['remote', 'https://cdn.example.com/logo.png']],
+      supportURL: 'issues',
+    },
+    {
+      mode: 'serve',
+      serveOrigin: 'http://localhost:5173',
+    },
+  )
+
+  expect(header).toContain('http://localhost:5173/greasify.svg')
+  expect(header).toContain('http://localhost:5173/lib.js')
+  expect(header).toContain('http://localhost:5173/hint.json')
+  expect(header).toContain('https://cdn.example.com/vendor.js')
+  expect(header).toContain('https://cdn.example.com/logo.png')
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/issues',
+  )
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/greasify.svg',
+  )
+  expect(header).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/hint.json',
+  )
+})
+
+it('header without serveOrigin still joins homepage in build', () => {
+  const header = generateHeader({
+    name: 'vitest',
+    version: '1.0.0',
+    match: 'https://example.com',
+    homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+    resource: [['hint', 'hint.json']],
+  })
+
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/hint.json',
+  )
+  expect(header).not.toContain('http://localhost:5173/hint.json')
+})
+
+it('header serveOrigin keeps updateURL on homepage', () => {
+  const header = generateHeader(
+    {
+      name: 'vitest',
+      version: '1.0.0',
+      match: 'https://example.com',
+      homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+      icon: 'greasify.svg',
+    },
+    {
+      autoMetaUrls: true,
+      fileName: 'vitest',
+      mode: 'serve',
+      serveOrigin: 'http://localhost:5173/',
+    },
+  )
+
+  expect(header).toContain('http://localhost:5173/greasify.svg')
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/vitest.meta.js',
+  )
+  expect(header).toContain(
+    'https://greasify.github.io/vite-userscript-plugin/vitest.user.js',
+  )
+})
+
+it('header serveOrigin joins relative icon without homepage', () => {
+  const header = generateHeader(
+    {
+      name: 'vitest',
+      version: '1.0.0',
+      match: 'https://example.com',
+      icon: 'greasify.svg',
+    },
+    {
+      mode: 'serve',
+      serveOrigin: 'http://localhost:5173',
+    },
+  )
+
+  expect(header).toContain('http://localhost:5173/greasify.svg')
+})

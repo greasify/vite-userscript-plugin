@@ -114,6 +114,26 @@ it('createWatchProxyHeader appends external CDN requires', () => {
   expect(header.require).toContain(toFileRequireUrl('/proj/dist/demo.js'))
 })
 
+it('generateWatchProxy joins relative resource to serveOrigin', () => {
+  const script = resolvePluginConfig({
+    entry: 'src/main.ts',
+    fileName: 'demo',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+      resource: [['hint', 'hint.json']],
+    },
+  }).scripts[0]!
+  const proxy = generateWatchProxy(script, '/proj/dist/demo.js', 'http://localhost:5173')
+
+  expect(proxy).toContain('http://localhost:5173/hint.json')
+  expect(proxy).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/hint.json',
+  )
+})
+
 it('generateWatchProxy prints grant none', () => {
   const proxy = generateWatchProxy(
     resolveDemo({ grant: 'none' }),

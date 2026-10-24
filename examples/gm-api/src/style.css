@@ -1,0 +1,13 @@
+.gm-api-userscript {
+  border-top: 1px solid black;
+}
+
+.gm-api-userscript .meta {
+  color: #555;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

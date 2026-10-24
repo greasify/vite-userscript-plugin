@@ -17,6 +17,13 @@ import {
   resolveBootstrapEntry,
 } from './react.js'
 import {
+  createServeReinstallTracker,
+  formatReinstallHint,
+  loadServeHeaderFingerprints,
+  saveServeHeaderFingerprints,
+} from './reinstall.js'
+import {
+  applyServeHeader,
   createDevUserscript,
   findDevScript,
   findFileUserscript,
@@ -42,6 +49,20 @@ function writeScript(res: { setHeader: (key: string, value: string) => void, end
 }
 
 export function configureDevServer(server: ViteDevServer, resolved: ResolvedPluginConfig, reactPreamble: boolean): void {
+  const fingerprintFile = resolve(server.config.cacheDir, 'userscript-header.json')
+  const reinstall = createServeReinstallTracker(loadServeHeaderFingerprints(fingerprintFile))
+
+  const noteReinstall = (script: ResolvedPluginConfig['scripts'][number]) => {
+    const header = applyServeHeader(script.header, script.server.prefix, script.external)
+    if (reinstall.consume(script.fileName, header)) {
+      server.config.logger.warn(formatReinstallHint())
+    }
+  }
+
+  const persistFingerprints = () => {
+    saveServeHeaderFingerprints(fingerprintFile, reinstall.fingerprints)
+  }
+
   server.middlewares.use((req, res, next) => {
     const url = req.url ?? ''
     if (matchReactPreamble(url)) {
@@ -63,6 +84,8 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
 
     const fileScript = findFileUserscript(url, resolved.scripts)
     if (fileScript) {
+      noteReinstall(fileScript)
+      persistFingerprints()
       const userJsPath = resolve(
         server.config.root,
         server.config.build.outDir,
@@ -79,12 +102,15 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
 
     const proxyScript = findProxyScript(url, resolved.scripts)
     if (proxyScript) {
+      noteReinstall(proxyScript)
+      persistFingerprints()
       const jsAbsPath = resolve(
         server.config.root,
         server.config.build.outDir,
         toRequireFileName(proxyScript.fileName),
       )
-      writeScript(res, `${generateWatchProxy(proxyScript, jsAbsPath)}\n`)
+      const origin = resolveServerOrigin(server.resolvedUrls)
+      writeScript(res, `${generateWatchProxy(proxyScript, jsAbsPath, origin)}\n`)
       return
     }
 
@@ -95,6 +121,8 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
     }
 
     const origin = resolveServerOrigin(server.resolvedUrls)
+    noteReinstall(script)
+    persistFingerprints()
     writeScript(res, createDevUserscript({
       origin,
       root: server.config.root,
@@ -124,6 +152,10 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
           info(formatInstallLine(toInstallUrl(origin, script.fileName)))
         }
       }
+      for (const script of resolved.scripts) {
+        noteReinstall(script)
+      }
+      persistFingerprints()
       info(formatFaqHint())
     }
 

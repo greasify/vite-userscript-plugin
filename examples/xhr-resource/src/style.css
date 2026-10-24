@@ -1,0 +1,16 @@
+.xhr-resource-userscript {
+  border-top: 1px solid black;
+}
+
+.xhr-resource-userscript .meta {
+  color: #555;
+}
+
+.xhr-resource-userscript .url {
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}

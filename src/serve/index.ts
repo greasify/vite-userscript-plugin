@@ -33,6 +33,14 @@ export {
   REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
 } from './react.js'
+export {
+  createServeReinstallTracker,
+  formatReinstallHint,
+  hasServeHeaderChanged,
+  loadServeHeaderFingerprints,
+  saveServeHeaderFingerprints,
+  serveReinstallFingerprint,
+} from './reinstall.js'
 export type { DebouncedSingleFlight } from './watch-queue.js'
 export { createDebouncedSingleFlight } from './watch-queue.js'
 export { isWebWorkerRequest, webWorkerWrapper } from './web-worker.js'

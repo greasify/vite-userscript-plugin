@@ -32,6 +32,7 @@ export function createWatchProxyHeader(
 export function generateWatchProxy(
   script: ResolvedScript,
   jsAbsPath: string,
+  serveOrigin?: string,
 ): string {
   return generateHeader(createWatchProxyHeader(script, jsAbsPath), {
     align: script.headerAlign,
@@ -39,6 +40,7 @@ export function generateWatchProxy(
     fileName: script.fileName,
     generate: script.generate,
     mode: 'serve',
+    serveOrigin,
   })
 }
 

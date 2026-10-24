@@ -130,6 +130,7 @@ export function generateDevUserscript(options: {
     ...options.headerOptions,
     fileName: options.script.fileName,
     mode: 'serve',
+    serveOrigin: options.origin,
   })
   const wrapper = generateDevWrapper({
     origin: options.origin,

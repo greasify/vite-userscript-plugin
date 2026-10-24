@@ -1,3 +1,4 @@
+import type { HeaderConfig } from '../src/types.js'
 import { expect, it } from 'vitest'
 
 import {
@@ -14,6 +15,7 @@ import {
   createAfterLocalLogger,
   createDevUserscript,
   createReactBootstrapModule,
+  createServeReinstallTracker,
   DEV_SCRIPT_HEADERS,
   findDevScript,
   findFileUserscript,
@@ -21,10 +23,13 @@ import {
   formatFaqHint,
   formatInstallLine,
   formatRebuildLine,
+  formatReinstallHint,
   generateDevWrapper,
   hasReactRefreshPlugin,
+  hasServeHeaderChanged,
   isViteLocalUrlLine,
   isWebWorkerRequest,
+  loadServeHeaderFingerprints,
   matchDevUserscript,
   matchFileUserscript,
   matchProxyUserscript,
@@ -33,6 +38,8 @@ import {
   REACT_PREAMBLE_MODULE,
   resolveBootstrapEntry,
   resolveServerOrigin,
+  saveServeHeaderFingerprints,
+  serveReinstallFingerprint,
   stripAnsi,
   toInstallPath,
   toInstallUrl,
@@ -270,6 +277,35 @@ it('createDevUserscript can omit the server prefix', () => {
   expect(userscript).toMatch(/@name\s+Demo/)
 })
 
+it('createDevUserscript joins relative resource to the Vite origin', () => {
+  const config = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      homepage: 'https://greasify.github.io/vite-userscript-plugin/',
+      resource: [['hint', 'hint.json']],
+      icon: 'greasify.svg',
+    },
+  })
+
+  const userscript = createDevUserscript({
+    origin: 'http://localhost:5173',
+    root: '/proj',
+    script: {
+      ...config.scripts[0]!,
+      entry: '/proj/src/main.ts',
+    },
+  })
+
+  expect(userscript).toContain('http://localhost:5173/hint.json')
+  expect(userscript).toContain('http://localhost:5173/greasify.svg')
+  expect(userscript).not.toContain(
+    'https://greasify.github.io/vite-userscript-plugin/hint.json',
+  )
+})
+
 it('createDevUserscript writes CDN @require and copies the global', () => {
   const config = resolvePluginConfig({
     entry: 'src/main.ts',
@@ -438,4 +474,46 @@ it('resolveServerOrigin prefers the first local URL', () => {
     network: ['http://192.168.0.2:5173/'],
   })).toBe('http://192.168.0.2:5173')
   expect(resolveServerOrigin(null)).toBe('http://localhost:5173')
+})
+
+it('serve reinstall tracker warns only after name match or grant change', () => {
+  const header: HeaderConfig = {
+    name: 'server:Demo',
+    version: '1.0.0',
+    match: 'https://example.com/*',
+    grant: ['GM_setValue'],
+  }
+  const tracker = createServeReinstallTracker()
+
+  expect(tracker.consume('demo', header)).toBe(false)
+  expect(tracker.consume('demo', header)).toBe(false)
+  expect(tracker.consume('demo', {
+    ...header,
+    match: 'https://example.org/*',
+  })).toBe(true)
+  expect(hasServeHeaderChanged(undefined, 'x')).toBe(false)
+  expect(hasServeHeaderChanged('a', 'b')).toBe(true)
+  expect(serveReinstallFingerprint(header)).toContain('server:Demo')
+  expect(stripAnsi(formatReinstallHint())).toContain('Reinstall')
+})
+
+it('serve reinstall fingerprints persist on disk', async () => {
+  const { mkdtemp, rm, writeFile } = await import('node:fs/promises')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = await mkdtemp(join(tmpdir(), 'userscript-header-'))
+  const file = join(dir, 'userscript-header.json')
+
+  try {
+    expect(loadServeHeaderFingerprints(file).size).toBe(0)
+
+    saveServeHeaderFingerprints(file, new Map([['demo', '{"name":"Demo"}']]))
+    expect(loadServeHeaderFingerprints(file).get('demo')).toBe('{"name":"Demo"}')
+    expect(loadServeHeaderFingerprints(join(dir, 'missing.json')).size).toBe(0)
+
+    await writeFile(file, '{"demo":1}')
+    expect(loadServeHeaderFingerprints(file).size).toBe(0)
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
 })
