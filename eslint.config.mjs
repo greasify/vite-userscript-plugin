@@ -97,6 +97,7 @@ export default antfu({
     'no-template-curly-in-string': 'off',
     'antfu/no-top-level-await': 'off',
     'antfu/if-newline': 'off',
+    'antfu/reasonable-newline': 'off',
     'ts/method-signature-style': 'off',
     'ts/no-redeclare': 'off',
     'ts/consistent-type-definitions': 'off',
