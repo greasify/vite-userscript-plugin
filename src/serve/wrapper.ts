@@ -3,6 +3,7 @@ import type { HeaderConfig, ResolvedExternal, ResolvedScript } from '../types.js
 
 import { posix, relative, resolve, sep } from 'node:path'
 import { withExternalRequires } from '../build/external.js'
+import { requireStatementGuard } from '../build/iife.js'
 import { toProxyFileName } from '../build/proxy.js'
 import {
   GM_NAMESPACE,
@@ -139,7 +140,7 @@ export function generateDevUserscript(options: {
     externals: options.script.external,
   })
 
-  return `${header}\n\n${wrapper}`
+  return `${header}\n${requireStatementGuard}${wrapper}`
 }
 
 export function findDevScript(url: string, scripts: ResolvedScript[]): ResolvedScript | undefined {

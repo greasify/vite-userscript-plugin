@@ -2,16 +2,17 @@ import type { UserscriptPluginConfig } from '../src/types.js'
 import { Buffer } from 'node:buffer'
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import vue from '@vitejs/plugin-vue'
-import { build } from 'vite'
 
+import { build } from 'vite'
 import { afterEach, expect, it } from 'vitest'
 import Userscript from '../src/index.js'
 import { countHeaderLines } from '../src/sourcemap.js'
+import { runAfterRequire } from './helpers/run-after-require.js'
 
 const fixtures = fileURLToPath(new URL('./fixtures', import.meta.url))
 const outDirs: string[] = []
@@ -24,6 +25,7 @@ async function buildFixture(name: string, plugin: UserscriptPluginConfig, option
   plugins?: import('vite').PluginOption[]
   minify?: boolean | 'oxc' | 'terser'
   sourcemap?: boolean
+  mode?: string
 } = {}) {
   const root = join(fixtures, name)
   const outDir = await mkdtemp(join(tmpdir(), `userscript-${name}-`))
@@ -31,6 +33,7 @@ async function buildFixture(name: string, plugin: UserscriptPluginConfig, option
 
   await build({
     root,
+    mode: options.mode,
     configFile: false,
     logLevel: 'silent',
     plugins: [...(options.plugins ?? []), Userscript(plugin)],
@@ -88,20 +91,37 @@ it('vanilla CSS is inlined into an unminified userscript', async () => {
   expect((await listOut(outDir)).filter(file => file.endsWith('.css'))).toEqual([])
 })
 
-it('explicit minify still keeps the metablock', async () => {
-  const outDir = await buildFixture(
-    'vanilla',
-    {
-      entry: 'src/main.ts',
-      fileName: 'vanilla',
-      header: {
-        name: 'Vanilla',
-        version: '1.0.0',
-        match: 'https://example.com/*',
-      },
+it('a @require without a semicolon does not call the userscript', async () => {
+  const outDir = await buildFixture('vanilla', {
+    entry: 'src/main.ts',
+    fileName: 'vanilla',
+    header: {
+      name: 'Vanilla',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-    { minify: true },
-  )
+    server: { file: true },
+  }, { mode: 'development' })
+
+  const userscript = await readOut(outDir, 'vanilla.user.js')
+  const iife = await readOut(outDir, 'vanilla.js')
+
+  expect(userscript).toMatch(/==\/UserScript==\n;/)
+  expect(iife.startsWith(';\n')).toBe(true)
+  expect(() => runAfterRequire(userscript)).not.toThrow()
+  expect(() => runAfterRequire(iife)).not.toThrow()
+})
+
+it('explicit minify still keeps the metablock', async () => {
+  const outDir = await buildFixture('vanilla', {
+    entry: 'src/main.ts',
+    fileName: 'vanilla',
+    header: {
+      name: 'Vanilla',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  }, { minify: true })
 
   const userscript = await readOut(outDir, 'vanilla.user.js')
   expect(userscript.startsWith('// ==UserScript==')).toBe(true)
@@ -121,19 +141,15 @@ function parseInlineSourceMap(userscript: string) {
 }
 
 it('sourcemap is inlined into the userscript', async () => {
-  const outDir = await buildFixture(
-    'vanilla',
-    {
-      entry: 'src/main.ts',
-      fileName: 'vanilla',
-      header: {
-        name: 'Vanilla',
-        version: '1.0.0',
-        match: 'https://example.com/*',
-      },
+  const outDir = await buildFixture('vanilla', {
+    entry: 'src/main.ts',
+    fileName: 'vanilla',
+    header: {
+      name: 'Vanilla',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-    { sourcemap: true },
-  )
+  }, { sourcemap: true })
 
   const userscript = await readOut(outDir, 'vanilla.user.js')
   const map = parseInlineSourceMap(userscript)
@@ -211,30 +227,26 @@ it('multiple entries emit two userscripts', async () => {
 })
 
 it('multiple entries keep a single sourceMappingURL after the IIFE', async () => {
-  const outDir = await buildFixture(
-    'multiple-entries',
-    [
-      {
-        entry: 'src/foo.ts',
-        fileName: 'foo',
-        header: {
-          name: 'Foo',
-          version: '1.0.0',
-          match: 'https://foo.example/*',
-        },
+  const outDir = await buildFixture('multiple-entries', [
+    {
+      entry: 'src/foo.ts',
+      fileName: 'foo',
+      header: {
+        name: 'Foo',
+        version: '1.0.0',
+        match: 'https://foo.example/*',
       },
-      {
-        entry: 'src/bar.ts',
-        fileName: 'bar',
-        header: {
-          name: 'Bar',
-          version: '1.0.0',
-          match: 'https://bar.example/*',
-        },
+    },
+    {
+      entry: 'src/bar.ts',
+      fileName: 'bar',
+      header: {
+        name: 'Bar',
+        version: '1.0.0',
+        match: 'https://bar.example/*',
       },
-    ],
-    { sourcemap: true },
-  )
+    },
+  ], { sourcemap: true })
 
   const userscript = await readOut(outDir, 'foo.user.js')
   expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1)
@@ -277,19 +289,15 @@ it('imported images are inlined as data URLs', async () => {
 })
 
 it('vue sourcemap keeps app sourcesContent and drops node_modules', async () => {
-  const outDir = await buildFixture(
-    'vue',
-    {
-      entry: 'src/main.ts',
-      fileName: 'vue',
-      header: {
-        name: 'Vue',
-        version: '1.0.0',
-        match: 'https://example.com/*',
-      },
+  const outDir = await buildFixture('vue', {
+    entry: 'src/main.ts',
+    fileName: 'vue',
+    header: {
+      name: 'Vue',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-    { plugins: [vue()], sourcemap: true },
-  )
+  }, { plugins: [vue()], sourcemap: true })
 
   const map = parseInlineSourceMap(await readOut(outDir, 'vue.user.js'))
   const contents = map.sourcesContent ?? []
@@ -314,19 +322,15 @@ it('vue sourcemap keeps app sourcesContent and drops node_modules', async () => 
 })
 
 it('vue SFC styles are inlined', async () => {
-  const outDir = await buildFixture(
-    'vue',
-    {
-      entry: 'src/main.ts',
-      fileName: 'vue',
-      header: {
-        name: 'Vue',
-        version: '1.0.0',
-        match: 'https://example.com/*',
-      },
+  const outDir = await buildFixture('vue', {
+    entry: 'src/main.ts',
+    fileName: 'vue',
+    header: {
+      name: 'Vue',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-    { plugins: [vue()] },
-  )
+  }, { plugins: [vue()] })
 
   const userscript = await readOut(outDir, 'vue.user.js')
   expect(userscript).toContain('vue-fixture')
@@ -366,19 +370,15 @@ it('html app is emitted next to the userscript', async () => {
 })
 
 it('svelte SFC styles are inlined', async () => {
-  const outDir = await buildFixture(
-    'svelte',
-    {
-      entry: 'src/main.ts',
-      fileName: 'svelte',
-      header: {
-        name: 'Svelte',
-        version: '1.0.0',
-        match: 'https://example.com/*',
-      },
+  const outDir = await buildFixture('svelte', {
+    entry: 'src/main.ts',
+    fileName: 'svelte',
+    header: {
+      name: 'Svelte',
+      version: '1.0.0',
+      match: 'https://example.com/*',
     },
-    { plugins: [svelte()] },
-  )
+  }, { plugins: [svelte()] })
 
   const userscript = await readOut(outDir, 'svelte.user.js')
   expect(userscript).toContain('svelte-fixture')

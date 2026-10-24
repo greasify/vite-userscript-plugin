@@ -21,6 +21,7 @@ import {
 import {
   ensureIife,
   isAlreadyIife,
+  requireStatementGuard,
   stripSourceMappingUrl,
 } from './iife.js'
 import {
@@ -113,7 +114,7 @@ function createHeadedUserscript(
     generate: script.generate,
     mode: 'build',
   })
-  const prefix = `${header}\n\n`
+  const prefix = `${header}\n${requireStatementGuard}`
   const nextFileName = `${script.fileName}.user.js`
   let nextCode = `${prefix}${options.code}`
 
@@ -224,7 +225,7 @@ export function applyUserscriptBundle(
 
     if (emitFileProxy) {
       const requireName = toRequireFileName(script.fileName)
-      let nextCode = code.endsWith('\n') ? code : `${code}\n`
+      let nextCode = `${requireStatementGuard}${code.endsWith('\n') ? code : `${code}\n`}`
 
       if (chunk.map) {
         chunk.map = offsetUserscriptMap({
@@ -233,6 +234,7 @@ export function applyUserscriptBundle(
           cssPrelude,
           inlined,
           body,
+          headerPrefix: requireStatementGuard,
         })
         nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(chunk.map)}\n`
       }

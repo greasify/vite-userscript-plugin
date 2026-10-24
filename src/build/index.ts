@@ -18,6 +18,7 @@ export {
 export {
   ensureIife,
   isAlreadyIife,
+  requireStatementGuard,
   stripDynamicImports,
   stripExports,
   stripImports,

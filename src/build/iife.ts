@@ -33,6 +33,14 @@ export function stripModuleSyntax(code: string): string {
   return stripExports(stripImports(stripDynamicImports(code)))
 }
 
+/**
+ * First statement of an emitted script.
+ * Managers concatenate `@require` in front of the userscript, and comments
+ * in the metablock do not end that statement. A require that does not end
+ * with `;` would call this script when its first token is `(`.
+ */
+export const requireStatementGuard = ';\n'
+
 export function isAlreadyIife(code: string): boolean {
   const trimmed = code.trimStart()
   return !/^\s*(?:import|export)\s/m.test(code)

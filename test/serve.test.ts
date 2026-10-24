@@ -46,6 +46,7 @@ import {
   toServeEntryPath,
   webWorkerWrapper,
 } from '../src/serve/index.js'
+import { runAfterRequire } from './helpers/run-after-require.js'
 
 it('matchDevUserscript matches install path', () => {
   expect(matchDevUserscript('/foo.dev.user.js', 'foo')).toBe(true)
@@ -251,6 +252,8 @@ it('createDevUserscript writes a header and wrapper', () => {
   expect(userscript).toContain('@name')
   expect(userscript).toContain('server:Demo')
   expect(userscript).toContain('/@vite/client')
+  expect(userscript).toMatch(/==\/UserScript==\n;/)
+  expect(() => runAfterRequire(userscript)).not.toThrow()
 })
 
 it('createDevUserscript can omit the server prefix', () => {
