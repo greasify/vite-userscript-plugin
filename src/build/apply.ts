@@ -15,7 +15,6 @@ import {
   stripVendorSourcesContent,
   toInlineSourceMappingUrl,
 } from '../sourcemap.js'
-import { breakLongMappedLines } from './break-lines.js'
 import { isChunk } from './bundle.js'
 import { collectCss, createCssInject } from './css.js'
 import { rewriteExternalImports, withExternalRequires } from './external.js'
@@ -213,12 +212,6 @@ export function applyUserscriptBundle(
   const leftoverAssets: string[] = []
 
   for (const { fileName, chunk, script } of userscriptEntries) {
-    if (chunk.map?.mappings) {
-      const broken = breakLongMappedLines(chunk.code, chunk.map.mappings)
-      chunk.code = broken.code
-      chunk.map = { ...chunk.map, mappings: broken.mappings }
-    }
-
     const inlined = stripSourceMappingUrl(inlineImportedChunks(chunk, bundle))
     const { css, files: cssFiles } = collectCss(chunk, bundle)
 
