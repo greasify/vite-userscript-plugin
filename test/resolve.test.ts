@@ -25,6 +25,51 @@ it('resolvePluginConfig accepts a single config', () => {
   expect(resolved.scripts[0]?.metaFile).toBe(true)
 })
 
+it('resolvePluginConfig defaults sourcemapTarget to tampermonkey', () => {
+  const plain = resolvePluginConfig({
+    entry: 'src/main.ts',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  })
+  const tampermonkey = resolvePluginConfig({
+    entry: 'src/main.ts',
+    sourcemapTarget: 'tampermonkey',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  })
+  const violentmonkey = resolvePluginConfig({
+    entry: 'src/main.ts',
+    sourcemapTarget: 'violentmonkey',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  })
+
+  expect(plain.scripts[0]?.sourcemapTarget).toBe('tampermonkey')
+  expect(tampermonkey.scripts[0]?.sourcemapTarget).toBe('tampermonkey')
+  expect(violentmonkey.scripts[0]?.sourcemapTarget).toBe('violentmonkey')
+})
+
+it('resolvePluginConfig rejects an unknown sourcemapTarget', () => {
+  expect(() => resolvePluginConfig({
+    entry: 'src/main.ts',
+    sourcemapTarget: 'greasemonkey' as 'tampermonkey',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  })).toThrow(/sourcemapTarget/)
+})
+
 it('resolvePluginConfig keeps server.file', () => {
   const resolved = resolvePluginConfig({
     entry: 'src/main.ts',

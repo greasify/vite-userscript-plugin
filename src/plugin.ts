@@ -51,6 +51,9 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
   let isWatch = false
   let mode = 'production'
   let outDir = ''
+  let root = ''
+  let publicDir = ''
+  let warn = (_message: string): void => {}
   let fileWatchStarted = false
 
   const shouldEmitProxy = (): boolean => {
@@ -296,7 +299,10 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
       configResolved(viteConfig) {
         isWatch = Boolean(viteConfig.build.watch)
         mode = viteConfig.mode
+        root = viteConfig.root
+        publicDir = viteConfig.publicDir
         outDir = resolve(viteConfig.root, viteConfig.build.outDir)
+        warn = message => viteConfig.logger.warn(message)
       },
       generateBundle(_options, bundle) {
         isWatch = this.meta.watchMode || isWatch
@@ -310,6 +316,9 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
           },
           emitProxy: shouldEmitProxy(),
           outDir,
+          publicDir,
+          root,
+          warn,
         })
       },
     },

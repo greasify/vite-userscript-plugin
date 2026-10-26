@@ -1,4 +1,9 @@
-import type { HeaderConfig, ResolvedPluginConfig, ResolvedScript } from '../types.js'
+import type {
+  HeaderConfig,
+  ResolvedPluginConfig,
+  ResolvedScript,
+  SourcemapTarget,
+} from '../types.js'
 import type { OutputBundle, OutputChunk } from './bundle.js'
 
 import { resolve } from 'node:path'
@@ -10,6 +15,7 @@ import {
   stripVendorSourcesContent,
   toInlineSourceMappingUrl,
 } from '../sourcemap.js'
+import { breakLongMappedLines } from './break-lines.js'
 import { isChunk } from './bundle.js'
 import { collectCss, createCssInject } from './css.js'
 import { rewriteExternalImports, withExternalRequires } from './external.js'
@@ -29,6 +35,7 @@ import {
   toProxyFileName,
   toRequireFileName,
 } from './proxy.js'
+import { countRequirePrefixLines, listRequireUrls } from './require-offset.js'
 
 function collectImportedCssFiles(
   fileNames: Iterable<string>,
@@ -72,6 +79,10 @@ export function findScriptForChunk(
   )
 }
 
+function managerSourceMapOffset(target: SourcemapTarget): number {
+  return target === 'tampermonkey' ? 2 : 0
+}
+
 function offsetUserscriptMap(options: {
   map: NonNullable<OutputChunk['map']>
   fileName: string
@@ -79,9 +90,13 @@ function offsetUserscriptMap(options: {
   inlined: string
   body: string
   headerPrefix?: string
+  managerOffset?: number
+  requirePrefixLines?: number
 }) {
   const wrapOffset = isAlreadyIife(stripSourceMappingUrl(options.body)) ? 0 : 1
-  const lineOffset = countHeaderLines(options.headerPrefix ?? '')
+  const lineOffset = (options.managerOffset ?? 0)
+    + (options.requirePrefixLines ?? 0)
+    + countHeaderLines(options.headerPrefix ?? '')
     + countHeaderLines(options.cssPrelude)
     + wrapOffset
     + countHeaderLines(options.inlined)
@@ -100,6 +115,7 @@ function createHeadedUserscript(
     cssPrelude: string
     inlined: string
     map?: OutputChunk['map']
+    requirePrefixLines?: number
     wrapped: string
   },
 ): { code: string, headerConfig: HeaderConfig } {
@@ -126,6 +142,8 @@ function createHeadedUserscript(
       inlined: options.inlined,
       body: options.body,
       headerPrefix: prefix,
+      managerOffset: managerSourceMapOffset(script.sourcemapTarget),
+      requirePrefixLines: options.requirePrefixLines,
     })
     nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(map)}\n`
   }
@@ -149,6 +167,9 @@ export type ApplyUserscriptBundleContext = {
   emitFile: (fileName: string, source: string) => void
   emitProxy?: boolean
   outDir?: string
+  publicDir: string
+  root: string
+  warn: (message: string) => void
 }
 
 export function applyUserscriptBundle(
@@ -192,6 +213,12 @@ export function applyUserscriptBundle(
   const leftoverAssets: string[] = []
 
   for (const { fileName, chunk, script } of userscriptEntries) {
+    if (chunk.map?.mappings) {
+      const broken = breakLongMappedLines(chunk.code, chunk.map.mappings)
+      chunk.code = broken.code
+      chunk.map = { ...chunk.map, mappings: broken.mappings }
+    }
+
     const inlined = stripSourceMappingUrl(inlineImportedChunks(chunk, bundle))
     const { css, files: cssFiles } = collectCss(chunk, bundle)
 
@@ -214,12 +241,21 @@ export function applyUserscriptBundle(
 
     leftoverAssets.push(`${fileName}.map`)
 
+    const requirePrefixLines = chunk.map
+      ? countRequirePrefixLines(
+          listRequireUrls(withExternalRequires(script.header, script.external).require),
+          { publicDir: context.publicDir, root: context.root },
+          context.warn,
+        )
+      : 0
+
     const headed = createHeadedUserscript(script, {
       body,
       code,
       cssPrelude,
       inlined,
       map: chunk.map,
+      requirePrefixLines,
       wrapped,
     })
 
@@ -235,6 +271,8 @@ export function applyUserscriptBundle(
           inlined,
           body,
           headerPrefix: requireStatementGuard,
+          managerOffset: managerSourceMapOffset(script.sourcemapTarget),
+          requirePrefixLines,
         })
         nextCode = `${stripSourceMappingUrl(nextCode).replace(/\n+$/g, '\n')}//# sourceMappingURL=${toInlineSourceMappingUrl(chunk.map)}\n`
       }

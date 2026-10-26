@@ -14,6 +14,13 @@ export type RunAt
     | 'document-idle'
     | 'context-menu'
 
+/**
+ * Userscript manager that wraps the installed script before DevTools reads it.
+ * Tampermonkey prepends two lines. Violentmonkey does not. One inline map
+ * cannot satisfy both.
+ */
+export type SourcemapTarget = 'tampermonkey' | 'violentmonkey'
+
 export type HeaderConfig = {
   [property: string]: any
 
@@ -316,6 +323,16 @@ export interface UserscriptConfig {
   metaFile?: boolean
 
   /**
+   * Align the inline sourcemap with the manager that runs the script.
+   * `tampermonkey` shifts the map by the two wrapper lines Tampermonkey
+   * prepends. `violentmonkey` keeps the map on the file itself. One map
+   * cannot be correct for both managers at once.
+   *
+   * @default 'tampermonkey'
+   */
+  sourcemapTarget?: SourcemapTarget
+
+  /**
    * Keep these packages out of the bundle and load them via `@require`.
    * Keys are specifiers (`jquery`, `vue`). A string value is the CDN URL; the
    * global name is derived from the specifier. Pass `{ global, url }` for `$` / `Vue`.
@@ -342,6 +359,7 @@ export interface ResolvedScript {
   generate?: (ctx: HeaderGenerateContext) => string
   autoMetaUrls: boolean
   metaFile: boolean
+  sourcemapTarget: SourcemapTarget
   external: ResolvedExternal[]
 }
 

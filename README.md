@@ -153,6 +153,7 @@ See [examples/sourcemap](./examples/sourcemap).
 | `generate` | — | Rewrite the generated metablock. |
 | `autoMetaUrls` | `false` | Fill empty `updateURL` / `downloadURL` from `homepage` / `homepageURL` / `website` / `source`. |
 | `metaFile` | `true` | Emit `{fileName}.meta.js`. |
+| `sourcemapTarget` | `tampermonkey` | `tampermonkey` shifts the inline map by the two lines Tampermonkey prepends before `@require` and the script. `violentmonkey` keeps the map aligned with the file. One map cannot be correct for both managers. |
 | `external` | — | Keep these packages out of the bundle and load them via `@require`. Keys are specifiers (`jquery`, `vue`). A string value is the CDN URL (global name from the specifier). Pass `{ global, url }` for `$` / `Vue`. Install `@types/…` for `tsc`; do not install the runtime package. See [examples/external-cdn](./examples/external-cdn). |
 
 Everything else on `header` follows the manager metablock (`@grant`, `@require`, `@connect`, …).

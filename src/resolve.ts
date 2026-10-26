@@ -4,6 +4,7 @@ import type {
   ResolvedScript,
   ResolvedServerOpen,
   ServerOpen,
+  SourcemapTarget,
   UserscriptConfig,
   UserscriptPluginConfig,
 } from './types.js'
@@ -42,6 +43,23 @@ function resolveServerOpen(open: ServerOpen | undefined, file: boolean): Resolve
   return file ? open : 'dev'
 }
 
+function resolveSourcemapTarget(
+  value: SourcemapTarget | undefined,
+  label: string,
+): SourcemapTarget {
+  if (value == null) {
+    return 'tampermonkey'
+  }
+
+  if (value === 'tampermonkey' || value === 'violentmonkey') {
+    return value
+  }
+
+  throw new Error(
+    `[${PLUGIN_NAME}] ${label} has unknown sourcemapTarget "${value}"`,
+  )
+}
+
 function toResolvedScript(config: UserscriptConfig): ResolvedScript {
   if (!config.entry) {
     throw new Error(`[${PLUGIN_NAME}] Provide an "entry" for each userscript`)
@@ -66,6 +84,7 @@ function toResolvedScript(config: UserscriptConfig): ResolvedScript {
     generate: config.generate,
     autoMetaUrls: config.autoMetaUrls ?? false,
     metaFile: config.metaFile ?? true,
+    sourcemapTarget: resolveSourcemapTarget(config.sourcemapTarget, config.entry),
     external: resolveExternals(config.external),
   }
 }

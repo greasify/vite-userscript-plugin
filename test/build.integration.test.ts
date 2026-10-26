@@ -13,6 +13,7 @@ import { afterEach, expect, it } from 'vitest'
 import Userscript from '../src/index.js'
 import { countHeaderLines } from '../src/sourcemap.js'
 import { runAfterRequire } from './helpers/run-after-require.js'
+import { originalPositionFor } from './helpers/vlq.js'
 
 const fixtures = fileURLToPath(new URL('./fixtures', import.meta.url))
 const outDirs: string[] = []
@@ -112,6 +113,96 @@ it('a @require without a semicolon does not call the userscript', async () => {
   expect(() => runAfterRequire(iife)).not.toThrow()
 })
 
+it('sourcemap stays on the original line after a multiline @require', async () => {
+  const fixtureRoot = join(fixtures, 'require-map')
+  const requireSource = await readFile(join(fixtureRoot, 'public/vendor.js'), 'utf8')
+  const source = await readFile(join(fixtureRoot, 'src/main.ts'), 'utf8')
+  const token = 'data-require-map'
+  const expectedLine = source.split('\n').findIndex(line => line.includes(token))
+  const lastLine = source.trimEnd().split('\n').length - 1
+  const outDir = await buildFixture('require-map', {
+    entry: 'src/main.ts',
+    fileName: 'require-map',
+    sourcemapTarget: 'violentmonkey',
+    header: {
+      name: 'Require map',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      require: 'vendor.js',
+    },
+    server: { file: true },
+  }, { mode: 'development', sourcemap: true })
+
+  const userscript = await readOut(outDir, 'require-map.user.js')
+  const iife = await readOut(outDir, 'require-map.js')
+  const requirePrefix = requireSource.endsWith('\n') ? requireSource : `${requireSource}\n`
+
+  const assertMapped = (emitted: string) => {
+    const combined = `${requirePrefix}${emitted}`
+    const map = parseInlineSourceMap(emitted)
+    const at = combined.indexOf(token)
+    const prefix = combined.slice(0, at)
+    const generatedLine = prefix.split('\n').length - 1
+    const generatedColumn = prefix.length - prefix.lastIndexOf('\n') - 1
+    const position = originalPositionFor(map.mappings, generatedLine, generatedColumn)
+    const headerAt = emitted.search(/^\((?:async )?function/m)
+
+    expect(at).toBeGreaterThan(-1)
+    expect(expectedLine).toBeGreaterThanOrEqual(0)
+    expect(expectedLine).not.toBe(lastLine)
+    expect(map.mappings.startsWith(';'.repeat(
+      countHeaderLines(requirePrefix) + countHeaderLines(emitted.slice(0, headerAt)),
+    ))).toBe(true)
+    expect(position?.line).toBe(expectedLine)
+  }
+
+  assertMapped(userscript)
+  assertMapped(iife)
+})
+
+it('default sourcemap target absorbs the two Tampermonkey wrapper lines', async () => {
+  const fixtureRoot = join(fixtures, 'require-map')
+  const requireSource = await readFile(join(fixtureRoot, 'public/vendor.js'), 'utf8')
+  const source = await readFile(join(fixtureRoot, 'src/main.ts'), 'utf8')
+  const token = 'data-require-map'
+  const expectedLine = source.split('\n').findIndex(line => line.includes(token))
+  const outDir = await buildFixture('require-map', {
+    entry: 'src/main.ts',
+    fileName: 'require-map',
+    header: {
+      name: 'Require map',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      require: 'vendor.js',
+    },
+    server: { file: true },
+  }, { mode: 'development', sourcemap: true })
+
+  const userscript = await readOut(outDir, 'require-map.user.js')
+  const iife = await readOut(outDir, 'require-map.js')
+  const requirePrefix = requireSource.endsWith('\n') ? requireSource : `${requireSource}\n`
+  const wrapper = '// tampermonkey\n// wrapper\n'
+
+  const assertMapped = (emitted: string) => {
+    const combined = `${wrapper}${requirePrefix}${emitted}`
+    const map = parseInlineSourceMap(emitted)
+    const at = combined.indexOf(token)
+    const prefix = combined.slice(0, at)
+    const generatedLine = prefix.split('\n').length - 1
+    const generatedColumn = prefix.length - prefix.lastIndexOf('\n') - 1
+    const position = originalPositionFor(map.mappings, generatedLine, generatedColumn)
+    const headerAt = emitted.search(/^\((?:async )?function/m)
+
+    expect(position?.line).toBe(expectedLine)
+    expect(map.mappings.startsWith(';'.repeat(
+      2 + countHeaderLines(requirePrefix) + countHeaderLines(emitted.slice(0, headerAt)),
+    ))).toBe(true)
+  }
+
+  assertMapped(userscript)
+  assertMapped(iife)
+})
+
 it('explicit minify still keeps the metablock', async () => {
   const outDir = await buildFixture('vanilla', {
     entry: 'src/main.ts',
@@ -159,7 +250,7 @@ it('sourcemap is inlined into the userscript', async () => {
   expect(map.sources.some(source => source.includes('main'))).toBe(true)
   const iifeAt = userscript.search(/^\((?:async )?function/m)
   expect(iifeAt).toBeGreaterThan(-1)
-  expect(map.mappings.startsWith(';'.repeat(countHeaderLines(userscript.slice(0, iifeAt))))).toBe(true)
+  expect(map.mappings.startsWith(';'.repeat(2 + countHeaderLines(userscript.slice(0, iifeAt))))).toBe(true)
   expect((userscript.match(/sourceMappingURL=/g) ?? []).length).toBe(1)
   expect(userscript.lastIndexOf('sourceMappingURL=')).toBeGreaterThan(userscript.lastIndexOf('})();'))
   expect((await listOut(outDir)).filter(file => file.endsWith('.map'))).toEqual([])

@@ -105,5 +105,6 @@ export default antfu({
     'vue/custom-event-name-casing': 'off',
     'regexp/no-super-linear-backtracking': 'off',
     'regexp/no-obscure-range': 'off',
+    'eslint-comments/no-unlimited-disable': 'off',
   },
 })

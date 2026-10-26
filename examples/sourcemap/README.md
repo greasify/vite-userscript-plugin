@@ -4,6 +4,8 @@ Vanilla userscript with Vite `build.minify` and `build.sourcemap`. The metablock
 
 The map is inlined as a `data:` `sourceMappingURL`. Offset includes the metablock and the CSS prelude. No sibling `.map` file.
 
+Tampermonkey prepends two wrapper lines before `@require` and the userscript, so DevTools asks for a generated line two past the file. The default `sourcemapTarget` is `tampermonkey` and absorbs that. Set `sourcemapTarget: 'violentmonkey'` to keep the map aligned with the file. One inline map cannot be correct for both managers at the same time.
+
 `homepage` + `autoMetaUrls` fill `@updateURL` / `@downloadURL`. They do not host the map.
 
 `icon: 'greasify.svg'` is joined with `homepage` at header generation. The file lives in `public/` for the HTML page; the manager fetches `@icon` from the Pages URL.

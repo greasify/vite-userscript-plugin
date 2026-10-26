@@ -9,6 +9,7 @@ export type {
   ResolvedServerOpen,
   ServerConfig,
   ServerOpen,
+  SourcemapTarget,
   UserscriptConfig,
   UserscriptExternal,
   UserscriptPluginConfig,
