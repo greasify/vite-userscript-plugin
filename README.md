@@ -125,7 +125,7 @@ The plugin sets `build.assetsInlineLimit` very high so userscript assets become 
 > [!WARNING]
 > Keep the page's `<script>` entries distinct from `entry`.
 
-Script metadata: import `virtual:vite-userscript-plugin` (`name`, `version`, `file`).
+Script metadata: import `virtual:vite-userscript-plugin` (`name`, `version`, `file`, `homepage`). `homepage` is the resolved base (`homepage`, then `homepageURL`, `website`, `source`) and is omitted when none is set.
 
 See [examples/sourcemap](./examples/sourcemap).
 

@@ -90,3 +90,54 @@ it('createClientSnapshot maps every script', () => {
     },
   ])
 })
+
+it.each([
+  {
+    name: 'homepage',
+    header: { homepage: 'https://example.com/home' },
+    expected: 'https://example.com/home',
+  },
+  {
+    name: 'homepageURL',
+    header: { homepageURL: 'https://example.com/url' },
+    expected: 'https://example.com/url',
+  },
+  {
+    name: 'website',
+    header: { website: 'https://example.com/site' },
+    expected: 'https://example.com/site',
+  },
+  {
+    name: 'source',
+    header: { source: 'https://example.com/source' },
+    expected: 'https://example.com/source',
+  },
+  {
+    name: 'homepage over aliases',
+    header: {
+      homepage: 'https://example.com/home',
+      homepageURL: 'https://example.com/url',
+      website: 'https://example.com/site',
+      source: 'https://example.com/source',
+    },
+    expected: 'https://example.com/home',
+  },
+])('createClientSnapshot resolves $name', ({ header, expected }) => {
+  const { scripts } = resolvePluginConfig({
+    entry: 'src/main.ts',
+    fileName: 'demo',
+    header: {
+      name: 'Demo',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+      ...header,
+    },
+  })
+
+  expect(createClientSnapshot(scripts, 'build')[0]).toEqual({
+    name: 'Demo',
+    version: '1.0.0',
+    file: 'demo.user.js',
+    homepage: expected,
+  })
+})

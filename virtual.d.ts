@@ -3,5 +3,6 @@ declare module 'virtual:vite-userscript-plugin' {
     name: string
     version: string
     file: string
+    homepage?: string
   }[]
 }

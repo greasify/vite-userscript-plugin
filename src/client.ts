@@ -1,5 +1,7 @@
 import type { ResolvedScript } from './types.js'
 
+import { resolveHomePage } from './header.js'
+
 export const VIRTUAL_MODULE_ID = 'virtual:vite-userscript-plugin'
 export const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`
 
@@ -19,6 +21,7 @@ export interface ClientScript {
   name: string
   version: string
   file: string
+  homepage?: string
 }
 
 export function createClientSnapshot(
@@ -33,10 +36,13 @@ export function createClientSnapshot(
       suffix = '.user.js'
     }
 
+    const homepage = resolveHomePage(script.header)
+
     return {
       name: script.header.name,
       version: script.header.version,
       file: `${script.fileName}${suffix}`,
+      ...(homepage ? { homepage } : {}),
     }
   })
 }
