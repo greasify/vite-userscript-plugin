@@ -3,6 +3,18 @@ import type { ResolvedScript } from './types.js'
 export const VIRTUAL_MODULE_ID = 'virtual:vite-userscript-plugin'
 export const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`
 
+export function resolveVirtualModuleId(importer?: string): string {
+  if (!importer) {
+    return RESOLVED_VIRTUAL_MODULE_ID
+  }
+
+  return `${RESOLVED_VIRTUAL_MODULE_ID}?importer=${encodeURIComponent(importer)}`
+}
+
+export function isResolvedVirtualModuleId(id: string): boolean {
+  return id === RESOLVED_VIRTUAL_MODULE_ID || id.startsWith(`${RESOLVED_VIRTUAL_MODULE_ID}?`)
+}
+
 export interface ClientScript {
   name: string
   version: string

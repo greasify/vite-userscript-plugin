@@ -7,8 +7,9 @@ import { applyUserscriptBundle } from './build/apply.js'
 import { mergeRolldownExternal } from './build/external.js'
 import {
   createClientSnapshot,
+  isResolvedVirtualModuleId,
   renderVirtualModule,
-  RESOLVED_VIRTUAL_MODULE_ID,
+  resolveVirtualModuleId,
   VIRTUAL_MODULE_ID,
 } from './client.js'
 import { PLUGIN_NAME } from './constants.js'
@@ -226,9 +227,9 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
     },
     {
       name: `${PLUGIN_NAME}:virtual`,
-      resolveId: (id) => {
+      resolveId: (id, importer) => {
         if (id === VIRTUAL_MODULE_ID) {
-          return RESOLVED_VIRTUAL_MODULE_ID
+          return resolveVirtualModuleId(importer)
         }
 
         if (command === 'serve' && findResolvedExternal(resolved.scripts, id)) {
@@ -236,7 +237,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
         }
       },
       load: (id) => {
-        if (id === RESOLVED_VIRTUAL_MODULE_ID) {
+        if (isResolvedVirtualModuleId(id)) {
           return renderVirtualModule(createClientSnapshot(resolved.scripts, command))
         }
 

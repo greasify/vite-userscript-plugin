@@ -58,7 +58,10 @@ it('rewriteInlinedDynamicImports turns import() into Promise.resolve namespaces'
     isEntry: true,
     dynamicImports: ['dyn.js'],
   })
-  const rewritten = rewriteInlinedDynamicImports(entry.code, entry, { 'dyn.js': dyn })
+  const rewritten = rewriteInlinedDynamicImports(entry.code, {
+    chunk: entry,
+    bundle: { 'dyn.js': dyn },
+  })
 
   expect(rewritten).toContain('Promise.resolve({ label })')
   expect(rewritten).not.toContain('import(')

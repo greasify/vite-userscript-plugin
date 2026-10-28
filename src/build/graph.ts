@@ -52,14 +52,13 @@ export function inlineImportedChunks(chunk: OutputChunk, bundle: OutputBundle): 
     .join('')
 }
 
-function namespaceLiteral(chunk: OutputChunk): string {
-  const exports = chunk.exports ?? []
-  const fields = exports.map((name) => {
-    if (name === 'default') {
-      return 'default: undefined'
-    }
+function identKey(name: string): string {
+  return /^[A-Z_$][\w$]*$/i.test(name) ? name : JSON.stringify(name)
+}
 
-    return /^[a-z_$][\w$]*$/i.test(name) ? name : `${JSON.stringify(name)}: undefined`
+function namespaceLiteral(chunk: OutputChunk): string {
+  const fields = (chunk.exports ?? []).map((name) => {
+    return name === 'default' ? 'default: undefined' : identKey(name)
   })
 
   return `{ ${fields.join(', ')} }`
@@ -84,8 +83,10 @@ function replaceDynamicImportCalls(code: string, fileName: string, namespace: st
 
 export function rewriteInlinedDynamicImports(
   code: string,
-  chunk: OutputChunk,
-  bundle: OutputBundle,
+  options: {
+    chunk: OutputChunk
+    bundle: OutputBundle
+  },
 ): string {
   let next = code
   const seen = new Set<string>()
@@ -97,17 +98,21 @@ export function rewriteInlinedDynamicImports(
       }
 
       seen.add(fileName)
-      const dep = bundle[fileName]
+      const dep = options.bundle[fileName]
       if (!dep || !isChunk(dep)) {
         continue
       }
 
       visit(dep)
-      next = replaceDynamicImportCalls(next, fileName, namespaceLiteral(dep))
+      next = replaceDynamicImportCalls(
+        next,
+        fileName,
+        namespaceLiteral(dep),
+      )
     }
   }
 
-  visit(chunk)
+  visit(options.chunk)
 
   if (next.includes('__vitePreload')) {
     return `function __vitePreload(fn){return fn();}\n${next}`

@@ -212,7 +212,7 @@ export function applyUserscriptBundle(
   const leftoverAssets: string[] = []
 
   for (const { fileName, chunk, script } of userscriptEntries) {
-    const inlined = stripSourceMappingUrl(inlineImportedChunks(chunk, bundle))
+    const inlined = inlineImportedChunks(chunk, bundle)
     const { css, files: cssFiles } = collectCss(chunk, bundle)
 
     for (const cssFile of cssFiles) {
@@ -223,7 +223,10 @@ export function applyUserscriptBundle(
 
     const cssPrelude = css ? createCssInject(css) : ''
     const body = rewriteExternalImports(
-      rewriteInlinedDynamicImports(`${inlined}${chunk.code}`, chunk, bundle),
+      rewriteInlinedDynamicImports(`${inlined}${chunk.code}`, {
+        chunk,
+        bundle,
+      }),
       script.external,
     )
     const wrapped = ensureIife(body)
