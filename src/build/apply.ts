@@ -20,7 +20,7 @@ import { collectCss, createCssInject } from './css.js'
 import { rewriteExternalImports, withExternalRequires } from './external.js'
 import {
   collectImportedChunkIds,
-  inlineImportedChunks,
+  linkImportedChunks,
   rewriteInlinedDynamicImports,
 } from './graph.js'
 import {
@@ -212,7 +212,8 @@ export function applyUserscriptBundle(
   const leftoverAssets: string[] = []
 
   for (const { fileName, chunk, script } of userscriptEntries) {
-    const inlined = inlineImportedChunks(chunk, bundle)
+    const linked = linkImportedChunks(chunk, bundle)
+    const inlined = linked.prelude
     const { css, files: cssFiles } = collectCss(chunk, bundle)
 
     for (const cssFile of cssFiles) {
@@ -223,7 +224,7 @@ export function applyUserscriptBundle(
 
     const cssPrelude = css ? createCssInject(css) : ''
     const body = rewriteExternalImports(
-      rewriteInlinedDynamicImports(`${inlined}${chunk.code}`, {
+      rewriteInlinedDynamicImports(`${inlined}${linked.code}`, {
         chunk,
         bundle,
       }),

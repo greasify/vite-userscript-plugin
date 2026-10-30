@@ -6,20 +6,20 @@ export function stripSourceMappingUrl(code: string): string {
 
 export function stripImports(code: string): string {
   return code
-    .replace(/(^|\n)import(?:\s+type)?(?:\s+[\s\S]*?\s+|\s+)from\s*["'][^"']+["']\s*;?/g, '$1')
-    .replace(/(^|\n)import\s*["'][^"']+["']\s*;?/g, '$1')
+    .replace(/(^|[;\n])[ \t]*import\s*(['"])[^'"]+\2\s*;?/g, '$1')
+    .replace(/(^|[;\n])[ \t]*import(?![\w$])(?!\s*[.(])(?:\s+type)?\s*[\s\S]*?\s*from\s*["'][^"']+["']\s*;?/g, '$1')
 }
 
 export function stripExports(code: string): string {
   return code
-    .replace(/^export\s+\{[\s\S]*?\}\s+from\s+["'][^"']+["']\s*;?\s*$/gm, '')
-    .replace(/^export\s+\*\s+from\s+["'][^"']+["']\s*;?\s*$/gm, '')
-    .replace(/^export\s+\{[\s\S]*?\};?\s*$/gm, '')
-    .replace(/^export\s+default\s+/gm, '')
-    .replace(/^export\s+async\s+function/gm, 'async function')
-    .replace(/^export\s+function/gm, 'function')
-    .replace(/^export\s+class/gm, 'class')
-    .replace(/^export\s+(const|let|var)/gm, '$1')
+    .replace(/\bexport\s*\{[\s\S]*?\}\s*from\s*["'][^"']+["']\s*;?/g, '')
+    .replace(/\bexport\s*\*\s*from\s*["'][^"']+["']\s*;?/g, '')
+    .replace(/\bexport\s*\{[\s\S]*?\}\s*;?/g, '')
+    .replace(/\bexport\s+default\s+/g, '')
+    .replace(/\bexport\s+async\s+function/g, 'async function')
+    .replace(/\bexport\s+function/g, 'function')
+    .replace(/\bexport\s+class/g, 'class')
+    .replace(/\bexport\s+(const|let|var)/g, '$1')
 }
 
 export function stripDynamicImports(code: string): string {
@@ -43,7 +43,7 @@ export const requireStatementGuard = ';\n'
 
 export function isAlreadyIife(code: string): boolean {
   const trimmed = code.trimStart()
-  return !/^\s*(?:import|export)\s/m.test(code)
+  return !/(?:^|\n)\s*(?:import(?![\w$])|export\b)/.test(code)
     && /^\(\s*(?:async\s+)?function\b/.test(trimmed)
 }
 

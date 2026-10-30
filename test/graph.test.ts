@@ -1,11 +1,14 @@
 import type { OutputBundle, OutputChunk } from '../src/build/bundle.js'
+import { runInNewContext } from 'node:vm'
 import { expect, it } from 'vitest'
 import { collectCss } from '../src/build/css.js'
 import {
   inlineImportedChunks,
+  linkImportedChunks,
   rewriteInlinedDynamicImports,
   walkImportedChunks,
 } from '../src/build/graph.js'
+import { ensureIife } from '../src/build/iife.js'
 
 function chunk(partial: Partial<OutputChunk> & Pick<OutputChunk, 'fileName' | 'code'>): OutputChunk {
   return {
@@ -42,11 +45,14 @@ it('walkImportedChunks visits static and dynamic deps in post-order', () => {
     'leaf.js',
     'dyn.js',
   ])
-  expect(inlineImportedChunks(entry, bundle)).toContain('export const leaf')
-  expect(inlineImportedChunks(entry, bundle)).toContain('export const dyn')
+  const prelude = inlineImportedChunks(entry, bundle)
+  expect(prelude).toContain('__vite_userscript_')
+  expect(prelude).toContain('leaf')
+  expect(prelude).toContain('dyn')
+  expect(prelude).not.toMatch(/\bexport\b/)
 })
 
-it('rewriteInlinedDynamicImports turns import() into Promise.resolve namespaces', () => {
+it('links a dynamic import to the chunk namespace', () => {
   const dyn = chunk({
     fileName: 'dyn.js',
     code: 'export const label = "ok";\n',
@@ -58,13 +64,42 @@ it('rewriteInlinedDynamicImports turns import() into Promise.resolve namespaces'
     isEntry: true,
     dynamicImports: ['dyn.js'],
   })
-  const rewritten = rewriteInlinedDynamicImports(entry.code, {
-    chunk: entry,
-    bundle: { 'dyn.js': dyn },
+  const linked = linkImportedChunks(entry, { 'dyn.js': dyn, 'entry.js': entry })
+  const source = `${linked.prelude}${linked.code}`
+
+  expect(source).toMatch(/Promise\.resolve\(__vite_userscript_\d+\)/)
+  expect(source).toContain('ok')
+  expect(source).not.toContain('import(')
+})
+
+it('links minified renamed exports without colliding locals', () => {
+  const shared = chunk({
+    fileName: 'c.js',
+    code: 'function e(){return"inner"}const g="4.0.0";export{g as C,e as k};',
+    exports: ['C', 'k'],
+  })
+  const entry = chunk({
+    fileName: 'entry.js',
+    code: 'import{C as e}from"./c.js";globalThis.value=e;',
+    isEntry: true,
+    imports: ['c.js'],
+  })
+  const linked = linkImportedChunks(entry, { 'c.js': shared, 'entry.js': entry })
+  const source = ensureIife(`${linked.prelude}${linked.code}`)
+  const sandbox: { value?: string } = {}
+
+  expect(source).not.toMatch(/\b(?:import|export)\b/)
+  runInNewContext(source, sandbox)
+  expect(sandbox.value).toBe('4.0.0')
+})
+
+it('rewriteInlinedDynamicImports keeps a preload stub', () => {
+  const rewritten = rewriteInlinedDynamicImports('__vitePreload(() => 1)', {
+    chunk: chunk({ fileName: 'entry.js', code: '', isEntry: true }),
+    bundle: {},
   })
 
-  expect(rewritten).toContain('Promise.resolve({ label })')
-  expect(rewritten).not.toContain('import(')
+  expect(rewritten).toContain('function __vitePreload')
 })
 
 it('collectCss walks CSS from dynamically imported chunks', () => {

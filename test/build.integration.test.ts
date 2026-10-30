@@ -562,7 +562,7 @@ it('dynamic import chunks and their CSS are inlined', async () => {
 
   expect(userscript).toContain('dynamic-import-fixture')
   expect(userscript).toContain('limegreen')
-  expect(userscript).toMatch(/Promise\.resolve\(\{\s*label(?::\s*[\w$]+)?\s*\}\)/)
+  expect(userscript).toMatch(/Promise\.resolve\(__vite_userscript_\d+\)/)
   expect(userscript).not.toMatch(/\bimport\s*\(/)
   expect(files.filter(file => file.endsWith('.css'))).toEqual([])
   expect(leftoverScripts(files)).toEqual([])

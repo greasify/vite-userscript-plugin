@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -67,4 +67,28 @@ it('minified virtual module shared with an html page stays a classic script', as
 
   expect(userscript).not.toMatch(/\b(?:import|export)\b/)
   expect(readAttrs(userscript)['data-name']).toBe('Spaces+')
+})
+
+it('minified helper shared with an html page keeps the renamed binding', async () => {
+  const outDir = await buildUserscript('shared-page', {
+    entry: 'src/main.ts',
+    fileName: 'shared-page',
+    header: {
+      name: 'Shared page',
+      version: '1.0.0',
+      match: 'https://example.com/*',
+    },
+  })
+
+  const userscript = await readFile(join(outDir, 'shared-page.user.js'), 'utf8')
+  const files = (await readdir(outDir, { recursive: true })).map(String)
+  const pageSources = await Promise.all(
+    files
+      .filter(file => file.endsWith('.js') && !file.endsWith('.user.js') && !file.endsWith('.meta.js'))
+      .map(file => readFile(join(outDir, file), 'utf8')),
+  )
+
+  expect(userscript).not.toMatch(/\b(?:import|export)\b/)
+  expect(readAttrs(userscript)['data-version']).toBe('v4.0.0')
+  expect(pageSources.join('\n')).toContain('page')
 })

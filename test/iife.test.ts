@@ -3,6 +3,7 @@ import {
   ensureIife,
   isAlreadyIife,
   stripDynamicImports,
+  stripExports,
   stripImports,
 } from '../src/build/iife.js'
 
@@ -28,6 +29,20 @@ it('stripImports removes leftover static imports after inlining', () => {
 
   expect(stripped).not.toMatch(/\bimport\s/)
   expect(stripped).toContain('helper();')
+})
+
+it('stripImports removes minified imports without spaces', () => {
+  const stripped = stripImports('import{helper}from"./shared-abc.js";helper();')
+
+  expect(stripped).not.toMatch(/\bimport\b/)
+  expect(stripped).toContain('helper();')
+})
+
+it('stripExports removes a minified export list from the middle of a line', () => {
+  const stripped = stripExports('const g=1;export{g as C};')
+
+  expect(stripped).toBe('const g=1;')
+  expect(stripped).not.toMatch(/\bexport\b/)
 })
 
 it('ensureIife strips leftover imports before wrapping', () => {

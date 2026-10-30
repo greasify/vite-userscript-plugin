@@ -12,6 +12,7 @@ export {
 export {
   collectImportedChunkIds,
   inlineImportedChunks,
+  linkImportedChunks,
   rewriteInlinedDynamicImports,
   walkImportedChunks,
 } from './graph.js'
