@@ -250,7 +250,7 @@ it('createDevUserscript writes a header and wrapper', () => {
 
   expect(userscript).toContain('==UserScript==')
   expect(userscript).toContain('@name')
-  expect(userscript).toContain('server:Demo')
+  expect(userscript).toContain('dev:Demo')
   expect(userscript).toContain('/@vite/client')
   expect(userscript).toMatch(/==\/UserScript==\n;/)
   expect(() => runAfterRequire(userscript)).not.toThrow()
@@ -276,7 +276,7 @@ it('createDevUserscript can omit the server prefix', () => {
     },
   })
 
-  expect(userscript).not.toContain('server:Demo')
+  expect(userscript).not.toContain('dev:Demo')
   expect(userscript).toMatch(/@name\s+Demo/)
 })
 

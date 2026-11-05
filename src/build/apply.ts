@@ -8,7 +8,7 @@ import type { OutputBundle, OutputChunk } from './bundle.js'
 
 import { resolve } from 'node:path'
 import { resolveBuildHeader } from '../grants/policy.js'
-import { generateHeader } from '../header.js'
+import { generateHeader, prefixHeaderName, resolveDevInstallPrefix } from '../header.js'
 import {
   countHeaderLines,
   offsetSourceMap,
@@ -114,13 +114,17 @@ function createHeadedUserscript(
     cssPrelude: string
     inlined: string
     map?: OutputChunk['map']
+    namePrefix?: string | false
     requirePrefixLines?: number
     wrapped: string
   },
 ): { code: string, headerConfig: HeaderConfig } {
-  const headerConfig = resolveBuildHeader(
-    withExternalRequires(script.header, script.external),
-    options.wrapped,
+  const headerConfig = prefixHeaderName(
+    resolveBuildHeader(
+      withExternalRequires(script.header, script.external),
+      options.wrapped,
+    ),
+    options.namePrefix ?? false,
   )
   const header = generateHeader(headerConfig, {
     align: script.headerAlign,
@@ -165,6 +169,7 @@ function deleteBundleFiles(
 export type ApplyUserscriptBundleContext = {
   emitFile: (fileName: string, source: string) => void
   emitProxy?: boolean
+  mode?: string
   outDir?: string
   publicDir: string
   root: string
@@ -235,6 +240,10 @@ export function applyUserscriptBundle(
     const emitFileProxy = Boolean(
       context.emitProxy && context.outDir && script.server.file,
     )
+    const namePrefix = resolveDevInstallPrefix(
+      emitFileProxy ? context.mode : undefined,
+      script.server.prefix,
+    )
 
     leftoverAssets.push(`${fileName}.map`)
 
@@ -252,6 +261,7 @@ export function applyUserscriptBundle(
       cssPrelude,
       inlined,
       map: chunk.map,
+      namePrefix,
       requirePrefixLines,
       wrapped,
     })
@@ -278,7 +288,11 @@ export function applyUserscriptBundle(
       chunk.fileName = requireName
       emitFile(
         toProxyFileName(script.fileName),
-        `${generateWatchProxy(script, resolve(context.outDir!, requireName))}\n`,
+        `${generateWatchProxy(
+          script,
+          resolve(context.outDir!, requireName),
+          { namePrefix },
+        )}\n`,
       )
       emitFile(`${script.fileName}.user.js`, headed.code)
       continue

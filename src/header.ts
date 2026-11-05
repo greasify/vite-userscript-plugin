@@ -244,6 +244,26 @@ function sanitizeMetaText(text: string): string {
   return text.replace(/[\r\n\u2028\u2029]+/g, ' ')
 }
 
+export function prefixHeaderName(header: HeaderConfig, prefix: string | false): HeaderConfig {
+  if (prefix === false) {
+    return header
+  }
+
+  const next: HeaderConfig = { ...header }
+
+  for (const key of Object.keys(next)) {
+    if ((key === 'name' || key.startsWith('name:')) && typeof next[key] === 'string') {
+      next[key] = `${prefix}${next[key]}`
+    }
+  }
+
+  return next
+}
+
+export function resolveDevInstallPrefix(mode: string | undefined, prefix: string | false): string | false {
+  return mode === 'development' ? prefix : false
+}
+
 function formatValue(value: unknown): string | undefined {
   if (Array.isArray(value)) {
     return sanitizeMetaText(value.join(' '))

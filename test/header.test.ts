@@ -4,6 +4,8 @@ import { expect, it } from 'vitest'
 import { grants } from '../src/grants/catalog.js'
 import {
   generateHeader,
+  prefixHeaderName,
+  resolveDevInstallPrefix,
   resolvePublicFileUrl,
 } from '../src/header.js'
 
@@ -557,4 +559,35 @@ it('header serveOrigin joins relative icon without homepage', () => {
   )
 
   expect(header).toContain('http://localhost:5173/greasify.svg')
+})
+
+it('prefixHeaderName prefixes @name and localized names', () => {
+  const header = prefixHeaderName({
+    'name': 'Demo',
+    'name:en': 'Demo EN',
+    'namespace': 'demo',
+    'version': '1.0.0',
+    'match': 'https://example.com/*',
+  }, 'dev:')
+
+  expect(header.name).toBe('dev:Demo')
+  expect(header['name:en']).toBe('dev:Demo EN')
+  expect(header.namespace).toBe('demo')
+})
+
+it('prefixHeaderName keeps the header when the prefix is disabled', () => {
+  const header = {
+    name: 'Demo',
+    version: '1.0.0',
+    match: 'https://example.com/*',
+  }
+
+  expect(prefixHeaderName(header, false)).toBe(header)
+})
+
+it('resolveDevInstallPrefix applies only in development mode', () => {
+  expect(resolveDevInstallPrefix('development', 'dev:')).toBe('dev:')
+  expect(resolveDevInstallPrefix('development', false)).toBe(false)
+  expect(resolveDevInstallPrefix('production', 'dev:')).toBe(false)
+  expect(resolveDevInstallPrefix(undefined, 'dev:')).toBe(false)
 })

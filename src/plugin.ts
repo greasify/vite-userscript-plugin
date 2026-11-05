@@ -316,6 +316,7 @@ function UserscriptPlugin(config: UserscriptPluginConfig): Plugin[] {
             })
           },
           emitProxy: shouldEmitProxy(),
+          mode,
           outDir,
           publicDir,
           root,

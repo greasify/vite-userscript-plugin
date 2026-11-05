@@ -4,6 +4,7 @@ import type { ResolvedPluginConfig } from '../types.js'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { generateWatchProxy, toRequireFileName } from '../build/proxy.js'
+import { resolveDevInstallPrefix } from '../header.js'
 import {
   createAfterLocalLogger,
   formatFaqHint,
@@ -110,7 +111,10 @@ export function configureDevServer(server: ViteDevServer, resolved: ResolvedPlug
         toRequireFileName(proxyScript.fileName),
       )
       const origin = resolveServerOrigin(server.resolvedUrls)
-      writeScript(res, `${generateWatchProxy(proxyScript, jsAbsPath, origin)}\n`)
+      writeScript(res, `${generateWatchProxy(proxyScript, jsAbsPath, {
+        namePrefix: resolveDevInstallPrefix(server.config.mode, proxyScript.server.prefix),
+        serveOrigin: origin,
+      })}\n`)
       return
     }
 

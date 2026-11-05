@@ -82,14 +82,14 @@ Or `tsconfig.json`:
 
 Details: [types/README.md](./types/README.md).
 
-`vite` prints `/{fileName}.dev.user.js` — install that URL once. HMR covers code and styles.
+`vite` prints `/{fileName}.dev.user.js` — install that URL once. `@name` is prefixed with `dev:` so the dev script does not replace the production one. HMR covers code and styles.
 
-`server.file: true` skips HMR. The same `vite` watch-builds `{fileName}.user.js` (headed IIFE), `{fileName}.js`, and `{fileName}.proxy.user.js` (`@require file://` to the IIFE). Install the printed `/{fileName}.user.js` URL (Firefox-safe). The `Proxy` line is for managers that can poll `file://`. See [examples/serve-file](./examples/serve-file).
+`server.file: true` skips HMR. The same `vite` watch-builds `{fileName}.user.js` (headed IIFE), `{fileName}.js`, and `{fileName}.proxy.user.js` (`@require file://` to the IIFE). Those installable headers use the same `dev:` prefix. Install the printed `/{fileName}.user.js` URL (Firefox-safe). The `Proxy` line is for managers that can poll `file://`. See [examples/serve-file](./examples/serve-file).
 
 > [!IMPORTANT]
 > Changing `@match`, `@grant`, or `@name` needs a reinstall. Serve logs a hint when those fields change.
 
-`vite build` writes `{fileName}.user.js` to `dist/`. One-shot builds do not emit the proxy.
+`vite build` writes `{fileName}.user.js` to `dist/` with the original `@name`. One-shot builds do not emit the proxy.
 
 ## Multiple scripts
 
@@ -147,7 +147,7 @@ See [examples/sourcemap](./examples/sourcemap).
 | `header` | — | Metablock. Required: `name`, `version`, `match`. Relative `icon` / `require` / `resource` / `supportURL` / `updateURL` / `downloadURL` join `homepage` (`homepageURL` / `website` / `source`). In serve, relative `icon` / `require` / `resource` join the Vite origin instead so the manager can fetch them from localhost. Absolute `http(s):` URLs stay as-is. `updateURL` / `downloadURL` of `none` disable updates and are not joined. |
 | `fileName` | sanitized `header.name` | Output base name (`{fileName}.user.js`). |
 | `server.open` | `false` | Open the install target when Vite starts (`true`, `'user'`, `'proxy'`). HMR: `.dev.user.js`. `file`: `.user.js` or `.proxy.user.js`. Vite opens one URL. |
-| `server.prefix` | `'server:'` | Prefix for `@name` in serve mode. `false` disables it. |
+| `server.prefix` | `'dev:'` | Prefix for `@name` and `@name:xx` on dev installs (HMR `.dev.user.js`, file-mode `.user.js`, proxy). `vite build` keeps the original name. `false` disables it. |
 | `server.file` | `false` | Watch-build `{fileName}.user.js` + `{fileName}.js` + `{fileName}.proxy.user.js`. Install `.user.js` (or the proxy if `file://` `@require` works). No HMR. |
 | `headerAlign` | `1` | Extra spaces after the longest `@key`. `false` — one space. |
 | `generate` | — | Rewrite the generated metablock. |

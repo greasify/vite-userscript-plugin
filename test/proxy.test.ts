@@ -38,7 +38,7 @@ it('createWatchProxyHeader appends the file require', () => {
   const header = createWatchProxyHeader(resolveDemo(), '/proj/dist/demo.js')
 
   expect(header.require).toEqual([toFileRequireUrl('/proj/dist/demo.js')])
-  expect(header.name).toBe('Demo')
+  expect(header.name).toBe('dev:Demo')
   expect(header.grant).toContain('GM_addStyle')
   expect(header.grant).toContain('unsafeWindow')
 })
@@ -82,14 +82,21 @@ it('generateWatchProxy is a metablock without a body', () => {
 
   expect(proxy).toContain('==UserScript==')
   expect(proxy).toContain('@name')
-  expect(proxy).toContain('Demo')
+  expect(proxy).toContain('dev:Demo')
   expect(proxy).toContain('@require')
   expect(proxy).toContain('file://')
   expect(proxy).toContain('demo.js')
   expect(proxy).toContain('GM_addStyle')
-  expect(proxy).not.toContain('server:Demo')
+  expect(proxy).toMatch(/@name\s+dev:Demo/)
   expect(proxy).not.toContain('(function')
   expect(proxy).not.toContain('/@vite/client')
+})
+
+it('generateWatchProxy keeps the production name when the prefix is off', () => {
+  const proxy = generateWatchProxy(resolveDemo(), '/proj/dist/demo.js', { namePrefix: false })
+
+  expect(proxy).toMatch(/@name\s+Demo/)
+  expect(proxy).not.toContain('dev:Demo')
 })
 
 it('createWatchProxyHeader appends external CDN requires', () => {
@@ -126,7 +133,9 @@ it('generateWatchProxy joins relative resource to serveOrigin', () => {
       resource: [['hint', 'hint.json']],
     },
   }).scripts[0]!
-  const proxy = generateWatchProxy(script, '/proj/dist/demo.js', 'http://localhost:5173')
+  const proxy = generateWatchProxy(script, '/proj/dist/demo.js', {
+    serveOrigin: 'http://localhost:5173',
+  })
 
   expect(proxy).toContain('http://localhost:5173/hint.json')
   expect(proxy).not.toContain(

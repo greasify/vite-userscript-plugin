@@ -82,6 +82,7 @@ it('resolvePluginConfig keeps server.file', () => {
   })
 
   expect(resolved.scripts[0]?.server.file).toBe(true)
+  expect(resolved.scripts[0]?.server.prefix).toBe('dev:')
 })
 
 it('resolvePluginConfig resolves external CDN requires', () => {

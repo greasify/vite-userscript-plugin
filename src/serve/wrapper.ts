@@ -12,7 +12,7 @@ import {
 } from '../constants.js'
 import { gmIdentifiers } from '../grants/catalog.js'
 import { withServeGrants } from '../grants/policy.js'
-import { generateHeader } from '../header.js'
+import { generateHeader, prefixHeaderName } from '../header.js'
 
 export function matchUserscriptPath(url: string, fileName: string, suffix: string): boolean {
   const path = url.split('?')[0] ?? ''
@@ -62,12 +62,7 @@ export function applyServeHeader(
   prefix: string | false,
   externals: readonly ResolvedExternal[] = [],
 ): HeaderConfig {
-  const named: HeaderConfig = {
-    ...header,
-    name: prefix === false ? header.name : `${prefix}${header.name}`,
-  }
-
-  return withServeGrants(withExternalRequires(named, externals))
+  return withServeGrants(withExternalRequires(prefixHeaderName(header, prefix), externals))
 }
 
 export function generateDevWrapper(options: {

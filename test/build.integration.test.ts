@@ -489,10 +489,13 @@ it('one-shot build with server.file does not emit a proxy', async () => {
   })
 
   const files = await listOut(outDir)
+  const userscript = await readOut(outDir, 'vanilla.user.js')
 
   expect(files).toContain('vanilla.user.js')
   expect(files).not.toContain('vanilla.proxy.user.js')
   expect(files).not.toContain('vanilla.js')
+  expect(userscript).toMatch(/@name\s+Vanilla/)
+  expect(userscript).not.toContain('dev:Vanilla')
 })
 
 it('development build with server.file emits a proxy, IIFE, and headed userscript', async () => {
@@ -531,6 +534,7 @@ it('development build with server.file emits a proxy, IIFE, and headed userscrip
   const files = await listOut(outDir)
 
   expect(proxy).toContain('==UserScript==')
+  expect(proxy).toMatch(/@name\s+dev:Vanilla/)
   expect(proxy).toContain('@require')
   expect(proxy).toContain('file://')
   expect(proxy).toContain('vanilla.js')
@@ -540,6 +544,7 @@ it('development build with server.file emits a proxy, IIFE, and headed userscrip
   expect(iife).not.toContain('==UserScript==')
   expect(iife).toContain('userscript-fixture')
   expect(userscript).toContain('==UserScript==')
+  expect(userscript).toMatch(/@name\s+dev:Vanilla/)
   expect(userscript).toContain('userscript-fixture')
   expect(userscript).not.toContain('file://')
   expect(files).toContain('vanilla.user.js')

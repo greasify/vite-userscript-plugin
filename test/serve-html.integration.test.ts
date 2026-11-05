@@ -36,7 +36,7 @@ it('serve transforms index.html and still serves the install script', async () =
     expect(html).toContain('/src/page.ts')
     expect(html).not.toContain('/src/main.ts')
     expect(install).toContain('==UserScript==')
-    expect(install).toContain('@name')
+    expect(install).toMatch(/@name\s+dev:HTML App/)
     expect(install).toContain('/src/main.ts')
 
     const virtual = await server.transformRequest('virtual:vite-userscript-plugin')

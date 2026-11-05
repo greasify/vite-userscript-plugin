@@ -222,10 +222,11 @@ export interface ServerConfig {
   open?: ServerOpen
 
   /**
-   * Prefix applied to `@name` in serve mode.
-   * Set `false` to disable.
+   * Prefix applied to `@name` and `@name:xx` on scripts installed from the
+   * dev server: HMR `.dev.user.js`, file-mode `.user.js`, and `.proxy.user.js`.
+   * `vite build` keeps the original name. Set `false` to disable.
    *
-   * @default 'server:'
+   * @default 'dev:'
    */
   prefix?: string | false
 

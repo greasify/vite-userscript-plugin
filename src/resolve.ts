@@ -77,7 +77,7 @@ function toResolvedScript(config: UserscriptConfig): ResolvedScript {
     header: config.header,
     server: {
       open: resolveServerOpen(config.server?.open, file),
-      prefix: config.server?.prefix ?? 'server:',
+      prefix: config.server?.prefix ?? 'dev:',
       file,
     },
     headerAlign: config.headerAlign ?? 1,

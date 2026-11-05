@@ -2,7 +2,7 @@ import type { HeaderConfig, ResolvedScript } from '../types.js'
 
 import { pathToFileURL } from 'node:url'
 import { withServeGrants } from '../grants/policy.js'
-import { generateHeader } from '../header.js'
+import { generateHeader, prefixHeaderName } from '../header.js'
 import { withExternalRequires } from './external.js'
 
 export function toFileRequireUrl(absPath: string): string {
@@ -20,8 +20,12 @@ function toRequireList(value: HeaderConfig['require']): string[] {
 export function createWatchProxyHeader(
   script: ResolvedScript,
   jsAbsPath: string,
+  namePrefix: string | false = script.server.prefix,
 ): HeaderConfig {
-  const header = withServeGrants(withExternalRequires(script.header, script.external))
+  const header = withServeGrants(withExternalRequires(
+    prefixHeaderName(script.header, namePrefix),
+    script.external,
+  ))
 
   return {
     ...header,
@@ -32,15 +36,22 @@ export function createWatchProxyHeader(
 export function generateWatchProxy(
   script: ResolvedScript,
   jsAbsPath: string,
-  serveOrigin?: string,
+  options: {
+    namePrefix?: string | false
+    serveOrigin?: string
+  } = {},
 ): string {
-  return generateHeader(createWatchProxyHeader(script, jsAbsPath), {
+  const namePrefix = options.namePrefix === undefined
+    ? script.server.prefix
+    : options.namePrefix
+
+  return generateHeader(createWatchProxyHeader(script, jsAbsPath, namePrefix), {
     align: script.headerAlign,
     autoMetaUrls: false,
     fileName: script.fileName,
     generate: script.generate,
     mode: 'serve',
-    serveOrigin,
+    serveOrigin: options.serveOrigin,
   })
 }
 
